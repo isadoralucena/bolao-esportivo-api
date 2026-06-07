@@ -36,6 +36,7 @@ public class Usuario {
     @Column(nullable = false)
     private String endereco;
 
+    @JsonProperty("perfil")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
