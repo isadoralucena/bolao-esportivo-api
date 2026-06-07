@@ -3,6 +3,7 @@ package com.ufcg.psoft.project.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.ufcg.psoft.project.dto.UsuarioResponseDTO;
+import com.ufcg.psoft.project.model.PerfilUsuario;
 import com.ufcg.psoft.project.model.Usuario;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
 import org.junit.jupiter.api.*;
@@ -42,6 +43,8 @@ public class UsuarioTestAula {
         objectMapper.registerModule(new JavaTimeModule());
         Usuario usuario1 = usuarioRepository.save(Usuario.builder()
                 .nome("Usuario")
+                .username("usuario")
+                .email("usuario@email.com")
                 .endereco("Rua 123")
                 .codigo("123456")
                 .build()
@@ -49,6 +52,8 @@ public class UsuarioTestAula {
 
         Usuario usuario2 = usuarioRepository.save(Usuario.builder()
                 .nome("Usuaria")
+                .username("usuaria")
+                .email("usuaria@email.com")
                 .endereco("Rua 234")
                 .codigo("123456")
                 .build()
@@ -56,8 +61,11 @@ public class UsuarioTestAula {
 
         UsuarioResponseDTO r1 = UsuarioResponseDTO.builder()
                 .nome(usuario1.getNome())
+                .username(usuario1.getUsername())
+                .email(usuario1.getEmail())
                 .endereco(usuario1.getEndereco())
                 .id(usuario1.getId())
+                .perfil(PerfilUsuario.PADRAO)
                 .build();
 
         usuariosDTO.add(r1);
