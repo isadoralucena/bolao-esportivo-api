@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(
-value = "/campeonato",
+value = "/campeonatos",
 produces = MediaType.APPLICATION_JSON_VALUE
 )
 public class CampeonatoController {
