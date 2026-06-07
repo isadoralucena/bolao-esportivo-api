@@ -1,6 +1,7 @@
 package com.ufcg.psoft.project.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.ufcg.psoft.project.model.PerfilUsuario;
 import com.ufcg.psoft.project.model.Usuario;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -26,13 +27,28 @@ public class UsuarioResponseDTO {
     @NotBlank(message = "Nome obrigatorio")
     private String nome;
 
+    @JsonProperty("email")
+    @NotBlank(message = "Email obrigatorio")
+    private String email;
+
+    @JsonProperty("username")
+    @NotBlank(message = "Username obrigatorio")
+    private String username;
+
     @JsonProperty("endereco")
     @NotBlank(message = "Endereco obrigatorio")
     private String endereco;
 
+    @JsonProperty("perfil")
+    @NotBlank(message = "Perfil obrigatorio")
+    private PerfilUsuario perfil;
+
     public UsuarioResponseDTO(Usuario usuario) {
         this.id = usuario.getId();
         this.nome = usuario.getNome();
+        this.email = usuario.getEmail();
+        this.username = usuario.getUsername();
         this.endereco = usuario.getEndereco();
+        this.perfil = usuario.getPerfil();
     }
 }

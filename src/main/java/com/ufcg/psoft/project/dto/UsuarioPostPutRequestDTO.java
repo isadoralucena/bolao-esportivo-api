@@ -19,6 +19,14 @@ public class UsuarioPostPutRequestDTO {
     @NotBlank(message = "Nome obrigatorio")
     private String nome;
 
+    @JsonProperty("email")
+    @NotBlank(message = "Email obrigatorio")
+    private String email;
+
+    @JsonProperty("username")
+    @NotBlank(message = "Username obrigatorio")
+    private String username;
+
     @JsonProperty("endereco")
     @NotBlank(message = "Endereco obrigatorio")
     private String endereco;

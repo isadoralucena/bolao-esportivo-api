@@ -24,10 +24,23 @@ public class Usuario {
     @Column(nullable = false)
     private String nome;
 
+    @JsonProperty("email")
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    @JsonProperty("username")
+    @Column(nullable = false)
+    private String username;
+
     @JsonProperty("endereco")
     @Column(nullable = false)
     private String endereco;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private PerfilUsuario perfil = PerfilUsuario.PADRAO;
+    
     @JsonIgnore
     @Column(nullable = false)
     private String codigo;
