@@ -371,18 +371,6 @@ public class UsuarioControllerTests {
         void quandoAtribuimosPerfilInvalido() {
 
         }
-
-        @Test
-        @DisplayName("Quando já existe um admin cadastrado e tentamos atribuir outro") 
-        void quandoJaExisteAdminETentamosAtribuirOutro() {
-
-        }
-
-        @Test
-        @DisplayName("Quando promovemos a admin corretamente")
-        void quandoPromovemosAAdmin() {
-
-        }
     }
 
     @Nested
