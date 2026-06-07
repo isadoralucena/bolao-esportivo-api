@@ -33,7 +33,7 @@ public class CampeonatoController {
 			.body(campeonatoService.listar());
 	}
 
-	@GetMapping("/search")
+	@GetMapping("/buscar")
 	public ResponseEntity<?> buscarCampeonatoPorNome(@RequestParam String nome) {
 		return ResponseEntity
 			.status(HttpStatus.OK)
