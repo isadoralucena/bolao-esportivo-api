@@ -334,6 +334,74 @@ public class UsuarioControllerTests {
     }
 
     @Nested
+    @DisplayName("Conjunto de casos de verificação do email")
+    class usuarioVerificacaoEmail {
+        @Test
+        @DisplayName("Quando criamos usuario com email nulo")
+        void quandoCriamosUsuarioComEmailNulo() throws Exception {
+        }
+
+        @Test
+        @DisplayName("Quando criamos usuario com email vazio")
+        void quandoCriamosUsuarioComEmailVazio() {
+        }
+
+        @Test
+        @DisplayName("Quando criamos usuario com email invalido")
+        void quandoCriamosUsuarioComEmailInvalido() {
+        }
+
+        @Test
+        @DisplayName("Quando alteramos usuario usando email de outro usuario")
+        void quandoAlteramosUsuarioComEmailDuplicado() {
+        }
+    }
+
+    @Nested
+    @DisplayName("Conjunto de casos de verificação do perfil")
+    class usuarioVerificacaoPerfil {
+        @Test
+        @DisplayName("Quando criamos um usuário, ele deve ter o perfil padrão")
+        void quandoCriamosUsuarioEleTemPerfilPadrao() {
+            
+        }
+
+        @Test
+        @DisplayName("Quando atribuimos um perfil inválido")
+        void quandoAtribuimosPerfilInvalido() {
+
+        }
+
+        @Test
+        @DisplayName("Quando já existe um admin cadastrado e tentamos atribuir outro") 
+        void quandoJaExisteAdminETentamosAtribuirOutro() {
+
+        }
+
+        @Test
+        @DisplayName("Quando promovemos a admin corretamente")
+        void quandoPromovemosAAdmin() {
+
+        }
+    }
+
+    @Nested
+    @DisplayName("Conjunto de casos de verificação do username")
+    class usuarioVerificacaoUsername {
+        @Test
+        @DisplayName("Quando criamos usuario com username nulo")
+        void quandoCriamosUsuarioComUsernameNulo() {
+
+        }
+
+        @Test
+        @DisplayName("Quando criamos usuario com username vazio")
+        void quandoCriamosUsuarioComUsernameVazio() {
+
+        }
+    }
+
+    @Nested
     @DisplayName("Conjunto de casos de verificação dos fluxos básicos API Rest")
     class usuarioVerificacaoFluxosBasicosApiRest {
 
