@@ -2,6 +2,7 @@ package com.ufcg.psoft.project.service.usuario;
 
 import com.ufcg.psoft.project.exception.UsuarioNaoExisteException;
 import com.ufcg.psoft.project.exception.CodigoDeAcessoInvalidoException;
+import com.ufcg.psoft.project.exception.EmailJaCadastradoException;
 import com.ufcg.psoft.project.model.Usuario;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
 import com.ufcg.psoft.project.dto.UsuarioPostPutRequestDTO;
@@ -34,6 +35,11 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     public UsuarioResponseDTO criar(UsuarioPostPutRequestDTO usuarioPostPutRequestDTO) {
+        String email = usuarioPostPutRequestDTO.getEmail().trim().toLowerCase();
+        if (usuarioRepository.existsByEmail(email)) {
+            throw new EmailJaCadastradoException();
+        }
+
         Usuario usuario = modelMapper.map(usuarioPostPutRequestDTO, Usuario.class);
         usuarioRepository.save(usuario);
         return modelMapper.map(usuario, UsuarioResponseDTO.class);
