@@ -49,12 +49,16 @@ public class UsuarioControllerTests {
         usuario = usuarioRepository.save(Usuario.builder()
                 .nome("usuario Um da Silva")
                 .endereco("Rua dos Testes, 123")
+                .username("usuarioUmDaSilva")
+                .email("usuario.um.da.silva@email.com")
                 .codigo("123456")
                 .build()
         );
         usuarioPostPutRequestDTO = UsuarioPostPutRequestDTO.builder()
                 .nome(usuario.getNome())
                 .endereco(usuario.getEndereco())
+                .username(usuario.getUsername())
+                .email(usuario.getEmail())
                 .codigo(usuario.getCodigo())
                 .build();
     }
@@ -340,11 +344,15 @@ public class UsuarioControllerTests {
             // Vamos ter 3 usuarios no banco
             Usuario usuario1 = usuario.builder()
                     .nome("usuario Dois Almeida")
+                    .username("user2")
+                    .email("user2@email.com")
                     .endereco("Av. da Pits A, 100")
                     .codigo("246810")
                     .build();
             Usuario usuario2 = usuario.builder()
                     .nome("usuario Três Lima")
+                    .username("user3")
+                    .email("user3@email.com")
                     .endereco("Distrito dos Testadores, 200")
                     .codigo("135790")
                     .build();
@@ -416,12 +424,18 @@ public class UsuarioControllerTests {
         @DisplayName("Quando criamos um novo usuario com dados válidos")
         void quandoCriarusuarioValido() throws Exception {
             // Arrange
-            // nenhuma necessidade além do setup()
+            UsuarioPostPutRequestDTO novoUsuarioDTO = UsuarioPostPutRequestDTO.builder()
+                            .nome("usuario Dois Almeida")
+                            .endereco("Rua Nova, 456")
+                            .username("usuarioDoisAlmeida")
+                            .email("usuario.dois.almeida@email.com")
+                            .codigo("654321")
+                            .build();
 
             // Act
             String responseJsonString = driver.perform(post(URI_USUARIOS)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
+                            .content(objectMapper.writeValueAsString(novoUsuarioDTO)))
                     .andExpect(status().isCreated()) // Codigo 201
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -431,7 +445,7 @@ public class UsuarioControllerTests {
             // Assert
             assertAll(
                     () -> assertNotNull(resultado.getId()),
-                    () -> assertEquals(usuarioPostPutRequestDTO.getNome(), resultado.getNome())
+                    () -> assertEquals(novoUsuarioDTO.getNome(), resultado.getNome())
             );
 
         }
