@@ -7,7 +7,7 @@ import com.ufcg.psoft.project.exception.CodigoDeAcessoInvalidoException;
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.model.Usuario;
-import com.ufcg.psoft.project.model.PerfilUsuario;
+
 import com.ufcg.psoft.project.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.modelmapper.ModelMapper;
@@ -43,8 +43,8 @@ public class CampeonatoServiceImpl implements CampeonatoService {
 	private final RestTemplate restTemplate = new RestTemplate();
 
 	@Override
-	public List<CampeonatoResponseDTO> sincronizar(String email, String codigo) {
-		verificaAdmin(email, codigo);
+	public List<CampeonatoResponseDTO> sincronizar(Long userId, String codigo) {
+		verificaAdmin(userId, codigo);
 		List<Campeonato> campeonatos = campeonatoRepository.findAll();
 
 		HttpHeaders headers = new HttpHeaders();
@@ -84,8 +84,8 @@ public class CampeonatoServiceImpl implements CampeonatoService {
 	}
 
 	@Override
-	public CampeonatoResponseDTO criar(String email, String codigo, CampeonatoPostPutRequestDTO campeonatoPostPutRequestDTO) {
-		verificaAdmin(email, codigo);
+	public CampeonatoResponseDTO criar(Long userId, String codigo, CampeonatoPostPutRequestDTO campeonatoPostPutRequestDTO) {
+		verificaAdmin(userId, codigo);
 
 		Campeonato campeonato = modelMapper.map(campeonatoPostPutRequestDTO, Campeonato.class);
 		campeonato.setAtivo(false);
@@ -94,8 +94,8 @@ public class CampeonatoServiceImpl implements CampeonatoService {
 	}
 
 	@Override
-	public void remover(String email, String codigo, Long id) {
-		verificaAdmin(email, codigo);
+	public void remover(Long userId, String codigo, Long id) {
+		verificaAdmin(userId, codigo);
 
 		Campeonato campeonato = campeonatoRepository.findById(id).orElseThrow(CampeonatoNaoExisteException::new);
 		campeonatoRepository.delete(campeonato);
@@ -124,8 +124,8 @@ public class CampeonatoServiceImpl implements CampeonatoService {
 	}
 
 	@Override
-	public CampeonatoResponseDTO ativar(String email, String codigo, Long id) {
-		verificaAdmin(email, codigo);
+	public CampeonatoResponseDTO ativar(Long userId, String codigo, Long id) {
+		verificaAdmin(userId, codigo);
 
 		Campeonato campeonato = campeonatoRepository.findById(id).orElseThrow(CampeonatoNaoExisteException::new);
 		campeonato.setAtivo(true);
@@ -134,8 +134,8 @@ public class CampeonatoServiceImpl implements CampeonatoService {
 	}
 
 	@Override
-	public CampeonatoResponseDTO desativar(String email, String codigo, Long id) {
-		verificaAdmin(email, codigo);
+	public CampeonatoResponseDTO desativar(Long userId, String codigo, Long id) {
+		verificaAdmin(userId, codigo);
 
 		Campeonato campeonato = campeonatoRepository.findById(id).orElseThrow(CampeonatoNaoExisteException::new);
 		campeonato.setAtivo(false);
@@ -143,9 +143,9 @@ public class CampeonatoServiceImpl implements CampeonatoService {
 		return modelMapper.map(campeonato, CampeonatoResponseDTO.class);
 	}
 
-	private void verificaAdmin(String email, String codigo) {
-		Usuario usuario = usuarioRepository.findByEmail(email);
-		if (usuario == null || !usuario.getCodigo().equals(codigo) || usuario.getPerfil() != PerfilUsuario.ADMIN) {
+	private void verificaAdmin(Long userId, String codigo) {
+		Usuario usuario = usuarioRepository.findById(userId).orElse(null);
+		if (usuario == null || !usuario.getCodigo().equals(codigo) || !usuario.isAdministrador()) {
 			throw new CodigoDeAcessoInvalidoException();
 		}
 	}

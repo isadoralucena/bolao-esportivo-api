@@ -43,44 +43,44 @@ public class CampeonatoController {
 
 	@PostMapping("")
 	public ResponseEntity<?> criarCampeonato(
-		@RequestParam String email,
+		@RequestParam Long userId,
 		@RequestParam String senha,
 		@RequestBody @Valid CampeonatoPostPutRequestDTO dto) {
 
-		return ResponseEntity
-			.status(HttpStatus.CREATED)
-			.body(campeonatoService.criar(email, senha, dto));
+	return ResponseEntity
+		.status(HttpStatus.CREATED)
+		.body(campeonatoService.criar(userId, senha, dto));
 	}
 
 	@PutMapping("/{id}/ativar")
 	public ResponseEntity<?> ativarCampeonato(
 		@PathVariable Long id,
-		@RequestParam String email,
+		@RequestParam Long userId,
 		@RequestParam String senha) {
-		
+
 		return ResponseEntity
 			.status(HttpStatus.OK)
-			.body(campeonatoService.ativar(email, senha, id));
+			.body(campeonatoService.ativar(userId, senha, id));
 	}
 
 	@PutMapping("/{id}/desativar")
 	public ResponseEntity<?> desativarCampeonato(
 		@PathVariable Long id,
-		@RequestParam String email,
+		@RequestParam Long userId,
 		@RequestParam String senha) {
-		
+
 		return ResponseEntity
 			.status(HttpStatus.OK)
-			.body(campeonatoService.desativar(email, senha, id));
+			.body(campeonatoService.desativar(userId, senha, id));
 	}
 
 	@DeleteMapping("/{id}")
 	public ResponseEntity<?> excluirCampeonato(
 		@PathVariable Long id,
-		@RequestParam String email,
+		@RequestParam Long userId,
 		@RequestParam String senha) {
-		
-		campeonatoService.remover(email, senha, id);
+
+		campeonatoService.remover(userId, senha, id);
 
 		return ResponseEntity
 			.status(HttpStatus.NO_CONTENT)
@@ -88,9 +88,9 @@ public class CampeonatoController {
 	}
 
 	@PostMapping("/sincronizar")
-	public ResponseEntity<?> sincronizarCampeonatos(@RequestParam String email, @RequestParam String senha) {
+	public ResponseEntity<?> sincronizarCampeonatos(@RequestParam Long userId, @RequestParam String senha) {
 		return ResponseEntity
 			.status(HttpStatus.OK)
-			.body(campeonatoService.sincronizar(email, senha));
+			.body(campeonatoService.sincronizar(userId, senha));
 	}
 }

@@ -15,34 +15,37 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Usuario {
 
-    @JsonProperty("id")
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private Long id;
+	@JsonProperty("id")
+	@Id
+	@GeneratedValue(strategy = GenerationType.SEQUENCE)
+	private Long id;
 
-    @JsonProperty("nome")
-    @Column(nullable = false)
-    private String nome;
+	@JsonProperty("nome")
+	@Column(nullable = false)
+	private String nome;
 
-    @JsonProperty("email")
-    @Column(nullable = false, unique = true)
-    private String email;
+	@JsonProperty("email")
+	@Column(nullable = false, unique = true)
+	private String email;
 
-    @JsonProperty("username")
-    @Column(nullable = false)
-    private String username;
+	@JsonProperty("username")
+	@Column(nullable = false)
+	private String username;
 
-    @JsonProperty("endereco")
-    @Column(nullable = false)
-    private String endereco;
+	@JsonProperty("endereco")
+	@Column(nullable = false)
+	private String endereco;
 
-    @JsonProperty("perfil")
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    @Builder.Default
-    private PerfilUsuario perfil = PerfilUsuario.PADRAO;
-    
-    @JsonIgnore
-    @Column(nullable = false)
-    private String codigo;
+	@JsonProperty("perfil")
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	@Builder.Default
+	private PerfilUsuario perfil = PerfilUsuario.PADRAO;
+
+	@JsonIgnore
+	@Column(nullable = false)
+	private String codigo;
+
+	@Column(nullable = false)
+	private boolean isAdministrador = false;
 }
