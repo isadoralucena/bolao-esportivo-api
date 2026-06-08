@@ -9,6 +9,7 @@ import java.util.Optional;
 
 @Repository
 public interface CampeonatoRepository extends JpaRepository<Campeonato, Long> {
-    List<Campeonato> findByNomeContaining(String nome);
+    List<Campeonato> findByNomeContainingIgnoreCase(String nome);
+    Optional<Campeonato> findByCodigoIgnoreCase(String codigo);
     Optional<Campeonato> findByCodigo(String codigo);
 }
