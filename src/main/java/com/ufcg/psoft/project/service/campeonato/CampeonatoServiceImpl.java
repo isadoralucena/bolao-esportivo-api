@@ -72,9 +72,9 @@ public class CampeonatoServiceImpl implements CampeonatoService {
 					}
 					campeonatoRepository.save(campeonato);
 				}
-} catch (Exception e) {
-			System.err.println("Warning: Não foi possivel sincronizar campeonato com:" + campeonato.getUrl() + " - " + e.getMessage());
-		}
+			} catch (Exception e) {
+				System.err.println("Warning: Não foi possivel sincronizar campeonato com:" + campeonato.getUrl() + " - " + e.getMessage());
+			}
 
 		}
 
