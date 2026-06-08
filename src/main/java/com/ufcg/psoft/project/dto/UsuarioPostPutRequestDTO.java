@@ -1,6 +1,8 @@
 package com.ufcg.psoft.project.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -18,6 +20,15 @@ public class UsuarioPostPutRequestDTO {
     @JsonProperty("nome")
     @NotBlank(message = "Nome obrigatorio")
     private String nome;
+
+    @JsonProperty("email")
+    @NotBlank(message = "Email obrigatorio")
+    @Email(message = "Email invalido")
+    private String email;
+
+    @JsonProperty("username")
+    @NotBlank(message = "Username obrigatorio")
+    private String username;
 
     @JsonProperty("endereco")
     @NotBlank(message = "Endereco obrigatorio")
