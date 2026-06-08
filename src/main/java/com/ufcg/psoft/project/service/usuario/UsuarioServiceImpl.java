@@ -1,12 +1,12 @@
 package com.ufcg.psoft.project.service.usuario;
 
 import com.ufcg.psoft.project.exception.UsuarioNaoExisteException;
+import com.ufcg.psoft.project.dto.usuario.UsuarioPostPutRequestDTO;
+import com.ufcg.psoft.project.dto.usuario.UsuarioResponseDTO;
 import com.ufcg.psoft.project.exception.CodigoDeAcessoInvalidoException;
 import com.ufcg.psoft.project.exception.EmailJaCadastradoException;
 import com.ufcg.psoft.project.model.Usuario;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
-import com.ufcg.psoft.project.dto.UsuarioPostPutRequestDTO;
-import com.ufcg.psoft.project.dto.UsuarioResponseDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

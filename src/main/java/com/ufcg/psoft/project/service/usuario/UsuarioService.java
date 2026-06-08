@@ -1,9 +1,9 @@
 package com.ufcg.psoft.project.service.usuario;
 
-import com.ufcg.psoft.project.dto.UsuarioPostPutRequestDTO;
-import com.ufcg.psoft.project.dto.UsuarioResponseDTO;
-
 import java.util.List;
+
+import com.ufcg.psoft.project.dto.usuario.UsuarioPostPutRequestDTO;
+import com.ufcg.psoft.project.dto.usuario.UsuarioResponseDTO;
 
 public interface UsuarioService {
 

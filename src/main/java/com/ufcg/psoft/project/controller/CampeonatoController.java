@@ -1,6 +1,6 @@
 package com.ufcg.psoft.project.controller;
 
-import com.ufcg.psoft.project.dto.CampeonatoPostPutRequestDTO;
+import com.ufcg.psoft.project.dto.campeonato.CampeonatoPostPutRequestDTO;
 import com.ufcg.psoft.project.service.campeonato.CampeonatoService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;

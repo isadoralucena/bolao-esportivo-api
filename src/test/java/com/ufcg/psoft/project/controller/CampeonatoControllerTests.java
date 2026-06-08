@@ -15,7 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.MediaType;
 
-import com.ufcg.psoft.project.dto.CampeonatoPostPutRequestDTO;
+import com.ufcg.psoft.project.dto.campeonato.CampeonatoPostPutRequestDTO;
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
 

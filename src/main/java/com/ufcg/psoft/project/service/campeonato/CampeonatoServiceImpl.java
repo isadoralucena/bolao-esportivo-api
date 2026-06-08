@@ -1,7 +1,7 @@
 package com.ufcg.psoft.project.service.campeonato;
 
-import com.ufcg.psoft.project.dto.CampeonatoPostPutRequestDTO;
-import com.ufcg.psoft.project.dto.CampeonatoResponseDTO;
+import com.ufcg.psoft.project.dto.campeonato.CampeonatoPostPutRequestDTO;
+import com.ufcg.psoft.project.dto.campeonato.CampeonatoResponseDTO;
 import com.ufcg.psoft.project.exception.CampeonatoNaoExisteException;
 import com.ufcg.psoft.project.exception.CodigoDeAcessoInvalidoException;
 import com.ufcg.psoft.project.model.Campeonato;

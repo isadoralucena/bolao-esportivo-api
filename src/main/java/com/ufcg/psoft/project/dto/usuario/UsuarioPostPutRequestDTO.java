@@ -1,4 +1,4 @@
-package com.ufcg.psoft.project.dto;
+package com.ufcg.psoft.project.dto.usuario;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
