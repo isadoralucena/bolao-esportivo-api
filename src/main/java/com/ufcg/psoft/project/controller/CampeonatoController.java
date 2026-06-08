@@ -28,6 +28,7 @@ public class CampeonatoController {
 
 	@GetMapping("")
 	public ResponseEntity<?> listarCampeonatos() {
+
 		return ResponseEntity
 			.status(HttpStatus.OK)
 			.body(campeonatoService.listar());
@@ -42,45 +43,54 @@ public class CampeonatoController {
 
 	@PostMapping("")
 	public ResponseEntity<?> criarCampeonato(
-			@RequestParam String codigoAdmin,
-			@RequestBody @Valid CampeonatoPostPutRequestDTO dto) {
-			return ResponseEntity
-				.status(HttpStatus.CREATED)
-				.body(campeonatoService.criar(codigoAdmin, dto));
-			}
+		@RequestParam String email,
+		@RequestParam String senha,
+		@RequestBody @Valid CampeonatoPostPutRequestDTO dto) {
+
+		return ResponseEntity
+			.status(HttpStatus.CREATED)
+			.body(campeonatoService.criar(email, senha, dto));
+	}
 
 	@PutMapping("/{id}/ativar")
 	public ResponseEntity<?> ativarCampeonato(
-			@PathVariable Long id,
-			@RequestParam String codigoAdmin) {
-			return ResponseEntity
-				.status(HttpStatus.OK)
-				.body(campeonatoService.ativar(codigoAdmin, id));
-			}
+		@PathVariable Long id,
+		@RequestParam String email,
+		@RequestParam String senha) {
+		
+		return ResponseEntity
+			.status(HttpStatus.OK)
+			.body(campeonatoService.ativar(email, senha, id));
+	}
 
 	@PutMapping("/{id}/desativar")
 	public ResponseEntity<?> desativarCampeonato(
-			@PathVariable Long id,
-			@RequestParam String codigoAdmin) {
-			return ResponseEntity
-				.status(HttpStatus.OK)
-				.body(campeonatoService.desativar(codigoAdmin, id));
-			}
+		@PathVariable Long id,
+		@RequestParam String email,
+		@RequestParam String senha) {
+		
+		return ResponseEntity
+			.status(HttpStatus.OK)
+			.body(campeonatoService.desativar(email, senha, id));
+	}
 
 	@DeleteMapping("/{id}")
 	public ResponseEntity<?> excluirCampeonato(
-			@PathVariable Long id,
-			@RequestParam String codigoAdmin) {
-			campeonatoService.remover(codigoAdmin, id);
-			return ResponseEntity
-				.status(HttpStatus.NO_CONTENT)
-				.body("");
-			}
+		@PathVariable Long id,
+		@RequestParam String email,
+		@RequestParam String senha) {
+		
+		campeonatoService.remover(email, senha, id);
+
+		return ResponseEntity
+			.status(HttpStatus.NO_CONTENT)
+			.body("");
+	}
 
 	@PostMapping("/sincronizar")
-	public ResponseEntity<?> sincronizarCampeonatos(@RequestParam String codigoAdmin) {
+	public ResponseEntity<?> sincronizarCampeonatos(@RequestParam String email, @RequestParam String senha) {
 		return ResponseEntity
 			.status(HttpStatus.OK)
-			.body(campeonatoService.sincronizar(codigoAdmin));
+			.body(campeonatoService.sincronizar(email, senha));
 	}
 }
