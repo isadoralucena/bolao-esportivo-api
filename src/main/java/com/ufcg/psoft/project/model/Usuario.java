@@ -1,5 +1,7 @@
 package com.ufcg.psoft.project.model;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
@@ -45,4 +47,10 @@ public class Usuario {
     @JsonIgnore
     @Column(nullable = false)
     private String codigo;
+
+    @OneToMany(mappedBy = "organizador")
+    private List<Grupo> gruposCriados;
+
+    @ManyToMany(mappedBy = "participantes")
+    private List<Grupo> gruposQueParticipo;
 }
