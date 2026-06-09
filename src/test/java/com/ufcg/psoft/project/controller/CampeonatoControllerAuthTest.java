@@ -2,8 +2,9 @@ package com.ufcg.psoft.project.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ufcg.psoft.project.dto.CampeonatoPostPutRequestDTO;
-import com.ufcg.psoft.project.model.PerfilUsuario;
+
 import com.ufcg.psoft.project.model.Usuario;
+import java.util.UUID;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -46,9 +47,10 @@ public class CampeonatoControllerAuthTest {
 		adminUser = Usuario.builder()
 			.nome("Admin")
 			.endereco("Admin St")
-			.email("admin@example.com")
+			.email(UUID.randomUUID().toString() + "@example.com")
+			.username("adminUser")
 			.codigo("123456")
-			.perfil(PerfilUsuario.ADMIN)
+			.administrador(true)
 			.build();
 		usuarioRepository.save(adminUser);
 
@@ -69,7 +71,7 @@ public class CampeonatoControllerAuthTest {
 	@DisplayName("Criar campeonato com credenciais corretas")
 	void createCampeonatoSuccess() throws Exception {
 		mockMvc.perform(post(URI_CAMPEONATOS)
-				.param("email", adminUser.getEmail())
+				.param("userId", adminUser.getId().toString())
 				.param("senha", adminUser.getCodigo())
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(campeonatoDto)))
@@ -80,8 +82,8 @@ public class CampeonatoControllerAuthTest {
 	@DisplayName("Criar campeonato com credenciais erradas")
 	void createCampeonatoBadCredentials() throws Exception {
 		mockMvc.perform(post(URI_CAMPEONATOS)
-				.param("email", adminUser.getEmail())
-				.param("senha", "wrongcode")
+				.param("userId", adminUser.getId().toString())
+				.param("senha", "errada")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(campeonatoDto)))
 			.andExpect(status().isBadRequest());

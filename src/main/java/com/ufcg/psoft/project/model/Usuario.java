@@ -47,5 +47,6 @@ public class Usuario {
 	private String codigo;
 
 	@Column(nullable = false)
-	private boolean isAdministrador = false;
+	@Builder.Default
+	private boolean administrador = false;
 }
