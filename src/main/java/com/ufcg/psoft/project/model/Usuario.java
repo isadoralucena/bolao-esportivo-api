@@ -1,6 +1,7 @@
 package com.ufcg.psoft.project.model;
 
 import java.util.List;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -53,4 +54,7 @@ public class Usuario {
 
     @ManyToMany(mappedBy = "participantes")
     private List<Grupo> gruposQueParticipo;
+
+    @ManyToMany(mappedBy = "convites", cascade = CascadeType.REMOVE)
+    private Set<Convite> convitesPendentes;
 }
