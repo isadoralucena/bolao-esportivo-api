@@ -5,6 +5,8 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -64,7 +66,7 @@ public class ConviteController {
                 .body(conviteService.ignorar(id, idConvidado));
     }
 
-    @PostMapping("/{id}/remover")
+    @DeleteMapping("/{id}/remover")
     public ResponseEntity<Void> removerConvite(
             @RequestParam Long idOrganizador,
             @PathVariable Long id) {
@@ -74,7 +76,7 @@ public class ConviteController {
                 .build();
     }
 
-    @PostMapping("/usuario/{convidadoId}/pendentes")
+    @GetMapping("/usuario/{convidadoId}/pendentes")
     public ResponseEntity<List<ConviteResponseDTO>> listarConvitesPendentes(
             @PathVariable Long convidadoId) {
         return ResponseEntity
