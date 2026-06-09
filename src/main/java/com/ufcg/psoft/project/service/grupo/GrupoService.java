@@ -26,4 +26,6 @@ public interface GrupoService {
     void removerParticipante(Long grupoId, Long usuarioId, String codigoAcesso);
 
     Set<UsuarioResponseDTO> listarParticipantes(Long grupoId, String codigoAcesso);
+
+    GrupoResponseDTO entrarEmGrupoPublico(Long grupoId, String codigoAcesso);
 }

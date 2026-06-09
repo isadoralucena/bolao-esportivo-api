@@ -26,6 +26,7 @@ import com.ufcg.psoft.project.model.Usuario;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
+import com.ufcg.psoft.project.exception.UsuarioJaParticipanteException;
 
 @Service
 public class GrupoServiceImpl implements GrupoService {
@@ -155,6 +156,35 @@ public class GrupoServiceImpl implements GrupoService {
         return grupo.getParticipantes().stream()
                 .map(UsuarioResponseDTO::new)
                 .collect(Collectors.toSet());
+    }
+
+    public GrupoResponseDTO entrarEmGrupoPublico(Long grupoId, String codigoAcesso) {
+        Grupo grupo = grupoRepository.findById(grupoId)
+                .orElseThrow(GrupoNaoExisteException::new);
+        
+        Usuario usuarioLogado = obterUsuario(codigoAcesso);
+        
+        validarEntradaEmGrupoPublico(grupo, usuarioLogado);
+        
+        grupo.getParticipantes().add(usuarioLogado);
+        grupoRepository.save(grupo);
+        return modelMapper.map(grupo, GrupoResponseDTO.class);
+    }
+
+    private void validarEntradaEmGrupoPublico(Grupo grupo, Usuario usuario) {
+        if (grupo.getPrivacidade() == Privacidade.PRIVADA) {
+            throw new PermissaoNegadaException();
+        }
+        if (!grupo.getCampeonato().getAtivo()) {
+            throw new CampeonatoInativoException();
+        }
+        if (grupo.getParticipantes().contains(usuario)) {
+            throw new UsuarioJaParticipanteException();
+        }
+        if (grupo.getLimiteParticipantes() != null &&
+            grupo.getParticipantes().size() >= grupo.getLimiteParticipantes()) {
+            throw new LimiteDeParticipantesAtingidoException();
+        }
     }
 
     private Usuario obterUsuario(String codigoAcesso) {
