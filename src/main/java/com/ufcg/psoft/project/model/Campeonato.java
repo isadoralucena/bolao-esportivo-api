@@ -13,8 +13,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Usuario {
-
+public class Campeonato {
 	@JsonProperty("id")
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -24,29 +23,15 @@ public class Usuario {
 	@Column(nullable = false)
 	private String nome;
 
-	@JsonProperty("email")
-	@Column(nullable = false, unique = true)
-	private String email;
-
-	@JsonProperty("username")
+	@JsonProperty("url")
 	@Column(nullable = false)
-	private String username;
-
-	@JsonProperty("endereco")
-	@Column(nullable = false)
-	private String endereco;
-
-	@JsonProperty("perfil")
-	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
-	@Builder.Default
-	private PerfilUsuario perfil = PerfilUsuario.PADRAO;
-
-	@JsonIgnore
+	private String url;
+	
+	@JsonProperty("codigo")
 	@Column(nullable = false)
 	private String codigo;
 
-	@Column(nullable = false)
+	@JsonProperty("ativo")
 	@Builder.Default
-	private boolean administrador = false;
+	private Boolean ativo = false;
 }
