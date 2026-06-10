@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.ufcg.psoft.project.dto.convite.ConvitePostPutRequestDTO;
 import com.ufcg.psoft.project.dto.convite.ConviteResponseDTO;
@@ -24,6 +25,7 @@ import com.ufcg.psoft.project.repository.ConviteRepository;
 import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
 
+@Service
 public class ConviteServicelmpl implements ConviteService {
 
     @Autowired
@@ -39,8 +41,11 @@ public class ConviteServicelmpl implements ConviteService {
     private ModelMapper modelMapper;
 
     @Override
-    public ConviteResponseDTO criar(ConvitePostPutRequestDTO convitePostPutRequestDTO) {
+    public ConviteResponseDTO criar(String codigoAcessoOrganizador, ConvitePostPutRequestDTO convitePostPutRequestDTO) {
         Usuario organizador = obterUsuario(convitePostPutRequestDTO.getOrganizador());
+        
+        validarUsuário(organizador, codigoAcessoOrganizador);
+
         Usuario convidado = obterUsuario(convitePostPutRequestDTO.getConvidado());
         Grupo grupo = obterGrupo(convitePostPutRequestDTO.getGrupo());
 
@@ -61,32 +66,30 @@ public class ConviteServicelmpl implements ConviteService {
     }
 
     @Override
-    public void remover(Long id, Long idOrganizador) {
+    public void remover(Long id, String codigoAcessoOrganizador) {
         Convite convite = obterConvite(id);
         Usuario organizador = convite.getOrganizador();
+        
+        validarUsuário(organizador, codigoAcessoOrganizador);
 
-        if (organizador.getId() != idOrganizador) {
-            throw new OrganizadorInvalidoException();
-        }
 
         this.conviteRepository.delete(convite);
     }
 
     @Override
-    public ConviteResponseDTO aceitar(Long id, Long idConvidado) {
+    public ConviteResponseDTO aceitar(Long id, String codigoAcesso) {
         Convite convite = obterConvite(id);
 
         if (convite.getStatus() != StatusConvite.PENDENTE) {
             throw new ConviteJaProcessadoException();
         }
 
-        if (convite.getConvidado().getId() != idConvidado) {
-            throw new UsuarioInvalidoException();
-        }
-
         convite.setStatus(StatusConvite.ACEITO);
         
         Usuario convidado = convite.getConvidado();
+
+        validarUsuário(convidado, codigoAcesso);
+
         Grupo grupo = convite.getGrupo();
         
         grupo.getParticipantes().add(convidado);
@@ -99,16 +102,14 @@ public class ConviteServicelmpl implements ConviteService {
     }
 
     @Override
-    public ConviteResponseDTO recusar(Long id, Long idConvidado) {
+    public ConviteResponseDTO recusar(Long id, String codigoAcesso) {
         Convite convite = obterConvite(id);
         
         if (convite.getStatus() != StatusConvite.PENDENTE) {
             throw new ConviteJaProcessadoException();
         }
 
-        if (convite.getConvidado().getId() != idConvidado) {
-            throw new UsuarioInvalidoException();
-        }
+        validarUsuário(convite.getConvidado(), codigoAcesso);
 
         convite.setStatus(StatusConvite.RECUSADO);
         this.conviteRepository.save(convite);
@@ -118,16 +119,14 @@ public class ConviteServicelmpl implements ConviteService {
     }
 
     @Override
-    public ConviteResponseDTO ignorar(Long id, Long idConvidado) {
+    public ConviteResponseDTO ignorar(Long id, String codigoAcesso) {
         Convite convite = obterConvite(id);
         
         if (convite.getStatus() != StatusConvite.PENDENTE) {
             throw new ConviteJaProcessadoException();
         }
 
-        if (convite.getConvidado().getId() != idConvidado) {
-            throw new UsuarioInvalidoException();
-        }
+        validarUsuário(convite.getConvidado(), codigoAcesso);
 
         convite.setStatus(StatusConvite.IGNORADO);
         this.conviteRepository.save(convite);
@@ -137,8 +136,10 @@ public class ConviteServicelmpl implements ConviteService {
     }
 
     @Override
-    public List<ConviteResponseDTO> listarConvitesPendentesPorConvidado(Long convidadoId) {
-        obterUsuario(convidadoId);
+    public List<ConviteResponseDTO> listarConvitesPendentesPorConvidado(Long convidadoId, String codigoAcesso) {
+        Usuario convidado = obterUsuario(convidadoId);
+
+        validarUsuário(convidado, codigoAcesso);
 
         List<Convite> convitesPendentes = conviteRepository.findByConvidadoIdAndStatus(convidadoId, StatusConvite.PENDENTE);
 
@@ -168,5 +169,9 @@ public class ConviteServicelmpl implements ConviteService {
                 convite.getGrupo().getNome(), 
                 status);
         System.out.println(mensagem);
+    }
+
+    private void validarUsuário(Usuario usuario, String codigoAcesso) {
+        if (usuario.getCodigo() != codigoAcesso) throw new UsuarioInvalidoException();
     }
 }

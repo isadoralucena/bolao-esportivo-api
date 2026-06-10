@@ -31,46 +31,49 @@ public class ConviteController {
     @Autowired
     private ConviteService conviteService;
 
-    @PostMapping
-    public ResponseEntity<ConviteResponseDTO> criarConvite(@RequestBody @Valid ConvitePostPutRequestDTO convitePostPutRequestDto) {
+    @PostMapping("")
+    public ResponseEntity<ConviteResponseDTO> criarConvite(
+        @RequestParam String codigoAcesso,
+        @RequestBody @Valid ConvitePostPutRequestDTO convitePostPutRequestDto
+        ) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(conviteService.criar(convitePostPutRequestDto));
+                .body(conviteService.criar(codigoAcesso, convitePostPutRequestDto));
 
     }
 
     @PostMapping("/{id}/aceitar")
     public ResponseEntity<ConviteResponseDTO> aceitarConvite(
-            @RequestParam Long idConvidado,
+            @RequestParam String codigoAcessoConvidado,
             @PathVariable Long id) {
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(conviteService.aceitar(id, idConvidado));
+                .body(conviteService.aceitar(id, codigoAcessoConvidado));
     }
 
     @PostMapping("/{id}/recusar")
     public ResponseEntity<ConviteResponseDTO> recusarConvite(
-            @RequestParam Long idConvidado,
+            @RequestParam String codigoAcessoConvidado,
             @PathVariable Long id) {
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(conviteService.recusar(id, idConvidado));
+                .body(conviteService.recusar(id, codigoAcessoConvidado));
     }
 
     @PostMapping("/{id}/ignorar")
     public ResponseEntity<ConviteResponseDTO> ignorarConvite(
-            @RequestParam Long idConvidado,
+            @RequestParam String codigoAcessoConvidado,
             @PathVariable Long id) {
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(conviteService.ignorar(id, idConvidado));
+                .body(conviteService.ignorar(id, codigoAcessoConvidado));
     }
 
     @DeleteMapping("/{id}/remover")
     public ResponseEntity<Void> removerConvite(
-            @RequestParam Long idOrganizador,
+            @RequestParam String codigoAcessoOrganizador,
             @PathVariable Long id) {
-        conviteService.remover(id, idOrganizador);
+        conviteService.remover(id, codigoAcessoOrganizador);
         return ResponseEntity
                 .status(HttpStatus.NO_CONTENT)
                 .build();
@@ -78,10 +81,11 @@ public class ConviteController {
 
     @GetMapping("/usuario/{convidadoId}/pendentes")
     public ResponseEntity<List<ConviteResponseDTO>> listarConvitesPendentes(
+            @RequestParam String codigoAcessoConvidado,
             @PathVariable Long convidadoId) {
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(conviteService.listarConvitesPendentesPorConvidado(convidadoId));
+                .body(conviteService.listarConvitesPendentesPorConvidado(convidadoId, codigoAcessoConvidado));
     }
 
 }

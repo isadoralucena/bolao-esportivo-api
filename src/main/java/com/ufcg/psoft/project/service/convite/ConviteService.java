@@ -7,16 +7,16 @@ import com.ufcg.psoft.project.dto.convite.ConviteResponseDTO;
 
 public interface ConviteService {
    
-    ConviteResponseDTO criar(ConvitePostPutRequestDTO convitePostPutRequestDTO);
+    ConviteResponseDTO criar(String codigoAcesso, ConvitePostPutRequestDTO convitePostPutRequestDTO);
 
-    void remover(Long id, Long idOrganizador);
+    void remover(Long id, String codigoAcesso);
 
-    ConviteResponseDTO aceitar(Long id, Long idConvidado);
+    ConviteResponseDTO aceitar(Long id, String codigoAcesso);
 
-    ConviteResponseDTO recusar(Long id, Long idConvidado);
+    ConviteResponseDTO recusar(Long id, String codigoAcesso);
 
-    ConviteResponseDTO ignorar(Long id, Long idConvidado);
+    ConviteResponseDTO ignorar(Long id, String codigoAcesso);
 
-    List<ConviteResponseDTO> listarConvitesPendentesPorConvidado(Long convidadoId);
+    List<ConviteResponseDTO> listarConvitesPendentesPorConvidado(Long convidadoId, String codigoAcesso);
 
 }

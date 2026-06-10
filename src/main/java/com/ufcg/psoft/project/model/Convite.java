@@ -41,15 +41,15 @@ public class Convite {
     @Column(nullable = false)
     private StatusConvite status = StatusConvite.PENDENTE;
 
-    @OneToMany(mappedBy = "grupo")
-    @JoinColumn(name = "grupo_id", nullable = false)
+    @OneToMany(mappedBy = "grupoId")
+    @JoinColumn(name = "grupoID", nullable = false)
     private Grupo grupo;
 
     @OneToOne
-    @JoinColumn(name = "organizador_id", nullable = false)
+    @JoinColumn(name = "organizadorId", nullable = false)
     private Usuario organizador;
 
     @ManyToMany(mappedBy = "usuario", cascade = CascadeType.REMOVE)
-    @JoinColumn(name = "convidade_id", nullable = false)
+    @JoinColumn(name = "convidadoIdId", nullable = false)
     private Usuario convidado;
 }

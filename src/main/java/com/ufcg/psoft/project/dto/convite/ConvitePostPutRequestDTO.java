@@ -1,7 +1,6 @@
 package com.ufcg.psoft.project.dto.convite;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.ufcg.psoft.project.model.Grupo;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
