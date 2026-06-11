@@ -48,12 +48,6 @@ public class Usuario {
 	@Column(nullable = false)
 	private String codigo;
 
-    @OneToMany(mappedBy = "organizador")
-    private List<Grupo> gruposCriados;
-
-    @ManyToMany(mappedBy = "participantes")
-    private List<Grupo> gruposQueParticipo;
-
 	@Column(nullable = false)
 	@Builder.Default
 	private boolean administrador = false;
