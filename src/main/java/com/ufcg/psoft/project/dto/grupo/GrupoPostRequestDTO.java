@@ -28,9 +28,11 @@ public class GrupoPostRequestDTO {
     @NotNull(message = "Privacidade obrigatoria")
     private PrivacidadeGrupo privacidade;
 
+    @JsonProperty("limiteParticipantes")
     @Positive(message = "O limite deve ser maior que zero")
     private Integer limiteParticipantes;
 
+    @JsonProperty("campeonatoId")
     @NotNull(message = "O campeonato associado é obrigatório")
     private Long campeonatoId;
 }
