@@ -54,6 +54,6 @@ public class GrupoResponseDTO {
                 .map(UsuarioResponseDTO::new)
                 .collect(Collectors.toSet());
         this.privacidade = grupo.getPrivacidade();
-        this.limiteParticipantes = Optional.ofNullable(grupo.getLimiteParticipantes()).orElse(0);
+        this.limiteParticipantes = grupo.getLimiteParticipantes();
     }
 }
