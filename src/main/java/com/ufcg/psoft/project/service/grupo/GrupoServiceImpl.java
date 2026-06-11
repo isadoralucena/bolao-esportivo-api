@@ -151,15 +151,10 @@ public class GrupoServiceImpl implements GrupoService {
     }
 
     private Usuario obterUsuarioValido(Long usuarioId, String codigo) {
-        if (usuarioId == null) {
-            return usuarioRepository.findByCodigoIgnoreCase(codigo)
-                    .orElseThrow(CodigoDeAcessoInvalidoException::new);
-        }
-
         Usuario usuario = usuarioRepository.findById(usuarioId).orElseThrow(UsuarioNaoExisteException::new);
-		if (!usuario.getCodigo().equals(codigo)) {
-			throw new CodigoDeAcessoInvalidoException();
-		}
+        if (!usuario.getCodigo().equals(codigo)) {
+            throw new CodigoDeAcessoInvalidoException();
+        }
         return usuario;
     }
 }
