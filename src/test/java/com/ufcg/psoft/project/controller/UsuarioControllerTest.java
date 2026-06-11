@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("Testes do controlador de Usuários")
-public class UsuarioControllerTests {
+public class UsuarioControllerTest {
 
     final String URI_USUARIOS = "/usuarios";
 

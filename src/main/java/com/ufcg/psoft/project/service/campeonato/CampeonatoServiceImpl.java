@@ -6,9 +6,13 @@ import com.ufcg.psoft.project.exception.CampeonatoNaoExisteException;
 import com.ufcg.psoft.project.exception.CodigoDeAcessoInvalidoException;
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
+import com.ufcg.psoft.project.model.Usuario;
+
+import com.ufcg.psoft.project.repository.UsuarioRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -27,10 +31,11 @@ public class CampeonatoServiceImpl implements CampeonatoService {
 	private CampeonatoRepository campeonatoRepository;
 
 	@Autowired
+	private UsuarioRepository usuarioRepository;
+
+	@Autowired
 	private ModelMapper modelMapper;
 
-	@Value("${project.admin-code:123456}")
-	private String adminCodigo;
 
 	@Value("${project.football-data.api-token:}")
 	private String apiToken;
@@ -38,8 +43,8 @@ public class CampeonatoServiceImpl implements CampeonatoService {
 	private final RestTemplate restTemplate = new RestTemplate();
 
 	@Override
-	public List<CampeonatoResponseDTO> sincronizar(String codigo) {
-		verificaAdmin(codigo);
+	public List<CampeonatoResponseDTO> sincronizar(Long userId, String codigo) {
+		verificaAdmin(userId, codigo);
 		List<Campeonato> campeonatos = campeonatoRepository.findAll();
 
 		HttpHeaders headers = new HttpHeaders();
@@ -68,7 +73,9 @@ public class CampeonatoServiceImpl implements CampeonatoService {
 					campeonatoRepository.save(campeonato);
 				}
 			} catch (Exception e) {
+				System.err.println("Warning: Não foi possivel sincronizar campeonato com:" + campeonato.getUrl() + " - " + e.getMessage());
 			}
+
 		}
 
 		return campeonatoRepository.findAll().stream()
@@ -77,8 +84,8 @@ public class CampeonatoServiceImpl implements CampeonatoService {
 	}
 
 	@Override
-	public CampeonatoResponseDTO criar(String codigo, CampeonatoPostPutRequestDTO campeonatoPostPutRequestDTO) {
-		verificaAdmin(codigo);
+	public CampeonatoResponseDTO criar(Long userId, String codigo, CampeonatoPostPutRequestDTO campeonatoPostPutRequestDTO) {
+		verificaAdmin(userId, codigo);
 
 		Campeonato campeonato = modelMapper.map(campeonatoPostPutRequestDTO, Campeonato.class);
 		campeonato.setAtivo(false);
@@ -87,8 +94,8 @@ public class CampeonatoServiceImpl implements CampeonatoService {
 	}
 
 	@Override
-	public void remover(String codigo, Long id) {
-		verificaAdmin(codigo);
+	public void remover(Long userId, String codigo, Long id) {
+		verificaAdmin(userId, codigo);
 
 		Campeonato campeonato = campeonatoRepository.findById(id).orElseThrow(CampeonatoNaoExisteException::new);
 		campeonatoRepository.delete(campeonato);
@@ -117,8 +124,8 @@ public class CampeonatoServiceImpl implements CampeonatoService {
 	}
 
 	@Override
-	public CampeonatoResponseDTO ativar(String codigo, Long id) {
-		verificaAdmin(codigo);
+	public CampeonatoResponseDTO ativar(Long userId, String codigo, Long id) {
+		verificaAdmin(userId, codigo);
 
 		Campeonato campeonato = campeonatoRepository.findById(id).orElseThrow(CampeonatoNaoExisteException::new);
 		campeonato.setAtivo(true);
@@ -127,8 +134,8 @@ public class CampeonatoServiceImpl implements CampeonatoService {
 	}
 
 	@Override
-	public CampeonatoResponseDTO desativar(String codigo, Long id) {
-		verificaAdmin(codigo);
+	public CampeonatoResponseDTO desativar(Long userId, String codigo, Long id) {
+		verificaAdmin(userId, codigo);
 
 		Campeonato campeonato = campeonatoRepository.findById(id).orElseThrow(CampeonatoNaoExisteException::new);
 		campeonato.setAtivo(false);
@@ -136,8 +143,9 @@ public class CampeonatoServiceImpl implements CampeonatoService {
 		return modelMapper.map(campeonato, CampeonatoResponseDTO.class);
 	}
 
-	private void verificaAdmin(String codigo) {
-		if (!adminCodigo.equals(codigo)) {
+	private void verificaAdmin(Long userId, String codigo) {
+		Usuario usuario = usuarioRepository.findById(userId).orElse(null);
+		if (usuario == null || !usuario.getCodigo().equals(codigo) || !usuario.isAdministrador()) {
 			throw new CodigoDeAcessoInvalidoException();
 		}
 	}
