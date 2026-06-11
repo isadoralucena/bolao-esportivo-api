@@ -1,9 +1,9 @@
 package com.ufcg.psoft.project.service.campeonato;
 
-import com.ufcg.psoft.project.dto.CampeonatoPostPutRequestDTO;
-import com.ufcg.psoft.project.dto.CampeonatoResponseDTO;
-
 import java.util.*;
+
+import com.ufcg.psoft.project.dto.campeonato.CampeonatoPostPutRequestDTO;
+import com.ufcg.psoft.project.dto.campeonato.CampeonatoResponseDTO;
 
 public interface CampeonatoService {
 	List<CampeonatoResponseDTO> sincronizar(Long userId, String codigo);

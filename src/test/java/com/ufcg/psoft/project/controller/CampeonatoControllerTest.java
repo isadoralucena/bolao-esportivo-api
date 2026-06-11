@@ -1,7 +1,7 @@
 package com.ufcg.psoft.project.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ufcg.psoft.project.dto.CampeonatoPostPutRequestDTO;
+import com.ufcg.psoft.project.dto.campeonato.CampeonatoPostPutRequestDTO;
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.model.Usuario;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
