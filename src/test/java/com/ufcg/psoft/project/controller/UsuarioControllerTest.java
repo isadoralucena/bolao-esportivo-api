@@ -22,6 +22,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import java.nio.charset.StandardCharsets;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -35,6 +38,9 @@ public class UsuarioControllerTest {
 
     @Autowired
     UsuarioRepository usuarioRepository;
+    
+    @Autowired
+    WebApplicationContext webApplicationContext;
 
     ObjectMapper objectMapper = new ObjectMapper();
 
@@ -43,8 +49,12 @@ public class UsuarioControllerTest {
     UsuarioPostPutRequestDTO usuarioPostPutRequestDTO;
 
     @BeforeEach
-    void setup() {
-        // Object Mapper suporte para LocalDateTime
+        void setup() {
+        driver = MockMvcBuilders
+                .webAppContextSetup(webApplicationContext)
+                .defaultResponseCharacterEncoding(StandardCharsets.UTF_8)
+                .build();
+
         objectMapper.registerModule(new JavaTimeModule());
         usuario = usuarioRepository.save(Usuario.builder()
                 .nome("usuario Um da Silva")
@@ -61,7 +71,7 @@ public class UsuarioControllerTest {
                 .email(usuario.getEmail())
                 .codigo(usuario.getCodigo())
                 .build();
-    }
+        }
 
     @AfterEach
     void tearDown() {

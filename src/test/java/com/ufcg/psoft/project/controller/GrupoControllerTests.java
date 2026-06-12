@@ -24,6 +24,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import java.nio.charset.StandardCharsets;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("Testes do controlador de Grupos - US5")
@@ -43,6 +47,9 @@ public class GrupoControllerTests {
     @Autowired
     CampeonatoRepository campeonatoRepository;
 
+    @Autowired
+    WebApplicationContext webApplicationContext;
+
     ObjectMapper objectMapper = new ObjectMapper();
 
     Usuario organizador;
@@ -54,7 +61,12 @@ public class GrupoControllerTests {
     Grupo grupoPublicoSemVagas;
 
     @BeforeEach
-    void setup() {
+        void setup() {
+        driver = MockMvcBuilders
+                .webAppContextSetup(webApplicationContext)
+                .defaultResponseCharacterEncoding(StandardCharsets.UTF_8)
+                .build();
+
         objectMapper.registerModule(new JavaTimeModule());
 
         organizador = usuarioRepository.save(Usuario.builder()
@@ -116,7 +128,7 @@ public class GrupoControllerTests {
 
         grupoPublicoSemVagas.getParticipantes().add(organizador);
         grupoRepository.save(grupoPublicoSemVagas);
-    }
+        }
 
     @AfterEach
     void tearDown() {
