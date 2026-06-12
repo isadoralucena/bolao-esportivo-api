@@ -27,6 +27,7 @@ import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
 import com.ufcg.psoft.project.exception.UsuarioJaParticipanteException;
+import com.ufcg.psoft.project.exception.CampeonatoInativoException;
 
 @Service
 public class GrupoServiceImpl implements GrupoService {
