@@ -46,7 +46,7 @@ public class Grupo {
     @JoinColumn(name = "organizador_id", nullable = false)
 	private Usuario organizador;
 
-	@ManyToMany
+	@ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "grupo_participantes",
         joinColumns = @JoinColumn(name = "grupo_id"),
