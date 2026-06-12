@@ -36,7 +36,7 @@ public class Grupo {
 	@JsonProperty("privacidade")
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
-	private Privacidade privacidade;
+	private PrivacidadeGrupo privacidade;
 
 	@JsonProperty("limiteParticipantes")
 	@Column(nullable = true)

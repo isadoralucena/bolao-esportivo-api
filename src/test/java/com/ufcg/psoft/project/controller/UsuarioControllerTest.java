@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("Testes do controlador de Usuários")
-public class UsuarioControllerTests {
+public class UsuarioControllerTest {
 
     final String URI_USUARIOS = "/usuarios";
 
@@ -432,7 +432,7 @@ public class UsuarioControllerTests {
 
             // Assert
             assertAll(
-                    () -> assertEquals("Ja existe outro usuario com esse email cadastrado!", resultado.getMessage())
+                    () -> assertEquals("Já existe outro usuário com esse email cadastrado!", resultado.getMessage())
             );
         }
     }
@@ -603,7 +603,7 @@ public class UsuarioControllerTests {
 
             // Assert
             assertAll(
-                    () -> assertEquals("O Usuario consultado nao existe!", resultado.getMessage())
+                    () -> assertEquals("O usuário consultado não existe!", resultado.getMessage())
             );
         }
 
@@ -680,7 +680,7 @@ public class UsuarioControllerTests {
 
             // Assert
             assertAll(
-                    () -> assertEquals("O Usuario consultado nao existe!", resultado.getMessage())
+                    () -> assertEquals("O usuário consultado não existe!", resultado.getMessage())
             );
         }
 
@@ -703,7 +703,7 @@ public class UsuarioControllerTests {
 
             // Assert
             assertAll(
-                    () -> assertEquals("Codigo de acesso invalido!", resultado.getMessage())
+                    () -> assertEquals("Código de acesso inválido!", resultado.getMessage())
             );
         }
 
@@ -743,7 +743,7 @@ public class UsuarioControllerTests {
 
             // Assert
             assertAll(
-                    () -> assertEquals("O Usuario consultado nao existe!", resultado.getMessage())
+                    () -> assertEquals("O usuário consultado não existe!", resultado.getMessage())
             );
         }
 
@@ -765,7 +765,7 @@ public class UsuarioControllerTests {
 
             // Assert
             assertAll(
-                    () -> assertEquals("Codigo de acesso invalido!", resultado.getMessage())
+                    () -> assertEquals("Código de acesso inválido!", resultado.getMessage())
             );
         }
     }

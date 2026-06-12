@@ -6,7 +6,7 @@ import com.ufcg.psoft.project.dto.grupo.GrupoResponseDTO;
 import com.ufcg.psoft.project.exception.CustomErrorType;
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.model.Grupo;
-import com.ufcg.psoft.project.model.Privacidade;
+import com.ufcg.psoft.project.model.PrivacidadeGrupo;
 import com.ufcg.psoft.project.model.Usuario;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.repository.GrupoRepository;
@@ -90,7 +90,7 @@ public class GrupoControllerTests {
         grupoPublico = grupoRepository.save(Grupo.builder()
                 .nome("Grupo Publico")
                 .descricao("Grupo publico para testes")
-                .privacidade(Privacidade.PUBLICA)
+                .privacidade(PrivacidadeGrupo.PUBLICA)
                 .limiteParticipantes(10)
                 .campeonato(campeonatoAtivo)
                 .organizador(organizador)
@@ -99,7 +99,7 @@ public class GrupoControllerTests {
         grupoPrivado = grupoRepository.save(Grupo.builder()
                 .nome("Grupo Privado")
                 .descricao("Grupo privado para testes")
-                .privacidade(Privacidade.PRIVADA)
+                .privacidade(PrivacidadeGrupo.PRIVADA)
                 .limiteParticipantes(10)
                 .campeonato(campeonatoAtivo)
                 .organizador(organizador)
@@ -108,13 +108,12 @@ public class GrupoControllerTests {
         grupoPublicoSemVagas = grupoRepository.save(Grupo.builder()
                 .nome("Grupo Publico Sem Vagas")
                 .descricao("Grupo publico sem vagas para testes")
-                .privacidade(Privacidade.PUBLICA)
+                .privacidade(PrivacidadeGrupo.PUBLICA)
                 .limiteParticipantes(1)
                 .campeonato(campeonatoAtivo)
                 .organizador(organizador)
                 .build());
 
-        // ocupa a unica vaga do grupoPublicoSemVagas
         grupoPublicoSemVagas.getParticipantes().add(organizador);
         grupoRepository.save(grupoPublicoSemVagas);
     }
@@ -127,15 +126,15 @@ public class GrupoControllerTests {
     }
 
     @Nested
-    @DisplayName("Conjunto de casos de entrada em grupos publicos")
+    @DisplayName("Conjunto de casos de entrada em grupos públicos")
     class entradaEmGrupoPublico {
 
         @Test
-        @DisplayName("Quando um usuario entra em um grupo publico com sucesso")
+        @DisplayName("Quando um usuário entra em um grupo público com sucesso")
         void quandoUsuarioEntraEmGrupoPublicoComSucesso() throws Exception {
-            // Act
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/entrar")
                             .contentType(MediaType.APPLICATION_JSON)
+                            .param("usuarioId", participante.getId().toString())
                             .param("codigoAcesso", participante.getCodigo()))
                     .andExpect(status().isOk())
                     .andDo(print())
@@ -143,7 +142,6 @@ public class GrupoControllerTests {
 
             GrupoResponseDTO resultado = objectMapper.readValue(responseJsonString, GrupoResponseDTO.class);
 
-            // Assert
             assertAll(
                     () -> assertNotNull(resultado.getId()),
                     () -> assertEquals(grupoPublico.getNome(), resultado.getNome()),
@@ -153,11 +151,11 @@ public class GrupoControllerTests {
         }
 
         @Test
-        @DisplayName("Quando um usuario tenta entrar em um grupo privado")
+        @DisplayName("Quando um usuário tenta entrar em um grupo privado")
         void quandoUsuarioTentaEntrarEmGrupoPrivado() throws Exception {
-            // Act
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPrivado.getId() + "/entrar")
                             .contentType(MediaType.APPLICATION_JSON)
+                            .param("usuarioId", participante.getId().toString())
                             .param("codigoAcesso", participante.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -165,28 +163,26 @@ public class GrupoControllerTests {
 
             CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
 
-            // Assert
             assertAll(
                     () -> assertEquals("Permissão negada para acessar este recurso.", resultado.getMessage())
             );
         }
 
         @Test
-        @DisplayName("Quando um usuario tenta entrar em grupo com campeonato inativo")
+        @DisplayName("Quando um usuário tenta entrar em grupo com campeonato inativo")
         void quandoUsuarioTentaEntrarEmGrupoComCampeonatoInativo() throws Exception {
-            // Arrange
             Grupo grupoComCampeonatoInativo = grupoRepository.save(Grupo.builder()
                     .nome("Grupo Campeonato Inativo")
                     .descricao("Grupo com campeonato inativo")
-                    .privacidade(Privacidade.PUBLICA)
+                    .privacidade(PrivacidadeGrupo.PUBLICA)
                     .limiteParticipantes(10)
                     .campeonato(campeonatoInativo)
                     .organizador(organizador)
                     .build());
 
-            // Act
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoComCampeonatoInativo.getId() + "/entrar")
                             .contentType(MediaType.APPLICATION_JSON)
+                            .param("usuarioId", participante.getId().toString())
                             .param("codigoAcesso", participante.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -194,22 +190,20 @@ public class GrupoControllerTests {
 
             CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
 
-            // Assert
             assertAll(
-                    () -> assertEquals("O campeonato associado a este grupo nao esta ativo!", resultado.getMessage())
+                    () -> assertEquals("O campeonato associado a este grupo não está ativo!", resultado.getMessage())
             );
         }
 
         @Test
-        @DisplayName("Quando um usuario tenta entrar em um grupo que ja participa")
+        @DisplayName("Quando um usuário tenta entrar em um grupo que já participa")
         void quandoUsuarioTentaEntrarEmGrupoQueJaParticipa() throws Exception {
-            // Arrange
             grupoPublico.getParticipantes().add(participante);
             grupoRepository.save(grupoPublico);
 
-            // Act
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/entrar")
                             .contentType(MediaType.APPLICATION_JSON)
+                            .param("usuarioId", participante.getId().toString())
                             .param("codigoAcesso", participante.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -217,18 +211,17 @@ public class GrupoControllerTests {
 
             CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
 
-            // Assert
             assertAll(
-                    () -> assertEquals("Usuario ja e participante deste grupo!", resultado.getMessage())
+                    () -> assertEquals("O usuário já é participante deste grupo!", resultado.getMessage())
             );
         }
 
         @Test
-        @DisplayName("Quando um usuario tenta entrar em um grupo sem vagas")
+        @DisplayName("Quando um usuário tenta entrar em um grupo sem vagas")
         void quandoUsuarioTentaEntrarEmGrupoSemVagas() throws Exception {
-            // Act
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublicoSemVagas.getId() + "/entrar")
                             .contentType(MediaType.APPLICATION_JSON)
+                            .param("usuarioId", participante.getId().toString())
                             .param("codigoAcesso", participante.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -236,18 +229,17 @@ public class GrupoControllerTests {
 
             CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
 
-            // Assert
             assertAll(
                     () -> assertEquals("O limite de participantes para este grupo já foi atingido!", resultado.getMessage())
             );
         }
 
         @Test
-        @DisplayName("Quando um usuario tenta entrar em um grupo inexistente")
+        @DisplayName("Quando um usuário tenta entrar em um grupo inexistente")
         void quandoUsuarioTentaEntrarEmGrupoInexistente() throws Exception {
-            // Act
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + 999999L + "/entrar")
                             .contentType(MediaType.APPLICATION_JSON)
+                            .param("usuarioId", participante.getId().toString())
                             .param("codigoAcesso", participante.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -255,18 +247,17 @@ public class GrupoControllerTests {
 
             CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
 
-            // Assert
             assertAll(
                     () -> assertEquals("Esse grupo não existe!", resultado.getMessage())
             );
         }
 
         @Test
-        @DisplayName("Quando um usuario com codigo invalido tenta entrar em um grupo")
+        @DisplayName("Quando um usuário com código inválido tenta entrar em um grupo")
         void quandoUsuarioComCodigoInvalidoTentaEntrarEmGrupo() throws Exception {
-            // Act
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/entrar")
                             .contentType(MediaType.APPLICATION_JSON)
+                            .param("usuarioId", participante.getId().toString())
                             .param("codigoAcesso", "999999"))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -274,9 +265,8 @@ public class GrupoControllerTests {
 
             CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
 
-            // Assert
             assertAll(
-                    () -> assertEquals("Codigo de acesso invalido!", resultado.getMessage())
+                    () -> assertEquals("Código de acesso inválido!", resultado.getMessage())
             );
         }
     }

@@ -9,23 +9,14 @@ import com.ufcg.psoft.project.dto.grupo.GrupoResponseDTO;
 import com.ufcg.psoft.project.dto.grupo.ParticipantePostRequestDTO;
 import com.ufcg.psoft.project.dto.usuario.UsuarioResponseDTO;
 
-
 public interface GrupoService {
-    GrupoResponseDTO criar(GrupoPostRequestDTO grupoPostRequestDto, String codigoAcesso);
-
-    GrupoResponseDTO recuperar(Long id, String codigoAcesso);
-
-    List<GrupoResponseDTO> listar(String codigoAcesso);
-
-    GrupoResponseDTO alterar(Long id, GrupoPutRequestDTO grupoPutRequestDto, String codigoAcesso);
-    
-    void remover(Long id, String codigoAcesso);
-
-    GrupoResponseDTO adicionarParticipante(Long grupoId, ParticipantePostRequestDTO participantePostRequestDto, String codigoAcesso);
-
-    void removerParticipante(Long grupoId, Long usuarioId, String codigoAcesso);
-
-    Set<UsuarioResponseDTO> listarParticipantes(Long grupoId, String codigoAcesso);
-
-    GrupoResponseDTO entrarEmGrupoPublico(Long grupoId, String codigoAcesso);
+    GrupoResponseDTO criar(Long usuarioId, String codigoAcesso, GrupoPostRequestDTO grupoPostRequestDto);
+    GrupoResponseDTO recuperar(Long usuarioId, String codigoAcesso, Long id);
+    List<GrupoResponseDTO> listar(Long usuarioId, String codigoAcesso);
+    GrupoResponseDTO alterar(Long usuarioId, String codigoAcesso, Long id, GrupoPutRequestDTO grupoPutRequestDto);
+    void remover(Long usuarioId, String codigoAcesso, Long id);
+    GrupoResponseDTO adicionarParticipante(Long usuarioId, String codigoAcesso, Long grupoId, ParticipantePostRequestDTO participantePostRequestDto);
+    void removerParticipante(Long usuarioId, String codigoAcesso, Long grupoId, Long participanteId);
+    Set<UsuarioResponseDTO> listarParticipantes(Long usuarioId, String codigoAcesso, Long grupoId);
+    GrupoResponseDTO entrarEmGrupoPublico(Long grupoId, Long usuarioId, String codigoAcesso);
 }
