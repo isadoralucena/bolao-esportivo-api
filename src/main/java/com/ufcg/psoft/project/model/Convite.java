@@ -1,10 +1,7 @@
 package com.ufcg.psoft.project.model;
 
-import org.hibernate.annotations.ManyToAny;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -13,9 +10,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,28 +23,27 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Convite {
 
-    @JsonProperty("id")
-	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE)
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    private Long id;
 
-    @JsonProperty("descricao")
-	@Column(nullable = false)
-	private String descricao;
+    @Column(nullable = true)
+    private String descricao;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Builder.Default
     private StatusConvite status = StatusConvite.PENDENTE;
 
-    @OneToMany(mappedBy = "grupoId")
-    @JoinColumn(name = "grupoID", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "grupo_id", nullable = false)
     private Grupo grupo;
 
-    @OneToOne
-    @JoinColumn(name = "organizadorId", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "organizador_id", nullable = false)
     private Usuario organizador;
 
-    @ManyToMany(mappedBy = "usuario", cascade = CascadeType.REMOVE)
-    @JoinColumn(name = "convidadoIdId", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "convidado_id", nullable = false)
     private Usuario convidado;
 }

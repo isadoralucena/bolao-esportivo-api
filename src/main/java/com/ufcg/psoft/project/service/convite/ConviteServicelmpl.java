@@ -18,7 +18,7 @@ import com.ufcg.psoft.project.exception.UsuarioInvalidoException;
 import com.ufcg.psoft.project.exception.UsuarioNaoExisteException;
 import com.ufcg.psoft.project.model.Convite;
 import com.ufcg.psoft.project.model.Grupo;
-import com.ufcg.psoft.project.model.Privacidade;
+import com.ufcg.psoft.project.model.PrivacidadeGrupo;
 import com.ufcg.psoft.project.model.StatusConvite;
 import com.ufcg.psoft.project.model.Usuario;
 import com.ufcg.psoft.project.repository.ConviteRepository;
@@ -51,18 +51,25 @@ public class ConviteServicelmpl implements ConviteService {
 
         if (!organizador.equals(grupo.getOrganizador())) throw new OrganizadorInvalidoException();
 
-        if (grupo.getPrivacidade() == Privacidade.PUBLICA) throw new PrivacidadeInvalidaException();
+        if (grupo.getPrivacidade() == PrivacidadeGrupo.PUBLICA) throw new PrivacidadeInvalidaException();
 
         if (grupo.getParticipantes().contains(convidado)) throw new ConviteDuplicadoException();
 
-        Convite convite = modelMapper.map(convitePostPutRequestDTO, Convite.class);
-        convite.setConvidado(convidado);
-        convite.setOrganizador(organizador);
+        if (conviteRepository.existsByGrupoAndConvidadoAndStatus(grupo, convidado, StatusConvite.PENDENTE)) {
+            throw new ConviteDuplicadoException();
+        }
+
+        Convite convite = Convite.builder()
+                .descricao(convitePostPutRequestDTO.getDescricao())
+                .grupo(grupo)
+                .organizador(organizador)
+                .convidado(convidado)
+                .build();
         
         this.conviteRepository.save(convite);
         notificarConvidado(convite, "criado");
 
-        return modelMapper.map(convite, ConviteResponseDTO.class);
+        return toResponseDTO(convite);
     }
 
     @Override
@@ -98,7 +105,7 @@ public class ConviteServicelmpl implements ConviteService {
         this.grupoRepository.save(grupo);
         notificarConvidado(convite, "aceito");
 
-        return modelMapper.map(convite, ConviteResponseDTO.class);
+        return toResponseDTO(convite);
     }
 
     @Override
@@ -115,7 +122,7 @@ public class ConviteServicelmpl implements ConviteService {
         this.conviteRepository.save(convite);
         notificarConvidado(convite, "recusado");
 
-        return modelMapper.map(convite, ConviteResponseDTO.class);
+        return toResponseDTO(convite);
     }
 
     @Override
@@ -132,7 +139,7 @@ public class ConviteServicelmpl implements ConviteService {
         this.conviteRepository.save(convite);
         notificarConvidado(convite, "ignorado");
 
-        return modelMapper.map(convite, ConviteResponseDTO.class);
+        return toResponseDTO(convite);
     }
 
     @Override
@@ -144,7 +151,7 @@ public class ConviteServicelmpl implements ConviteService {
         List<Convite> convitesPendentes = conviteRepository.findByConvidadoIdAndStatus(convidadoId, StatusConvite.PENDENTE);
 
         return convitesPendentes.stream()
-                .map(convite -> modelMapper.map(convite, ConviteResponseDTO.class))
+                .map(this::toResponseDTO)
                 .toList();
     }
     
@@ -172,6 +179,16 @@ public class ConviteServicelmpl implements ConviteService {
     }
 
     private void validarUsuário(Usuario usuario, String codigoAcesso) {
-        if (usuario.getCodigo() != codigoAcesso) throw new UsuarioInvalidoException();
+        if (!usuario.getCodigo().equals(codigoAcesso)) throw new UsuarioInvalidoException();
+    }
+
+    private ConviteResponseDTO toResponseDTO(Convite convite) {
+        return ConviteResponseDTO.builder()
+                .id(convite.getId())
+                .grupo(convite.getGrupo().getId())
+                .organizador(convite.getOrganizador().getId())
+                .convidado(convite.getConvidado().getId())
+                .status(convite.getStatus())
+                .build();
     }
 }

@@ -1,7 +1,7 @@
 package com.ufcg.psoft.project.exception;
 
-public class UsuarioInvalidoException extends RuntimeException {
+public class UsuarioInvalidoException extends ProjectException {
     public UsuarioInvalidoException() {
-        super("O Usuario consultado é inválido para essa operação!");
+        super("O usuário consultado é inválido para essa operação!");
     }
 }

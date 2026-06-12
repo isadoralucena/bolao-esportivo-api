@@ -17,7 +17,7 @@ import com.ufcg.psoft.project.dto.convite.ConvitePostPutRequestDTO;
 import com.ufcg.psoft.project.dto.convite.ConviteResponseDTO;
 import com.ufcg.psoft.project.service.convite.ConviteService;
 
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.http.MediaType; 
 import jakarta.validation.Valid;
 
