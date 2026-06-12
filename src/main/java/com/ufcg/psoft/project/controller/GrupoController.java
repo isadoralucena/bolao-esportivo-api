@@ -115,4 +115,14 @@ public class GrupoController {
                 .status(HttpStatus.NO_CONTENT)
                 .build();
     }
+
+    @PostMapping("/{grupoId}/entrar")
+        public ResponseEntity<?> entrarEmGrupoPublico(
+                @RequestParam Long usuarioId,
+                @RequestParam String codigoAcesso,
+                @PathVariable Long grupoId) {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(grupoService.entrarEmGrupoPublico(grupoId, usuarioId, codigoAcesso));
+        }
 }

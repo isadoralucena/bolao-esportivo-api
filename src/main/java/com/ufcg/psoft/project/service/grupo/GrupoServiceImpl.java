@@ -26,6 +26,8 @@ import com.ufcg.psoft.project.model.Usuario;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
+import com.ufcg.psoft.project.exception.UsuarioJaParticipanteException;
+import com.ufcg.psoft.project.exception.CampeonatoInativoException;
 
 @Service
 public class GrupoServiceImpl implements GrupoService {
@@ -150,6 +152,35 @@ public class GrupoServiceImpl implements GrupoService {
                 .collect(Collectors.toSet());
     }
 
+    public GrupoResponseDTO entrarEmGrupoPublico(Long grupoId, Long usuarioId, String codigoAcesso) {
+            Grupo grupo = grupoRepository.findById(grupoId)
+                    .orElseThrow(GrupoNaoExisteException::new);
+            
+            Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
+            
+            validarEntradaEmGrupoPublico(grupo, usuarioLogado);
+            
+            grupo.getParticipantes().add(usuarioLogado);
+            grupoRepository.save(grupo);
+            return modelMapper.map(grupo, GrupoResponseDTO.class);
+        }
+
+    private void validarEntradaEmGrupoPublico(Grupo grupo, Usuario usuario) {
+        if (grupo.getPrivacidade() == PrivacidadeGrupo.PRIVADA) {
+            throw new PermissaoNegadaException();
+        }
+        if (!grupo.getCampeonato().getAtivo()) {
+            throw new CampeonatoInativoException();
+        }
+        if (grupo.getParticipantes().contains(usuario)) {
+            throw new UsuarioJaParticipanteException();
+        }
+        if (grupo.getLimiteParticipantes() != null &&
+            grupo.getParticipantes().size() >= grupo.getLimiteParticipantes()) {
+            throw new LimiteDeParticipantesAtingidoException();
+        }
+    }
+
     private Usuario obterUsuarioValido(Long usuarioId, String codigo) {
         Usuario usuario = usuarioRepository.findById(usuarioId).orElseThrow(UsuarioNaoExisteException::new);
         if (!usuario.getCodigo().equals(codigo)) {
@@ -158,3 +189,4 @@ public class GrupoServiceImpl implements GrupoService {
         return usuario;
     }
 }
+
