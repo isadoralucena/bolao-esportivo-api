@@ -33,76 +33,84 @@ public class GrupoController {
 
     @PostMapping("")
     public ResponseEntity<?> criarGrupo(
+            @RequestParam Long usuarioId,
             @RequestParam String codigoAcesso,
             @RequestBody @Valid GrupoPostRequestDTO grupoPostRequestDto) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(grupoService.criar(grupoPostRequestDto, codigoAcesso));
+                .body(grupoService.criar(usuarioId, codigoAcesso, grupoPostRequestDto));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> recuperarGrupo(
+            @RequestParam Long usuarioId,
             @RequestParam String codigoAcesso,
             @PathVariable Long id) {
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(grupoService.recuperar(id, codigoAcesso));
+                .body(grupoService.recuperar(usuarioId, codigoAcesso, id));
     }
 
     @GetMapping("")
     public ResponseEntity<?> listarGrupos(
+            @RequestParam Long usuarioId,
             @RequestParam String codigoAcesso
         ) {
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(grupoService.listar(codigoAcesso));
+                .body(grupoService.listar(usuarioId, codigoAcesso));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<?> atualizarGrupo(
+            @RequestParam Long usuarioId,
             @RequestParam String codigoAcesso,
             @PathVariable Long id,
             @RequestBody @Valid GrupoPutRequestDTO grupoPutRequestDto) {
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(grupoService.alterar(id, grupoPutRequestDto, codigoAcesso));
+                .body(grupoService.alterar(usuarioId, codigoAcesso, id, grupoPutRequestDto));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> removerGrupo(
+            @RequestParam Long usuarioId,
             @RequestParam String codigoAcesso,
             @PathVariable Long id) {
-        grupoService.remover(id, codigoAcesso);
+        grupoService.remover(usuarioId, codigoAcesso, id);
         return ResponseEntity
                 .status(HttpStatus.NO_CONTENT)
                 .build();
     }
 
-    @PostMapping("/{id}/participantes")
+    @PostMapping("/{grupoId}/participantes")
     public ResponseEntity<?> adicionarParticipante(
+            @RequestParam Long usuarioId,
             @RequestParam String codigoAcesso,
-            @PathVariable Long id,
+            @PathVariable Long grupoId,
             @RequestBody @Valid ParticipantePostRequestDTO participantePostRequestDto) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(grupoService.adicionarParticipante(id, participantePostRequestDto, codigoAcesso));
+                .body(grupoService.adicionarParticipante(usuarioId, codigoAcesso, grupoId, participantePostRequestDto));
     }
 
-    @GetMapping("/{id}/participantes")
+    @GetMapping("/{grupoId}/participantes")
     public ResponseEntity<?> listarParticipantes(
+            @RequestParam Long usuarioId,
             @RequestParam String codigoAcesso,
-            @PathVariable Long id) {
+            @PathVariable Long grupoId) {
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(grupoService.listarParticipantes(id, codigoAcesso));
+                .body(grupoService.listarParticipantes(usuarioId, codigoAcesso, grupoId));
     }
 
-    @DeleteMapping("/{id}/participantes/{usuarioId}")
+    @DeleteMapping("/{grupoId}/participantes/{participanteId}")
     public ResponseEntity<?> removerParticipante(
+            @RequestParam Long usuarioId,
             @RequestParam String codigoAcesso,
-            @PathVariable Long id,
-            @PathVariable Long usuarioId) {
-        grupoService.removerParticipante(id, usuarioId, codigoAcesso);
+            @PathVariable Long grupoId,
+            @PathVariable Long participanteId) {
+        grupoService.removerParticipante(usuarioId, codigoAcesso, grupoId, participanteId);
         return ResponseEntity
                 .status(HttpStatus.NO_CONTENT)
                 .build();

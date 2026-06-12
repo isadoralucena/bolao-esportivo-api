@@ -1,6 +1,7 @@
 package com.ufcg.psoft.project.dto.grupo;
 
-import com.ufcg.psoft.project.model.Privacidade;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.ufcg.psoft.project.model.PrivacidadeGrupo;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -15,18 +16,19 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GrupoPutRequestDTO {
+    @JsonProperty("nome")
     @NotBlank(message = "Nome obrigatório")
     private String nome;
 
+    @JsonProperty("descricao")
     @NotBlank(message = "Descrição obrigatória")
     private String descricao;
 
+    @JsonProperty("privacidade")
     @NotNull(message = "Privacidade obrigatória")
-    private Privacidade privacidade;
+    private PrivacidadeGrupo privacidade;
 
+    @JsonProperty("limiteParticipantes")
     @Positive(message = "O limite deve ser maior que zero")
     private Integer limiteParticipantes;
-
-    @NotNull(message = "O organizador do grupo é obrigatório")
-    private Long organizadorId;
 }

@@ -1,7 +1,7 @@
 package com.ufcg.psoft.project.dto.grupo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.ufcg.psoft.project.model.Privacidade;
+import com.ufcg.psoft.project.model.PrivacidadeGrupo;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -26,14 +26,13 @@ public class GrupoPostRequestDTO {
 
     @JsonProperty("privacidade")
     @NotNull(message = "Privacidade obrigatoria")
-    private Privacidade privacidade;
+    private PrivacidadeGrupo privacidade;
 
+    @JsonProperty("limiteParticipantes")
     @Positive(message = "O limite deve ser maior que zero")
     private Integer limiteParticipantes;
 
+    @JsonProperty("campeonatoId")
     @NotNull(message = "O campeonato associado é obrigatório")
     private Long campeonatoId;
-
-    @NotNull(message = "O organizador/criador do grupo é obrigatório")
-    private Long organizadorId;
 }

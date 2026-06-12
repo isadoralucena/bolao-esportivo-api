@@ -21,7 +21,7 @@ import com.ufcg.psoft.project.exception.PermissaoNegadaException;
 import com.ufcg.psoft.project.exception.UsuarioNaoExisteException;
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.model.Grupo;
-import com.ufcg.psoft.project.model.Privacidade;
+import com.ufcg.psoft.project.model.PrivacidadeGrupo;
 import com.ufcg.psoft.project.model.Usuario;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.repository.GrupoRepository;
@@ -38,29 +38,25 @@ public class GrupoServiceImpl implements GrupoService {
     @Autowired
     ModelMapper modelMapper;
 
-    public GrupoResponseDTO criar(GrupoPostRequestDTO grupoPostRequestDto, String codigoAcesso) {
-        Usuario usuarioLogado = obterUsuario(codigoAcesso);
-
-        if (!usuarioLogado.getId().equals(grupoPostRequestDto.getOrganizadorId())) {
-            throw new CodigoDeAcessoInvalidoException();
-        }
+    public GrupoResponseDTO criar(Long usuarioId, String codigoAcesso, GrupoPostRequestDTO grupoPostRequestDto) {
+        Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
 
         Campeonato campeonato = campeonatoRepository.findById(grupoPostRequestDto.getCampeonatoId())
             .orElseThrow(CampeonatoNaoExisteException::new);
         
         Grupo grupo = modelMapper.map(grupoPostRequestDto, Grupo.class);
-        grupo.setOrganizador(usuarioLogado);
         grupo.setCampeonato(campeonato);
+        grupo.setOrganizador(usuarioLogado);
 
         grupoRepository.save(grupo);
         return modelMapper.map(grupo, GrupoResponseDTO.class);
     }
 
-    public GrupoResponseDTO recuperar(Long id, String codigoAcesso) {
-        Usuario usuarioLogado = obterUsuario(codigoAcesso);
+    public GrupoResponseDTO recuperar(Long usuarioId, String codigoAcesso, Long id) {
+        Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
         Grupo grupo = grupoRepository.findById(id).orElseThrow(GrupoNaoExisteException::new);
 
-        if (grupo.getPrivacidade() == Privacidade.PRIVADA) {
+        if (grupo.getPrivacidade() == PrivacidadeGrupo.PRIVADA) {
             boolean isMembroOuDono = grupo.getParticipantes().contains(usuarioLogado) || grupo.getOrganizador().equals(usuarioLogado);
             if (!isMembroOuDono) {
                 throw new PermissaoNegadaException();
@@ -69,29 +65,33 @@ public class GrupoServiceImpl implements GrupoService {
 
         return modelMapper.map(grupo, GrupoResponseDTO.class);
     }
-    public List<GrupoResponseDTO> listar(String codigoAcesso) {
-        Usuario usuarioLogado = obterUsuario(codigoAcesso);
+
+    public List<GrupoResponseDTO> listar(Long usuarioId, String codigoAcesso) {
+        Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
         List<Grupo> grupos = grupoRepository.findAll();
         
         return grupos.stream()
-                .filter(g -> g.getPrivacidade() == Privacidade.PUBLICA || g.getParticipantes().contains(usuarioLogado))
+                .filter(g -> g.getPrivacidade() == PrivacidadeGrupo.PUBLICA || g.getParticipantes().contains(usuarioLogado))
                 .map(grupo -> modelMapper.map(grupo, GrupoResponseDTO.class))
                 .collect(Collectors.toList());
     }
-    public GrupoResponseDTO alterar(Long id, GrupoPutRequestDTO grupoPutRequestDto, String codigoAcesso) {
+
+    public GrupoResponseDTO alterar(Long usuarioId, String codigoAcesso, Long id, GrupoPutRequestDTO grupoPutRequestDto) {
         Grupo grupo = grupoRepository.findById(id).orElseThrow(GrupoNaoExisteException::new);
 
-        Usuario usuarioLogado = obterUsuario(codigoAcesso);
+        Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
         if (!grupo.getOrganizador().equals(usuarioLogado)) {
             throw new PermissaoNegadaException();
         }
+        
         modelMapper.map(grupoPutRequestDto, grupo);
-        grupoRepository.save(grupo);
+        grupo = grupoRepository.save(grupo);
         return modelMapper.map(grupo, GrupoResponseDTO.class);
     }
-    public void remover(Long id, String codigoAcesso) {
+
+    public void remover(Long usuarioId, String codigoAcesso, Long id) {
         Grupo grupo = grupoRepository.findById(id).orElseThrow(GrupoNaoExisteException::new);
-        Usuario usuarioLogado = obterUsuario(codigoAcesso);
+        Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
         if (!grupo.getOrganizador().equals(usuarioLogado)) {
             throw new PermissaoNegadaException();
         }
@@ -99,9 +99,9 @@ public class GrupoServiceImpl implements GrupoService {
         grupoRepository.delete(grupo);
     }
 
-    public GrupoResponseDTO adicionarParticipante(Long grupoId, ParticipantePostRequestDTO participantePostRequestDto, String codigoAcesso) {
+    public GrupoResponseDTO adicionarParticipante(Long usuarioId, String codigoAcesso, Long grupoId, ParticipantePostRequestDTO participantePostRequestDto) {
         Grupo grupo = grupoRepository.findById(grupoId).orElseThrow(GrupoNaoExisteException::new);
-        Usuario usuarioLogado = obterUsuario(codigoAcesso);
+        Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
 
         if (grupo.getLimiteParticipantes() != null && grupo.getParticipantes().size() >= grupo.getLimiteParticipantes()) {
             throw new LimiteDeParticipantesAtingidoException(); 
@@ -110,14 +110,8 @@ public class GrupoServiceImpl implements GrupoService {
         Usuario participanteParaAdicionar = usuarioRepository.findById(participantePostRequestDto.getUsuarioId())
                 .orElseThrow(UsuarioNaoExisteException::new);
 
-        if (grupo.getPrivacidade() == Privacidade.PRIVADA) {
-            if (!grupo.getOrganizador().equals(usuarioLogado)) {
-                throw new PermissaoNegadaException();
-            }
-        } else {
-            if (!usuarioLogado.equals(participanteParaAdicionar) && !grupo.getOrganizador().equals(usuarioLogado)) {
-                throw new PermissaoNegadaException();
-            }
+        if (!grupo.getOrganizador().equals(usuarioLogado)) {
+            throw new PermissaoNegadaException();
         }
 
         grupo.getParticipantes().add(participanteParaAdicionar);
@@ -125,15 +119,14 @@ public class GrupoServiceImpl implements GrupoService {
         return modelMapper.map(grupo, GrupoResponseDTO.class);
     }
 
-    public void removerParticipante(Long grupoId, Long usuarioId, String codigoAcesso) {
+    public void removerParticipante(Long usuarioId, String codigoAcesso, Long grupoId, Long participanteId) {
         Grupo grupo = grupoRepository.findById(grupoId).orElseThrow(GrupoNaoExisteException::new);
-        Usuario usuarioLogado = obterUsuario(codigoAcesso);
+        Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
 
-        Usuario participante = usuarioRepository.findById(usuarioId)
+        Usuario participante = usuarioRepository.findById(participanteId)
                 .orElseThrow(UsuarioNaoExisteException::new);
 
-        boolean podeRemover = grupo.getOrganizador().equals(usuarioLogado) || usuarioLogado.equals(participante);
-        if (!podeRemover) {
+        if (!grupo.getOrganizador().equals(usuarioLogado)) {
             throw new PermissaoNegadaException();
         }
 
@@ -141,11 +134,11 @@ public class GrupoServiceImpl implements GrupoService {
         grupoRepository.save(grupo);
     }
 
-    public Set<UsuarioResponseDTO> listarParticipantes(Long grupoId, String codigoAcesso) {
+    public Set<UsuarioResponseDTO> listarParticipantes(Long usuarioId, String codigoAcesso, Long grupoId) {
         Grupo grupo = grupoRepository.findById(grupoId).orElseThrow(GrupoNaoExisteException::new);
-        Usuario usuarioLogado = obterUsuario(codigoAcesso);
+        Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
 
-        if (grupo.getPrivacidade() == Privacidade.PRIVADA) {
+        if (grupo.getPrivacidade() == PrivacidadeGrupo.PRIVADA) {
             boolean isMembroOuDono = grupo.getParticipantes().contains(usuarioLogado) || grupo.getOrganizador().equals(usuarioLogado);
             if (!isMembroOuDono) {
                 throw new PermissaoNegadaException();
@@ -157,8 +150,11 @@ public class GrupoServiceImpl implements GrupoService {
                 .collect(Collectors.toSet());
     }
 
-    private Usuario obterUsuario(String codigoAcesso) {
-        return usuarioRepository.findByCodigoIgnoreCase(codigoAcesso)
-                .orElseThrow(CodigoDeAcessoInvalidoException::new);
+    private Usuario obterUsuarioValido(Long usuarioId, String codigo) {
+        Usuario usuario = usuarioRepository.findById(usuarioId).orElseThrow(UsuarioNaoExisteException::new);
+        if (!usuario.getCodigo().equals(codigo)) {
+            throw new CodigoDeAcessoInvalidoException();
+        }
+        return usuario;
     }
 }

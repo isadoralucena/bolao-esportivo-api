@@ -1,6 +1,6 @@
 package com.ufcg.psoft.project.model;
 
-public enum Privacidade {
+public enum PrivacidadeGrupo {
     PUBLICA,
     PRIVADA
 }
