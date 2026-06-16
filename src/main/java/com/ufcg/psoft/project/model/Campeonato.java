@@ -7,6 +7,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Data
 @Builder
@@ -33,4 +38,9 @@ public class Campeonato {
 	@JsonProperty("ativo")
 	@Builder.Default
 	private Boolean ativo = false;
+
+	@JsonIgnore
+	@OneToMany(mappedBy = "campeonato", cascade = CascadeType.ALL, orphanRemoval = true)
+	@Builder.Default
+	private List<Partida> partidas = new ArrayList<>();
 }
