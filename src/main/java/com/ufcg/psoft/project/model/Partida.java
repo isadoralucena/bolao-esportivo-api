@@ -48,8 +48,9 @@ public class Partida {
     private LocalDateTime data;
 
     @JsonProperty("status")
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String status;
+    private PartidaStatus status;
 
     @JsonProperty("rodada")
     private Integer rodada;
