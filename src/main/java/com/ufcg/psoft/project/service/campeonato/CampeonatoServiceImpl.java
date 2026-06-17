@@ -9,6 +9,7 @@ import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.model.Usuario;
 
 import com.ufcg.psoft.project.repository.UsuarioRepository;
+import com.ufcg.psoft.project.service.partida.PartidaService;
 import org.springframework.beans.factory.annotation.Value;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,9 @@ public class CampeonatoServiceImpl implements CampeonatoService {
 
 	@Autowired
 	private UsuarioRepository usuarioRepository;
+
+	@Autowired
+	private PartidaService partidaService;
 
 	@Autowired
 	private ModelMapper modelMapper;
@@ -71,6 +75,7 @@ public class CampeonatoServiceImpl implements CampeonatoService {
 						campeonato.setCodigo((String) body.get("code"));
 					}
 					campeonatoRepository.save(campeonato);
+					partidaService.sincronizarPartidas(campeonato);
 				}
 			} catch (Exception e) {
 				System.err.println("Warning: Não foi possivel sincronizar campeonato com:" + campeonato.getUrl() + " - " + e.getMessage());
