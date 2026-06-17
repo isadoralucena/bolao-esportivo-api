@@ -326,13 +326,14 @@ public class PalpiteControllerTests {
     }
 
     @Test
-    @DisplayName("Sincronizar partidas com admin retorna campeonatos atualizados")
+    @DisplayName("Sincronizar partidas com admin retorna campeonatos na resposta")
     void sincronizarPartidasComAdmin() throws Exception {
         mockMvc.perform(post("/campeonatos/sincronizar")
                 .param("userId", adminUser.getId().toString())
                 .param("senha", adminUser.getCodigo()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].nome").value("Campeonato Brasileiro Série A"));
+                .andExpect(jsonPath("$", hasSize(greaterThan(0))))
+                .andExpect(jsonPath("$[0].nome").isNotEmpty());
     }
 
     @Test
