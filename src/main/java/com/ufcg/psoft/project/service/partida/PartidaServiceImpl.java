@@ -1,10 +1,13 @@
 package com.ufcg.psoft.project.service.partida;
 
 import com.ufcg.psoft.project.dto.partida.PartidaResponseDTO;
+import com.ufcg.psoft.project.exception.GrupoNaoExisteException;
 import com.ufcg.psoft.project.model.Campeonato;
+import com.ufcg.psoft.project.model.Grupo;
 import com.ufcg.psoft.project.model.Partida;
 import com.ufcg.psoft.project.model.PartidaStatus;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
+import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.PartidaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +33,9 @@ public class PartidaServiceImpl implements PartidaService {
     @Autowired
     private CampeonatoRepository campeonatoRepository;
 
+    @Autowired
+    private GrupoRepository grupoRepository;
+
     @Value("${project.football-data.api-token:}")
     private String apiToken;
 
@@ -44,7 +50,9 @@ public class PartidaServiceImpl implements PartidaService {
 
     @Override
     public List<PartidaResponseDTO> listarPorGrupo(Long grupoId) {
-        return partidaRepository.findByCampeonatoId(grupoId).stream()
+        Grupo grupo = grupoRepository.findById(grupoId)
+                .orElseThrow(GrupoNaoExisteException::new);
+        return partidaRepository.findByCampeonatoId(grupo.getCampeonato().getId()).stream()
                 .map(PartidaResponseDTO::new)
                 .collect(Collectors.toList());
     }
