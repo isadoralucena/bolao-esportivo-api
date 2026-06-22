@@ -447,6 +447,32 @@ public class UsuarioControllerTest {
         }
     }
 
+    @Test
+    @DisplayName("Quando alteramos o email do usuario com dados válidos")
+    void quandoAlteramosEmailDousuarioValido() throws Exception {
+        // Arrange
+        String novoEmail = "usuario.alterado@email.com";
+        usuarioPostPutRequestDTO.setEmail(novoEmail);
+
+        // Act
+        String responseJsonString = driver.perform(put(URI_USUARIOS + "/" + usuario.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .param("codigo", usuario.getCodigo())
+                .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andReturn().getResponse().getContentAsString();
+
+        UsuarioResponseDTO resultado = objectMapper.readValue(responseJsonString, UsuarioResponseDTO.class);
+
+        Usuario usuarioSalvo = usuarioRepository.findById(usuario.getId()).orElseThrow();
+
+        // Assert
+        assertAll(
+                () -> assertEquals(novoEmail, resultado.getEmail()),
+                () -> assertEquals(novoEmail, usuarioSalvo.getEmail()));
+    }
+    
     @Nested
     @DisplayName("Conjunto de casos de verificação do perfil")
     class usuarioVerificacaoPerfil {

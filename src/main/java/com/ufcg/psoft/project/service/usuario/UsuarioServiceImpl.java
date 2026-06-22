@@ -36,7 +36,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
 
         modelMapper.map(usuarioPostPutRequestDTO, usuario);
-        usuario.setEmail(emailAtualNormalizado);
+        usuario.setEmail(novoEmailNormalizado);
         usuarioRepository.save(usuario);
         return modelMapper.map(usuario, UsuarioResponseDTO.class);
     }
