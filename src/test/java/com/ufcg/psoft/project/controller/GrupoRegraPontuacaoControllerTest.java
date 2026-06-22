@@ -116,7 +116,7 @@ public class GrupoRegraPontuacaoControllerTest {
                             .param("usuarioId", organizador.getId().toString())
                             .param("codigoAcesso", organizador.getCodigo())
                             .content(objectMapper.writeValueAsString(regraPontuacaoDto)))
-                    .andExpect(status().isOk())
+                    .andExpect(status().isCreated())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
 
@@ -137,7 +137,7 @@ public class GrupoRegraPontuacaoControllerTest {
                                 .param("usuarioId", organizador.getId().toString())
                                 .param("codigoAcesso", organizador.getCodigo())
                                 .content(objectMapper.writeValueAsString(dto)))
-                        .andExpect(status().isOk())
+                        .andExpect(status().isCreated())
                         .andDo(print());
             }
         }
@@ -355,7 +355,7 @@ public class GrupoRegraPontuacaoControllerTest {
                             .param("usuarioId", organizador.getId().toString())
                             .param("codigoAcesso", organizador.getCodigo())
                             .content(objectMapper.writeValueAsString(regraPontuacaoDto)))
-                    .andExpect(status().isOk())
+                    .andExpect(status().isCreated())
                     .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
 
             regraId = objectMapper.readTree(responseJsonString)

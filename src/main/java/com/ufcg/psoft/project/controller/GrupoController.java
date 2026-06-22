@@ -135,7 +135,7 @@ public class GrupoController {
 			@PathVariable Long grupoId,
 			@RequestBody @Valid RegraPontuacaoPostPutRequestDTO regraPontuacaoPostPutRequestDto) {
 		return ResponseEntity
-				.status(HttpStatus.OK)
+				.status(HttpStatus.CREATED)
 				.body(grupoService.inserirRegraPontuacao(usuarioId, codigoAcesso, grupoId, regraPontuacaoPostPutRequestDto));
 	}
 
