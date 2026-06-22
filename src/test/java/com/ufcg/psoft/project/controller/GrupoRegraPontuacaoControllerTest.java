@@ -2,6 +2,7 @@ package com.ufcg.psoft.project.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ufcg.psoft.project.dto.grupo.RegraPontuacaoPostPutRequestDTO;
+import com.ufcg.psoft.project.dto.grupo.RegraPontuacaoResponseDTO;
 import com.ufcg.psoft.project.exception.CustomErrorType;
 import com.ufcg.psoft.project.model.*;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
@@ -16,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -302,70 +304,176 @@ public class GrupoRegraPontuacaoControllerTest {
     }
 
     @Nested
-    @DisplayName("Conjunto de casos de listagem de regras de pontuação")
-    class listarRegrasPontuacao {
+	@DisplayName("Conjunto de casos de listagem de regras de pontuação")
+	class listarRegrasPontuacao {
 
-        @BeforeEach
-        void setupRegras() throws Exception {
-            driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .param("usuarioId", organizador.getId().toString())
-                    .param("codigoAcesso", organizador.getCodigo())
-                    .content(objectMapper.writeValueAsString(regraPontuacaoDto)));
-        }
+		@BeforeEach
+		void setupRegras() throws Exception {
+			driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao")
+					.contentType(MediaType.APPLICATION_JSON)
+					.param("usuarioId", organizador.getId().toString())
+					.param("codigoAcesso", organizador.getCodigo())
+					.content(objectMapper.writeValueAsString(regraPontuacaoDto)))
+				.andExpect(status().isCreated());
+		}
 
-        @Test
-        @DisplayName("Quando o organizador lista regras de pontuação com sucesso")
-        void quandoOrganizadorListaRegrasPontuacaoComSucesso() throws Exception {
-            String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("usuarioId", organizador.getId().toString())
-                            .param("codigoAcesso", organizador.getCodigo()))
-                    .andExpect(status().isOk())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+		@Test
+		@DisplayName("Quando o organizador lista regras de pontuação com sucesso")
+		void quandoOrganizadorListaRegrasPontuacaoComSucesso() throws Exception {
+			String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao")
+							.contentType(MediaType.APPLICATION_JSON)
+							.param("usuarioId", organizador.getId().toString())
+							.param("codigoAcesso", organizador.getCodigo()))
+					.andExpect(status().isOk())
+					.andDo(print())
+					.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
 
-            assertAll(
-                    () -> assertNotNull(responseJsonString),
-                    () -> assertFalse(responseJsonString.isEmpty())
-            );
-        }
+			assertAll(
+					() -> assertNotNull(responseJsonString),
+					() -> assertFalse(responseJsonString.isEmpty())
+			);
+		}
 
-        @Test
-        @DisplayName("Quando se tenta listar regras de grupo inexistente")
-        void quandoTentaListarRegrasDeGrupoInexistente() throws Exception {
-            String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + 999999L + "/regras-pontuacao")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("usuarioId", organizador.getId().toString())
-                            .param("codigoAcesso", organizador.getCodigo()))
-                    .andExpect(status().isBadRequest())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+		@Test
+		@DisplayName("Quando um participante lista regras de pontuação com sucesso")
+		void quandoParticipanteListaRegrasPontuacaoComSucesso() throws Exception {
+			grupoPublico.getParticipantes().add(outroUsuario);
+			grupoRepository.save(grupoPublico);
 
-            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
+			String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao")
+							.contentType(MediaType.APPLICATION_JSON)
+							.param("usuarioId", outroUsuario.getId().toString())
+							.param("codigoAcesso", outroUsuario.getCodigo()))
+					.andExpect(status().isOk())
+					.andDo(print())
+					.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
 
-            assertAll(
-                    () -> assertEquals("Esse grupo não existe!", resultado.getMessage())
-            );
-        }
+			assertAll(
+					() -> assertNotNull(responseJsonString),
+					() -> assertFalse(responseJsonString.isEmpty())
+			);
+		}
 
-        @Test
-        @DisplayName("Quando se tenta listar regras com código de acesso inválido")
-        void quandoTentaListarRegrasComCodigoInvalido() throws Exception {
-            String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("usuarioId", organizador.getId().toString())
-                            .param("codigoAcesso", "999999"))
-                    .andExpect(status().isBadRequest())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+		@Test
+		@DisplayName("Quando um usuário não membro tenta listar regras de pontuação")
+		void quandoUsuarioNaoMembroTentaListarRegrasPontuacao() throws Exception {
+			grupoPublico.getParticipantes().remove(outroUsuario);
+			grupoRepository.save(grupoPublico);
 
-            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
+			String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao")
+							.contentType(MediaType.APPLICATION_JSON)
+							.param("usuarioId", outroUsuario.getId().toString())
+							.param("codigoAcesso", outroUsuario.getCodigo()))
+					.andExpect(status().isBadRequest())
+					.andDo(print())
+					.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
 
-            assertAll(
-                    () -> assertEquals("Código de acesso inválido!", resultado.getMessage())
-            );
-        }
+			CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
+
+			assertAll(
+					() -> assertEquals("Permissão negada para acessar este recurso.", resultado.getMessage())
+			);
+		}
+
+		@Test
+		@DisplayName("Quando o organizador lista regras e o retorno contém os dados corretos")
+		void quandoOrganizadorListaRegrasEVerificaDados() throws Exception {
+			String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao")
+							.contentType(MediaType.APPLICATION_JSON)
+							.param("usuarioId", organizador.getId().toString())
+							.param("codigoAcesso", organizador.getCodigo()))
+					.andExpect(status().isOk())
+					.andDo(print())
+					.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+			Set<RegraPontuacaoResponseDTO> resultado = objectMapper.readValue(
+					responseJsonString,
+					objectMapper.getTypeFactory().constructCollectionType(Set.class, RegraPontuacaoResponseDTO.class)
+			);
+
+			assertAll(
+					() -> assertFalse(resultado.isEmpty()),
+					() -> assertEquals(1, resultado.size()),
+					() -> assertEquals(regraPontuacaoDto.getTipoRegraPontuacao(), resultado.iterator().next().getTipoRegraPontuacao()),
+					() -> assertEquals(regraPontuacaoDto.getPontos(), resultado.iterator().next().getPontos())
+			);
+		}
+
+		@Test
+		@DisplayName("Quando o organizador lista regras de um grupo sem regras cadastradas")
+		void quandoOrganizadorListaRegrasDeGrupoSemRegras() throws Exception {
+			String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + grupoPrivado.getId() + "/regras-pontuacao")
+							.contentType(MediaType.APPLICATION_JSON)
+							.param("usuarioId", organizador.getId().toString())
+							.param("codigoAcesso", organizador.getCodigo()))
+					.andExpect(status().isOk())
+					.andDo(print())
+					.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+			Set<RegraPontuacaoResponseDTO> resultado = objectMapper.readValue(
+					responseJsonString,
+					objectMapper.getTypeFactory().constructCollectionType(Set.class, RegraPontuacaoResponseDTO.class)
+			);
+
+			assertAll(
+					() -> assertNotNull(resultado),
+					() -> assertTrue(resultado.isEmpty())
+			);
+		}
+
+		@Test
+		@DisplayName("Quando se tenta listar regras com usuário inexistente")
+		void quandoTentaListarRegrasComUsuarioInexistente() throws Exception {
+			String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao")
+							.contentType(MediaType.APPLICATION_JSON)
+							.param("usuarioId", "999999")
+							.param("codigoAcesso", organizador.getCodigo()))
+					.andExpect(status().isBadRequest())
+					.andDo(print())
+					.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+			CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
+
+			assertAll(
+					() -> assertEquals("O usuário consultado não existe!", resultado.getMessage())
+			);
+		}
+
+		@Test
+		@DisplayName("Quando se tenta listar regras de grupo inexistente")
+		void quandoTentaListarRegrasDeGrupoInexistente() throws Exception {
+			String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + 999999L + "/regras-pontuacao")
+							.contentType(MediaType.APPLICATION_JSON)
+							.param("usuarioId", organizador.getId().toString())
+							.param("codigoAcesso", organizador.getCodigo()))
+					.andExpect(status().isBadRequest())
+					.andDo(print())
+					.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+			CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
+
+			assertAll(
+					() -> assertEquals("Esse grupo não existe!", resultado.getMessage())
+			);
+		}
+
+		@Test
+		@DisplayName("Quando se tenta listar regras com código de acesso inválido")
+		void quandoTentaListarRegrasComCodigoInvalido() throws Exception {
+			String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao")
+							.contentType(MediaType.APPLICATION_JSON)
+							.param("usuarioId", organizador.getId().toString())
+							.param("codigoAcesso", "999999"))
+					.andExpect(status().isBadRequest())
+					.andDo(print())
+					.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+			CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
+
+			assertAll(
+					() -> assertEquals("Código de acesso inválido!", resultado.getMessage())
+			);
+		}
     }
 
     @Nested
