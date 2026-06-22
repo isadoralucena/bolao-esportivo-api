@@ -124,6 +124,32 @@ public class GrupoRegraPontuacaoControllerTest {
         }
 
         @Test
+        @DisplayName("Quando se tenta inserir regra com tipo já existente no grupo")
+        void quandoTentaInserirRegraDuplicada() throws Exception {
+            driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("usuarioId", organizador.getId().toString())
+                        .param("codigoAcesso", organizador.getCodigo())
+                        .content(objectMapper.writeValueAsString(regraPontuacaoDto)))
+                    .andExpect(status().isCreated());
+
+            String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("usuarioId", organizador.getId().toString())
+                        .param("codigoAcesso", organizador.getCodigo())
+                        .content(objectMapper.writeValueAsString(regraPontuacaoDto)))
+                    .andExpect(status().isBadRequest())
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
+
+            assertAll(
+                    () -> assertEquals("Já existe uma regra de pontuação com esse tipo para o grupo!", resultado.getMessage())
+            );
+        }
+
+        @Test
         @DisplayName("Quando o organizador insere todos os tipos de regra de pontuação")
         void quandoOrganizadorInsereVariostiposDeRegraPontuacao() throws Exception {
             for (TipoRegraPontuacao tipo : TipoRegraPontuacao.values()) {
