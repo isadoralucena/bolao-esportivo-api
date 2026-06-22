@@ -106,7 +106,11 @@ public class PalpiteServiceImpl implements PalpiteService {
         return new PalpiteResponseDTO(palpite);
     }
 
-    // Deletar
+    @Override
+    public void deletar(Long palpiteId, Long usuarioId, String codigo) {
+        Palpite palpite = obterPalpiteValidado(palpiteId, usuarioId, codigo);
+        palpiteRepository.delete(palpite);
+    }
 
     private Palpite obterPalpiteValidado(Long palpiteId, Long usuarioId, String codigo) {
         Palpite palpite = palpiteRepository.findById(palpiteId)
