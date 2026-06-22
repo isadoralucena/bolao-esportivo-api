@@ -12,12 +12,14 @@ import com.ufcg.psoft.project.dto.grupo.GrupoPostRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.GrupoPutRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.GrupoResponseDTO;
 import com.ufcg.psoft.project.dto.grupo.ParticipantePostRequestDTO;
+import com.ufcg.psoft.project.dto.palpite.RegrasPalpitesRequestDTO;
 import com.ufcg.psoft.project.dto.usuario.UsuarioResponseDTO;
 import com.ufcg.psoft.project.exception.CampeonatoNaoExisteException;
 import com.ufcg.psoft.project.exception.CodigoDeAcessoInvalidoException;
 import com.ufcg.psoft.project.exception.GrupoNaoExisteException;
 import com.ufcg.psoft.project.exception.LimiteDeParticipantesAtingidoException;
 import com.ufcg.psoft.project.exception.PermissaoNegadaException;
+import com.ufcg.psoft.project.exception.RegraDeTempoInvalidaException;
 import com.ufcg.psoft.project.exception.UsuarioNaoExisteException;
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.model.Grupo;
@@ -164,6 +166,22 @@ public class GrupoServiceImpl implements GrupoService {
             grupoRepository.save(grupo);
             return modelMapper.map(grupo, GrupoResponseDTO.class);
         }
+
+    public GrupoResponseDTO configurarRegrasPalpites(Long grupoID, Long usuarioId, String codigoAcesso, RegrasPalpitesRequestDTO dto) {
+        Grupo grupo = grupoRepository.findById(grupoID)
+                .orElseThrow(GrupoNaoExisteException::new);
+
+        Usuario usuario = obterUsuarioValido(usuarioId, codigoAcesso);
+
+        if (!grupo.getOrganizador().getId().equals(usuario.getId())) throw new PermissaoNegadaException();
+        if (dto.getMinutosAbertura() <= dto.getMinutosFechamento()) throw new RegraDeTempoInvalidaException();
+
+        grupo.setMinutosAberturaPalpites(dto.getMinutosAbertura());
+        grupo.setMinutosFechamentoPalpites(dto.getMinutosFechamento());
+        grupoRepository.save(grupo);
+
+        return modelMapper.map(grupo, GrupoResponseDTO.class);
+    }
 
     private void validarEntradaEmGrupoPublico(Grupo grupo, Usuario usuario) {
         if (grupo.getPrivacidade() == PrivacidadeGrupo.PRIVADA) {

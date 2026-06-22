@@ -54,4 +54,15 @@ public class Partida {
 
     @JsonProperty("rodada")
     private Integer rodada;
+
+    public boolean estaAbertaParaPalpite(JanelaDePalpites janela, LocalDateTime horaAtual) {
+        if (this.status != PartidaStatus.ABERTA) {
+            return false;
+        }
+
+        LocalDateTime horarioAbertura = this.data.minusMinutes(janela.getMinutosAbertura());
+        LocalDateTime horarioFechamento = this.data.minusMinutes(janela.getMinutosFechamento());
+
+        return horaAtual.isAfter(horarioAbertura) && horaAtual.isBefore(horarioFechamento);
+    }
 }

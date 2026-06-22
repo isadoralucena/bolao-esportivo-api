@@ -54,4 +54,18 @@ public class Grupo {
     )
 	@Builder.Default
     private Set<Usuario> participantes = new HashSet<>();
+
+	@JsonProperty("minutosAberturaPalpite")
+	@Column(nullable = false)
+	@Builder.Default
+	private Integer minutosAberturaPalpites = 120;
+
+	@JsonProperty("minutosFechamentoPalpite")
+	@Column(nullable = false)
+	@Builder.Default
+	private Integer minutosFechamentoPalpites = 0;
+
+	public JanelaDePalpites getJanelaDePalpites() {
+    	return new JanelaDePalpites(this.minutosAberturaPalpites, this.minutosFechamentoPalpites);
+	}
 }
