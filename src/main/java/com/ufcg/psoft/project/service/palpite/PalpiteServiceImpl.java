@@ -7,6 +7,7 @@ import com.ufcg.psoft.project.model.Grupo;
 import com.ufcg.psoft.project.model.Palpite;
 import com.ufcg.psoft.project.model.Partida;
 import com.ufcg.psoft.project.model.Usuario;
+import com.ufcg.psoft.project.model.PartidaStatus;
 import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.PalpiteRepository;
 import com.ufcg.psoft.project.repository.PartidaRepository;
@@ -92,5 +93,44 @@ public class PalpiteServiceImpl implements PalpiteService {
         return palpiteRepository.findByUsuarioId(usuarioId).stream()
                 .map(PalpiteResponseDTO::new)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public PalpiteResponseDTO editar(Long palpiteId, Long usuarioId, String codigo, PalpitePostPutRequestDTO dto) {
+        Palpite palpite = obterPalpiteValidado(palpiteId, usuarioId, codigo);
+
+        palpite.setGolsMandante(dto.getGolsMandante());
+        palpite.setGolsVisitante(dto.getGolsVisitante());
+
+        palpiteRepository.save(palpite);
+        return new PalpiteResponseDTO(palpite);
+    }
+
+    @Override
+    public void deletar(Long palpiteId, Long usuarioId, String codigo) {
+        Palpite palpite = obterPalpiteValidado(palpiteId, usuarioId, codigo);
+        palpiteRepository.delete(palpite);
+    }
+
+    private Palpite obterPalpiteValidado(Long palpiteId, Long usuarioId, String codigo) {
+        Palpite palpite = palpiteRepository.findById(palpiteId)
+                .orElseThrow(PalpiteNaoExisteException::new);
+
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(UsuarioNaoExisteException::new);
+
+        if (!usuario.getCodigo().equals(codigo)) {
+            throw new CodigoDeAcessoInvalidoException();
+        }
+
+        if (!palpite.getUsuario().getId().equals(usuarioId)) {
+            throw new UsuarioInvalidoException();
+        }
+
+        if (palpite.getPartida().getStatus() != PartidaStatus.ABERTO) {
+            throw new PalpiteForaDoTempoException();
+        }
+
+        return palpite;
     }
 }

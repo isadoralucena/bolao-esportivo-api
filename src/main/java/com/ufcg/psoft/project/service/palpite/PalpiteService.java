@@ -14,4 +14,8 @@ public interface PalpiteService {
     List<PalpiteResponseDTO> listarPorGrupoEPartida(Long grupoId, Long partidaId);
 
     List<PalpiteResponseDTO> listarPorUsuario(Long usuarioId);
+
+    PalpiteResponseDTO editar(Long palpiteId, Long usuarioId, String codigo, PalpitePostPutRequestDTO dto);
+
+    void deletar(Long palpiteId, Long usuarioId, String codigo);
 }
