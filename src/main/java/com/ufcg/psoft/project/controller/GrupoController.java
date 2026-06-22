@@ -160,4 +160,15 @@ public class GrupoController {
 				.status(HttpStatus.NO_CONTENT)
 				.build();
 	}
+
+        @PutMapping("/{grupoId}/regras-palpites")
+        public ResponseEntity<?> configurarRegrasPalpites(
+                @PathVariable Long grupoId,
+                @RequestParam Long usuarioId,
+                @RequestParam String codigo,
+                @RequestBody @Valid RegrasPalpitesRequestDTO regrasPalpitesRequestDTO) {
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(grupoService.configurarRegrasPalpites(grupoId, usuarioId, codigo, regrasPalpitesRequestDTO));
+        }
 }

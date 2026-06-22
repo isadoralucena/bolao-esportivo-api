@@ -224,65 +224,17 @@ public class GrupoServiceImpl implements GrupoService {
         regraPontuacaoRepository.delete(regraPontuacao);
     }
 
-    public RegraPontuacaoResponseDTO inserirRegraPontuacao(Long usuarioId, String codigoAcesso, Long grupoId, RegraPontuacaoPostPutRequestDTO regraPontuacaoPostPutRequestDto){
-        Grupo grupo = grupoRepository.findById(grupoId).orElseThrow(GrupoNaoExisteException::new);
-        Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
-
-        if (!grupo.getOrganizador().equals(usuarioLogado)) {
-            throw new PermissaoNegadaException();
-        }
-
-        TipoRegraPontuacao tipo = regraPontuacaoPostPutRequestDto.getTipoRegraPontuacao();
-
-        if (regraPontuacaoRepository.existsByGrupoAndTipoRegraPontuacao(grupo, tipo)) {
-            throw new RegraPontuacaoDuplicadaException();
-        }
-
-        RegraPontuacao regraPontuacao = modelMapper.map(regraPontuacaoPostPutRequestDto, RegraPontuacao.class);
-        regraPontuacao.setGrupo(grupo);
-        regraPontuacao = regraPontuacaoRepository.save(regraPontuacao);
-        return modelMapper.map(regraPontuacao, RegraPontuacaoResponseDTO.class);
-    }
-
-    public Set<RegraPontuacaoResponseDTO> listarRegrasPontuacao(Long usuarioId, String codigoAcesso, Long grupoId){
-        Grupo grupo = grupoRepository.findById(grupoId).orElseThrow(GrupoNaoExisteException::new);
-        Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
-
-        if (!(grupo.getParticipantes().contains(usuarioLogado) || grupo.getOrganizador().equals(usuarioLogado))) {
-            throw new PermissaoNegadaException();
-        }
-
-        return grupo.getRegrasPontuacao().stream()
-                .map(regra -> modelMapper.map(regra, RegraPontuacaoResponseDTO.class))
-                .collect(Collectors.toSet());
-    }
-
-    public void removerRegraPontuacao(Long usuarioId, String codigoAcesso, Long grupoId, Long regraPontuacaoId){
-        Grupo grupo = grupoRepository.findById(grupoId).orElseThrow(GrupoNaoExisteException::new);
-        Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
-
-        if (!grupo.getOrganizador().equals(usuarioLogado)) {
-            throw new PermissaoNegadaException();
-        }
-
-        RegraPontuacao regraPontuacao = regraPontuacaoRepository.findById(regraPontuacaoId)
-                .filter(regra -> regra.getGrupo().getId().equals(grupoId))
-                .orElseThrow(RegraPontuacaoNaoExisteException::new);
-
-        regraPontuacaoRepository.delete(regraPontuacao);
-    }
-
-    public GrupoResponseDTO configurarRegrasPalpites(Long grupoID, Long usuarioId, String codigoAcesso, RegrasPalpitesRequestDTO dto) {
+    public GrupoResponseDTO configurarRegrasPalpites(Long grupoID, Long usuarioId, String codigoAcesso, RegrasPalpitesRequestDTO regrasPalpitesRequestDTO) {
         Grupo grupo = grupoRepository.findById(grupoID)
                 .orElseThrow(GrupoNaoExisteException::new);
 
         Usuario usuario = obterUsuarioValido(usuarioId, codigoAcesso);
 
         if (!grupo.getOrganizador().getId().equals(usuario.getId())) throw new PermissaoNegadaException();
-        if (dto.getMinutosAbertura() <= dto.getMinutosFechamento()) throw new RegraDeTempoInvalidaException();
+        if (regrasPalpitesRequestDTO.getMinutosAbertura() <= regrasPalpitesRequestDTO.getMinutosFechamento()) throw new RegraDeTempoInvalidaException();
 
-        grupo.setMinutosAberturaPalpites(dto.getMinutosAbertura());
-        grupo.setMinutosFechamentoPalpites(dto.getMinutosFechamento());
+        grupo.setMinutosAberturaPalpites(regrasPalpitesRequestDTO.getMinutosAbertura());
+        grupo.setMinutosFechamentoPalpites(regrasPalpitesRequestDTO.getMinutosFechamento());
         grupoRepository.save(grupo);
 
         return modelMapper.map(grupo, GrupoResponseDTO.class);

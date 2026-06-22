@@ -56,12 +56,12 @@ public class Partida {
     private Integer rodada;
 
     public boolean estaAbertaParaPalpite(JanelaDePalpites janela, LocalDateTime horaAtual) {
-        if (this.status != PartidaStatus.ABERTA) {
+        if (this.status != PartidaStatus.ABERTO) {
             return false;
         }
 
-        LocalDateTime horarioAbertura = this.data.minusMinutes(janela.getMinutosAbertura());
-        LocalDateTime horarioFechamento = this.data.minusMinutes(janela.getMinutosFechamento());
+        LocalDateTime horarioAbertura = this.data.minusMinutes(janela.minutosAbertura());
+        LocalDateTime horarioFechamento = this.data.minusMinutes(janela.minutosFechamento());
 
         return horaAtual.isAfter(horarioAbertura) && horaAtual.isBefore(horarioFechamento);
     }

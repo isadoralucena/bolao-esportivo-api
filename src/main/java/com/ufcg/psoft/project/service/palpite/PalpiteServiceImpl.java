@@ -49,7 +49,7 @@ public class PalpiteServiceImpl implements PalpiteService {
         Partida partida = partidaRepository.findById(partidaId)
                 .orElseThrow(PartidaNaoExisteException::new);
         
-        if (partida.estaAbertaParaPalpite(grupo.getJanelaDePalpites(), LocalDateTime.now())) {
+        if (!partida.estaAbertaParaPalpite(grupo.getJanelaDePalpites(), LocalDateTime.now())) {
             throw new PalpiteForaDoTempoException();
         }
 
@@ -123,10 +123,6 @@ public class PalpiteServiceImpl implements PalpiteService {
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(UsuarioNaoExisteException::new);
 
-        if (!palpite.getPartida().estaAbertaParaPalpites(palpite.getGrupo().getJanelaDePalpites(), LocalDateTime.now())) {
-            throw new PalpiteForaDoTempoException();
-        }
-
         if (!usuario.getCodigo().equals(codigo)) {
             throw new CodigoDeAcessoInvalidoException();
         }
@@ -135,7 +131,7 @@ public class PalpiteServiceImpl implements PalpiteService {
             throw new UsuarioInvalidoException();
         }
 
-        if (palpite.getPartida().getStatus() != PartidaStatus.ABERTO) {
+        if (!palpite.getPartida().estaAbertaParaPalpite(palpite.getGrupo().getJanelaDePalpites(), LocalDateTime.now())) {
             throw new PalpiteForaDoTempoException();
         }
 
