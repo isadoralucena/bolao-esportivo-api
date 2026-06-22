@@ -20,12 +20,14 @@ import com.ufcg.psoft.project.exception.CodigoDeAcessoInvalidoException;
 import com.ufcg.psoft.project.exception.GrupoNaoExisteException;
 import com.ufcg.psoft.project.exception.LimiteDeParticipantesAtingidoException;
 import com.ufcg.psoft.project.exception.PermissaoNegadaException;
+import com.ufcg.psoft.project.exception.RegraPontuacaoDuplicadaException;
 import com.ufcg.psoft.project.exception.RegraPontuacaoNaoExisteException;
 import com.ufcg.psoft.project.exception.UsuarioNaoExisteException;
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.model.Grupo;
 import com.ufcg.psoft.project.model.PrivacidadeGrupo;
 import com.ufcg.psoft.project.model.RegraPontuacao;
+import com.ufcg.psoft.project.model.TipoRegraPontuacao;
 import com.ufcg.psoft.project.model.Usuario;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.repository.GrupoRepository;
@@ -178,6 +180,12 @@ public class GrupoServiceImpl implements GrupoService {
 
         if (!grupo.getOrganizador().equals(usuarioLogado)) {
             throw new PermissaoNegadaException();
+        }
+
+        TipoRegraPontuacao tipo = regraPontuacaoPostPutRequestDto.getTipoRegraPontuacao();
+
+        if (regraPontuacaoRepository.existsByGrupoAndTipoRegraPontuacao(grupo, tipo)) {
+            throw new RegraPontuacaoDuplicadaException();
         }
 
         RegraPontuacao regraPontuacao = modelMapper.map(regraPontuacaoPostPutRequestDto, RegraPontuacao.class);

@@ -15,6 +15,12 @@ import lombok.ToString;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(uniqueConstraints = {
+    @UniqueConstraint(
+        name = "uk_grupo_tipo_regra",
+        columnNames = {"grupo_id", "tipoRegraPontuacao"}
+    )
+})
 public class RegraPontuacao {
     @JsonProperty("id")
 	@Id
