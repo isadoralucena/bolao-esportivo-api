@@ -63,6 +63,6 @@ public class Partida {
         LocalDateTime horarioAbertura = this.data.minusMinutes(janela.minutosAbertura());
         LocalDateTime horarioFechamento = this.data.minusMinutes(janela.minutosFechamento());
 
-        return horaAtual.isAfter(horarioAbertura) && horaAtual.isBefore(horarioFechamento);
+        return !horaAtual.isBefore(horarioAbertura) && horaAtual.isBefore(horarioFechamento);
     }
 }
