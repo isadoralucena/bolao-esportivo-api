@@ -55,6 +55,10 @@ public class Grupo {
 	@Builder.Default
     private Set<Usuario> participantes = new HashSet<>();
 
+	@OneToMany(mappedBy = "grupo", cascade = CascadeType.ALL, orphanRemoval = true)
+	@Builder.Default
+	private Set<RegraPontuacao> regrasPontuacao = new HashSet<>();
+
 	@JsonProperty("minutosAberturaPalpite")
 	@Column(nullable = false)
 	@Builder.Default
