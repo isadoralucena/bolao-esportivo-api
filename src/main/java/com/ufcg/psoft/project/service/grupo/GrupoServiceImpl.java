@@ -198,7 +198,7 @@ public class GrupoServiceImpl implements GrupoService {
         Grupo grupo = grupoRepository.findById(grupoId).orElseThrow(GrupoNaoExisteException::new);
         Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
 
-        if (!grupo.getOrganizador().equals(usuarioLogado)) {
+        if (!(grupo.getParticipantes().contains(usuarioLogado) || grupo.getOrganizador().equals(usuarioLogado))) {
             throw new PermissaoNegadaException();
         }
 
