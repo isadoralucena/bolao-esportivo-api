@@ -50,7 +50,7 @@ public class PalpiteController {
                 .status(HttpStatus.OK)
                 .body(palpiteService.listarPorUsuario(usuarioId));
     }
-    
+
     @PutMapping("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}")
     public ResponseEntity<?> editarPalpite(
             @PathVariable Long grupoId,
@@ -62,5 +62,18 @@ public class PalpiteController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(palpiteService.editar(palpiteId, usuarioId, codigo, dto));
+    }
+
+    @DeleteMapping("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}")
+    public ResponseEntity<?> deletarPalpite(
+            @PathVariable Long grupoId,
+            @PathVariable Long partidaId,
+            @PathVariable Long palpiteId,
+            @RequestParam Long usuarioId,
+            @RequestParam String codigo) {
+        palpiteService.deletar(palpiteId, usuarioId, codigo);
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .build();
     }
 }
