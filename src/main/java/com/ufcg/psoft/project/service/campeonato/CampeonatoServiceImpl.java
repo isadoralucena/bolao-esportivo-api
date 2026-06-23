@@ -170,7 +170,5 @@ public class CampeonatoServiceImpl implements CampeonatoService {
         if (body.containsKey("code")) {
             campeonato.setCodigo((String) body.get("code"));
         }
-
-        campeonatoRepository.save(campeonato);
     }
 }
