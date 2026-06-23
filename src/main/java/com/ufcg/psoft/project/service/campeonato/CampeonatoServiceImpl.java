@@ -62,9 +62,13 @@ public class CampeonatoServiceImpl implements CampeonatoService {
 
     @Override
     @Transactional
-    public void sincronizarCampeonatoAutomaticamente(Long campeonatoId) {
-        Campeonato campeonato = campeonatoRepository.findById(campeonatoId).orElseThrow(CampeonatoNaoExisteException::new);
-        sincronizarCampeonato(campeonato);
+    public void sincronizarCampeonato(Campeonato campeonato) {
+        sincronizarDadosDoCampeonato(campeonato);
+        partidaService.sincronizarPartidas(campeonato);
+        classificacaoCampeonatoService.sincronizarClassificacao(campeonato.getId());
+
+        campeonato.setUltimaSincronizacao(LocalDateTime.now());
+        campeonatoRepository.save(campeonato);
     }
 
 	@Override
@@ -133,15 +137,6 @@ public class CampeonatoServiceImpl implements CampeonatoService {
 			throw new CodigoDeAcessoInvalidoException();
 		}
 	}
-    
-    private void sincronizarCampeonato(Campeonato campeonato) {
-        sincronizarDadosDoCampeonato(campeonato);
-        partidaService.sincronizarPartidas(campeonato);
-        classificacaoCampeonatoService.sincronizarClassificacao(campeonato.getId());
-
-        campeonato.setUltimaSincronizacao(LocalDateTime.now());
-        campeonatoRepository.save(campeonato);
-    }
 
     private void sincronizarDadosDoCampeonato(Campeonato campeonato) {
         HttpHeaders headers = new HttpHeaders();
