@@ -11,20 +11,16 @@ import org.springframework.beans.factory.annotation.Value;
 
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
-import com.ufcg.psoft.project.service.campeonato.ClassificacaoCampeonatoService;
-import com.ufcg.psoft.project.service.partida.PartidaService;
+import com.ufcg.psoft.project.service.campeonato.CampeonatoService;
 
 @Service
 public class SincronizacaoPeriodicaServiceImpl implements SincronizacaoPeriodicaService {
 
     @Autowired
+    private CampeonatoService campeonatoService;
+
+    @Autowired
     private CampeonatoRepository campeonatoRepository;
-
-    @Autowired
-    private PartidaService partidaService;
-
-    @Autowired
-    private ClassificacaoCampeonatoService classificacaoCampeonatoService;
 
     @Value("${project.sync.max-sincronizacoes-por-ciclo}")
     private int maxSincronizacoesPorCiclo;
@@ -42,11 +38,8 @@ public class SincronizacaoPeriodicaServiceImpl implements SincronizacaoPeriodica
                 break;
             }
 
-            partidaService.sincronizarPartidas(campeonato);
-
             try {
-                partidaService.sincronizarPartidas(campeonato);
-                classificacaoCampeonatoService.sincronizarClassificacao(campeonato.getId());
+                campeonatoService.sincronizarCampeonato(campeonato);
             } catch (Exception e) {
                 System.err.println("Warning: Erro ao sincronizar campeonato " + campeonato.getUrl() + " - " + e.getMessage());
             }
