@@ -10,6 +10,9 @@ import com.ufcg.psoft.project.model.Usuario;
 
 import com.ufcg.psoft.project.repository.UsuarioRepository;
 import com.ufcg.psoft.project.service.partida.PartidaService;
+
+import jakarta.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +53,7 @@ public class CampeonatoServiceImpl implements CampeonatoService {
 	private final RestTemplate restTemplate = new RestTemplate();
 
 	@Override
+    @Transactional
 	public void sincronizarCampeonato(Long campeonatoId, Long usuarioId, String codigo) {
 		verificaAdmin(usuarioId, codigo);
 		Campeonato campeonato = campeonatoRepository.findById(campeonatoId).orElseThrow(CampeonatoNaoExisteException::new);
@@ -57,6 +61,7 @@ public class CampeonatoServiceImpl implements CampeonatoService {
 	}
 
     @Override
+    @Transactional
     public void sincronizarCampeonatoAutomaticamente(Long campeonatoId) {
         Campeonato campeonato = campeonatoRepository.findById(campeonatoId).orElseThrow(CampeonatoNaoExisteException::new);
         sincronizarCampeonato(campeonato);
@@ -130,20 +135,13 @@ public class CampeonatoServiceImpl implements CampeonatoService {
 	}
     
     private void sincronizarCampeonato(Campeonato campeonato) {
-        try {
-            sincronizarDadosDoCampeonato(campeonato);
+        sincronizarDadosDoCampeonato(campeonato);
+        partidaService.sincronizarPartidas(campeonato);
+        classificacaoCampeonatoService.sincronizarClassificacao(campeonato.getId());
 
-            partidaService.sincronizarPartidas(campeonato);
-
-            classificacaoCampeonatoService.sincronizarClassificacao(campeonato.getId());
-
-            campeonato.setUltimaSincronizacao(LocalDateTime.now());
-            campeonatoRepository.save(campeonato);
-        } catch (Exception e) {
-            System.err.println("Warning: Não foi possivel sincronizar campeonato com: " + campeonato.getUrl() + " - " + e.getMessage());
-        }
+        campeonato.setUltimaSincronizacao(LocalDateTime.now());
+        campeonatoRepository.save(campeonato);
     }
-
 
     private void sincronizarDadosDoCampeonato(Campeonato campeonato) {
         HttpHeaders headers = new HttpHeaders();
