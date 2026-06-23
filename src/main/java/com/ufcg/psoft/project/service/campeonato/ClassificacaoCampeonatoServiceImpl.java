@@ -37,7 +37,9 @@ public class ClassificacaoCampeonatoServiceImpl implements ClassificacaoCampeona
 
     @Override
     @Transactional
-    public void sincronizarClassificacao(Campeonato campeonato) {
+    public void sincronizarClassificacao(Long campeonatoId) {
+        Campeonato campeonato = campeonatoRepository.findById(campeonatoId).orElseThrow(CampeonatoNaoExisteException::new);
+
         HttpHeaders headers = new HttpHeaders();
 
         if (apiToken != null && !apiToken.isBlank()) {

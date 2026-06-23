@@ -42,7 +42,7 @@ public class SincronizacaoPartidas {
             }
 
             partidaService.sincronizarPartidas(campeonato);
-            classificacaoCampeonatoService.sincronizarClassificacao(campeonato);
+            classificacaoCampeonatoService.sincronizarClassificacao(campeonato.getId());
             sincronizacoesFeitas++;
         }
     }
