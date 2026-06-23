@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
+import com.ufcg.psoft.project.service.campeonato.ClassificacaoCampeonatoService;
 
 @Service
 public class SincronizacaoPartidas {
@@ -21,8 +22,11 @@ public class SincronizacaoPartidas {
     @Autowired
     private PartidaService partidaService;
 
-    @Value("${project.sync.max-requisicoes-por-ciclo}")
-    private int maxRequisicoesPorCiclo;
+    @Autowired
+    private ClassificacaoCampeonatoService classificacaoCampeonatoService;
+
+    @Value("${project.sync.max-sincronizacoes-por-ciclo}")
+    private int maxSincronizacoesPorCiclo;
 
     @Scheduled(fixedDelayString = "${project.sync.scheduler-delay-ms}")
     public void sincronizarPartidas() {
@@ -30,15 +34,16 @@ public class SincronizacaoPartidas {
 
         campeonatos.sort(Comparator.comparing(Campeonato::getUltimaSincronizacao, Comparator.nullsFirst(LocalDateTime::compareTo)));
         
-        int requisicoesFeitas = 0;
+        int sincronizacoesFeitas = 0;
 
         for (Campeonato campeonato : campeonatos) {
-            if (requisicoesFeitas >= maxRequisicoesPorCiclo) {
+            if (sincronizacoesFeitas >= maxSincronizacoesPorCiclo) {
                 break;
             }
 
             partidaService.sincronizarPartidas(campeonato);
-            requisicoesFeitas++;
+            classificacaoCampeonatoService.sincronizarClassificacao(campeonato);
+            sincronizacoesFeitas++;
         }
     }
 }

@@ -22,6 +22,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
+import com.ufcg.psoft.project.service.campeonato.ClassificacaoCampeonatoService;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Testes da sincronização automática de partidas")
@@ -33,12 +34,15 @@ class SincronizacaoPartidasTest {
     @Mock
     private PartidaService partidaService;
 
+    @Mock
+    private ClassificacaoCampeonatoService classificacaoCampeonatoService;
+
     @InjectMocks
     private SincronizacaoPartidas sincronizacaoPartidas;
 
     @BeforeEach
     void setup() {
-        ReflectionTestUtils.setField(sincronizacaoPartidas, "maxRequisicoesPorCiclo", 2);
+        ReflectionTestUtils.setField(sincronizacaoPartidas, "maxSincronizacoesPorCiclo", 2);
     }
 
     @Test
@@ -95,7 +99,7 @@ class SincronizacaoPartidasTest {
     @DisplayName("Quando quota do ciclo é zero, não sincroniza nenhum campeonato")
     void quandoQuotaDoCicloEZeroNaoSincronizaNenhumCampeonato() {
         // Arrange
-        ReflectionTestUtils.setField(sincronizacaoPartidas, "maxRequisicoesPorCiclo", 0);
+        ReflectionTestUtils.setField(sincronizacaoPartidas, "maxSincronizacoesPorCiclo", 0);
 
         Campeonato campeonato = campeonato(
                 1L,
@@ -116,7 +120,7 @@ class SincronizacaoPartidasTest {
     @DisplayName("Quando quota é maior que a quantidade de campeonatos, sincroniza todos")
     void quandoQuotaMaiorQueQuantidadeDeCampeonatosSincronizaTodos() {
         // Arrange
-        ReflectionTestUtils.setField(sincronizacaoPartidas, "maxRequisicoesPorCiclo", 10);
+        ReflectionTestUtils.setField(sincronizacaoPartidas, "maxSincronizacoesPorCiclo", 10);
 
         Campeonato campeonato1 = campeonato(1L, "Campeonato 1", null);
         Campeonato campeonato2 = campeonato(2L, "Campeonato 2", LocalDateTime.of(2026, 1, 1, 1, 1));
