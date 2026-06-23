@@ -104,7 +104,12 @@ class SincronizacaoPartidasTest {
 
         when(campeonatoRepository.findByAtivoTrue()).thenReturn(new ArrayList<>(List.of(campeonato)));
 
-        // Acteonato.class));
+
+        // Act
+        sincronizacaoPartidas.sincronizarPartidas();
+
+        // Assert
+        verify(partidaService, never()).sincronizarPartidas(any(Campeonato.class));
     }
 
     @Test
