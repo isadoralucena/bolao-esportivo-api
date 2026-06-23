@@ -44,7 +44,6 @@ public class CampeonatoServiceImpl implements CampeonatoService {
 	@Autowired
 	private ModelMapper modelMapper;
 
-`
 	@Value("${project.football-data.api-token:}")
 	private String apiToken;
 
