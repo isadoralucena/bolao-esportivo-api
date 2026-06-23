@@ -30,12 +30,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class PartidaServiceImpl implements PartidaService {
-
     @Autowired
     private PartidaRepository partidaRepository;
-
-    @Autowired
-    private CampeonatoRepository campeonatoRepository;
 
     @Autowired
     private GrupoRepository grupoRepository;
