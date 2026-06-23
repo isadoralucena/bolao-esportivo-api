@@ -60,12 +60,14 @@ public class PartidaServiceImpl implements PartidaService {
     @Override
     public void sincronizarPartidas(Campeonato campeonato) {
         HttpHeaders headers = new HttpHeaders();
+        
         if (apiToken != null && !apiToken.isEmpty()) {
             headers.set("X-Auth-Token", apiToken);
         }
+        
         HttpEntity<Void> entity = new HttpEntity<>(headers);
-
         String matchesUrl = campeonato.getUrl() + "/matches";
+
 
         try {
             ResponseEntity<Map> response = restTemplate.exchange(
@@ -75,55 +77,68 @@ public class PartidaServiceImpl implements PartidaService {
                     Map.class
             );
 
-            if (response.getBody() != null) {
-                Map<String, Object> body = response.getBody();
-                List<Map<String, Object>> matches = (List<Map<String, Object>>) body.get("matches");
+            Map<String, Object> body = response.getBody();
 
-                if (matches != null) {
-                    for (Map<String, Object> match : matches) {
-                        Long codigoExterno = Long.valueOf(match.get("id").toString());
-                        Map<String, Object> homeTeam = (Map<String, Object>) match.get("homeTeam");
-                        Map<String, Object> awayTeam = (Map<String, Object>) match.get("awayTeam");
-                        Map<String, Object> score = (Map<String, Object>) match.get("score");
-                        Map<String, Object> fullTime = score != null ? (Map<String, Object>) score.get("fullTime") : null;
-
-                        Partida partida = partidaRepository
-                                .findByCampeonatoIdAndCodigoExterno(campeonato.getId(), codigoExterno)
-                                .orElse(Partida.builder()
-                                        .campeonato(campeonato)
-                                        .codigoExterno(codigoExterno)
-                                        .build());
-
-                        partida.setMandante((String) homeTeam.get("name"));
-                        partida.setVisitante((String) awayTeam.get("name"));
-
-                        if (fullTime != null) {
-                            if (fullTime.get("home") != null) {
-                                partida.setGolsMandante((Integer) fullTime.get("home"));
-                            }
-                            if (fullTime.get("away") != null) {
-                                partida.setGolsVisitante((Integer) fullTime.get("away"));
-                            }
-                        }
-
-                        String utcDate = (String) match.get("utcDate");
-                        if (utcDate != null) {
-                            partida.setData(LocalDateTime.parse(utcDate, DateTimeFormatter.ISO_DATE_TIME));
-                        }
-
-                        partida.setStatus(PartidaServiceImpl.converterStatus((String) match.get("status")));
-
-                        if (match.get("matchday") != null) {
-                            partida.setRodada((Integer) match.get("matchday"));
-                        }
-
-                        partidaRepository.save(partida);
-                    }
-                }
+            if (body == null) {
+                throw new IllegalStateException("Resposta da API sem corpo.");
             }
+
+            List<Map<String, Object>> matches = (List<Map<String, Object>>) body.get("matches");
+
+            if (matches == null) {
+                throw new IllegalStateException("Resposta da API sem campo matches.");
+            }
+
+            for (Map<String, Object> match : matches) {
+                salvarOuAtualizarPartida(campeonato, match);
+            }
+
+            campeonato.setUltimaSincronizacao(LocalDateTime.now());
+            campeonatoRepository.save(campeonato);
+
         } catch (Exception e) {
             System.err.println("Warning: Não foi possivel sincronizar partidas de " + campeonato.getUrl() + " - " + e.getMessage());
         }
+    }
+
+    private void salvarOuAtualizarPartida(Campeonato campeonato, Map<String, Object> match) {
+        Long codigoExterno = Long.valueOf(match.get("id").toString());
+        Map<String, Object> homeTeam = (Map<String, Object>) match.get("homeTeam");
+        Map<String, Object> awayTeam = (Map<String, Object>) match.get("awayTeam");
+        Map<String, Object> score = (Map<String, Object>) match.get("score");
+        Map<String, Object> fullTime = score != null ? (Map<String, Object>) score.get("fullTime") : null;
+
+        Partida partida = partidaRepository
+                .findByCampeonatoIdAndCodigoExterno(campeonato.getId(), codigoExterno)
+                .orElse(Partida.builder()
+                        .campeonato(campeonato)
+                        .codigoExterno(codigoExterno)
+                        .build());
+
+        partida.setMandante((String) homeTeam.get("name"));
+        partida.setVisitante((String) awayTeam.get("name"));
+
+        if (fullTime != null) {
+            if (fullTime.get("home") != null) {
+                partida.setGolsMandante((Integer) fullTime.get("home"));
+            }
+            if (fullTime.get("away") != null) {
+                partida.setGolsVisitante((Integer) fullTime.get("away"));
+            }
+        }
+
+        String utcDate = (String) match.get("utcDate");
+        if (utcDate != null) {
+            partida.setData(LocalDateTime.parse(utcDate, DateTimeFormatter.ISO_DATE_TIME));
+        }
+
+        partida.setStatus(PartidaServiceImpl.converterStatus((String) match.get("status")));
+
+        if (match.get("matchday") != null) {
+            partida.setRodada((Integer) match.get("matchday"));
+        }
+
+        partidaRepository.save(partida);
     }
 
     private static PartidaStatus converterStatus(String statusApi) {
@@ -136,4 +151,6 @@ public class PartidaServiceImpl implements PartidaService {
             default -> PartidaStatus.ABERTO;
         };
     }
+
+
 }
