@@ -14,6 +14,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.ufcg.psoft.project.dto.campeonato.ClassificacaoCampeonatoResponseDTO;
 import com.ufcg.psoft.project.exception.CampeonatoNaoExisteException;
+import com.ufcg.psoft.project.exception.ClassificacaoCampeonatoSyncException;
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.model.ClassificacaoCampeonato;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
@@ -49,44 +50,39 @@ public class ClassificacaoCampeonatoServiceImpl implements ClassificacaoCampeona
         HttpEntity<Void> entity = new HttpEntity<>(headers);
         String standingsUrl = campeonato.getUrl() + "/standings";
 
+        ResponseEntity<Map> response = restTemplate.exchange(
+                standingsUrl,
+                HttpMethod.GET,
+                entity,
+                Map.class);
 
-        try {
-            ResponseEntity<Map> response = restTemplate.exchange(
-                    standingsUrl,
-                    HttpMethod.GET,
-                    entity,
-                    Map.class);
+        Map<String, Object> body = response.getBody();
 
-            Map<String, Object> body = response.getBody();
+        if (body == null) {
+            throw new ClassificacaoCampeonatoSyncException("Resposta da API sem corpo.");
+        }
 
-            if (body == null) {
-                throw new IllegalStateException("Resposta da API sem corpo.");
-            }
+        List<Map<String, Object>> standings = (List<Map<String, Object>>) body.get("standings");
 
-            List<Map<String, Object>> standings = (List<Map<String, Object>>) body.get("standings");
+        if (standings == null) {
+            throw new ClassificacaoCampeonatoSyncException("Resposta da API sem campo standings.");
+        }
 
-            if (standings == null) {
-                throw new IllegalStateException("Resposta da API sem campo standings.");
-            }
+        if (standings.isEmpty()) {
+            return; // aceitável um campeonato ainda não ter classificações.
+        }
 
-            if (standings.isEmpty()) {
-                return; // aceitável um campeonato ainda não ter classificações.
-            }
+        Map<String, Object> standing = standings.get(0);
+        List<Map<String, Object>> table = (List<Map<String, Object>>) standing.get("table");
 
-            Map<String, Object> standing = standings.get(0);
-            List<Map<String, Object>> table = (List<Map<String, Object>>) standing.get("table");
+        if (table == null) {
+            throw new ClassificacaoCampeonatoSyncException("Resposta da API com tabela nula.");
+        }
 
-            if (table == null) {
-                throw new IllegalStateException("Resposta da API com tabela nula.");
-            }
+        classificacaoCampeonatoRepository.deleteByCampeonatoId(campeonato.getId());
 
-            classificacaoCampeonatoRepository.deleteByCampeonatoId(campeonato.getId());
-
-            for (Map<String, Object> linha : table) {
-                salvarLinhaClassificacao(campeonato, linha);
-            }
-        } catch (Exception e) {
-            System.err.println("Warning: Não foi possivel sincronizar classificação de " + campeonato.getUrl() + " - " + e.getMessage());
+        for (Map<String, Object> linha : table) {
+            salvarLinhaClassificacao(campeonato, linha);
         }
     }
 
@@ -106,7 +102,7 @@ public class ClassificacaoCampeonatoServiceImpl implements ClassificacaoCampeona
         Map<String, Object> team = (Map<String, Object>) linha.get("team");
 
         if (team == null) {
-            throw new IllegalStateException("Linha inválida na tabela.");
+            throw new ClassificacaoCampeonatoSyncException("Linha inválida na tabela.");
         }
 
         ClassificacaoCampeonato classificacao = ClassificacaoCampeonato.builder()

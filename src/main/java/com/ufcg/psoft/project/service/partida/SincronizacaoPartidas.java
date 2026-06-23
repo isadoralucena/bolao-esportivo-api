@@ -34,16 +34,23 @@ public class SincronizacaoPartidas {
 
         campeonatos.sort(Comparator.comparing(Campeonato::getUltimaSincronizacao, Comparator.nullsFirst(LocalDateTime::compareTo)));
         
-        int sincronizacoesFeitas = 0;
+        int sincronizacoesChamadas = 0;
 
         for (Campeonato campeonato : campeonatos) {
-            if (sincronizacoesFeitas >= maxSincronizacoesPorCiclo) {
+            if (sincronizacoesChamadas >= maxSincronizacoesPorCiclo) {
                 break;
             }
 
             partidaService.sincronizarPartidas(campeonato);
-            classificacaoCampeonatoService.sincronizarClassificacao(campeonato.getId());
-            sincronizacoesFeitas++;
+
+            try {
+                partidaService.sincronizarPartidas(campeonato);
+                classificacaoCampeonatoService.sincronizarClassificacao(campeonato.getId());
+            } catch (Exception e) {
+                System.err.println("Warning: Erro ao sincronizar campeonato " + campeonato.getUrl() + " - " + e.getMessage());
+            }
+
+            sincronizacoesChamadas++;
         }
     }
 }

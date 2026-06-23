@@ -2,6 +2,7 @@ package com.ufcg.psoft.project.service.partida;
 
 import com.ufcg.psoft.project.dto.partida.PartidaResponseDTO;
 import com.ufcg.psoft.project.exception.GrupoNaoExisteException;
+import com.ufcg.psoft.project.exception.PartidaSyncException;
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.model.Grupo;
 import com.ufcg.psoft.project.model.Partida;
@@ -9,6 +10,9 @@ import com.ufcg.psoft.project.model.PartidaStatus;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.PartidaRepository;
+
+import jakarta.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -58,6 +62,7 @@ public class PartidaServiceImpl implements PartidaService {
     }
 
     @Override
+    @Transactional
     public void sincronizarPartidas(Campeonato campeonato) {
         HttpHeaders headers = new HttpHeaders();
         
@@ -69,36 +74,31 @@ public class PartidaServiceImpl implements PartidaService {
         String matchesUrl = campeonato.getUrl() + "/matches";
 
 
-        try {
-            ResponseEntity<Map> response = restTemplate.exchange(
-                    matchesUrl,
-                    HttpMethod.GET,
-                    entity,
-                    Map.class
-            );
+        ResponseEntity<Map> response = restTemplate.exchange(
+                matchesUrl,
+                HttpMethod.GET,
+                entity,
+                Map.class
+        );
 
-            Map<String, Object> body = response.getBody();
+        Map<String, Object> body = response.getBody();
 
-            if (body == null) {
-                throw new IllegalStateException("Resposta da API sem corpo.");
-            }
-
-            List<Map<String, Object>> matches = (List<Map<String, Object>>) body.get("matches");
-
-            if (matches == null) {
-                throw new IllegalStateException("Resposta da API sem campo matches.");
-            }
-
-            for (Map<String, Object> match : matches) {
-                salvarOuAtualizarPartida(campeonato, match);
-            }
-
-            campeonato.setUltimaSincronizacao(LocalDateTime.now());
-            campeonatoRepository.save(campeonato);
-
-        } catch (Exception e) {
-            System.err.println("Warning: Não foi possivel sincronizar partidas de " + campeonato.getUrl() + " - " + e.getMessage());
+        if (body == null) {
+            throw new PartidaSyncException("Resposta da API sem corpo.");
         }
+
+        List<Map<String, Object>> matches = (List<Map<String, Object>>) body.get("matches");
+
+        if (matches == null) {
+            throw new PartidaSyncException("Resposta da API sem campo matches.");
+        }
+
+        for (Map<String, Object> match : matches) {
+            salvarOuAtualizarPartida(campeonato, match);
+        }
+
+        campeonato.setUltimaSincronizacao(LocalDateTime.now());
+        campeonatoRepository.save(campeonato);
     }
 
     private void salvarOuAtualizarPartida(Campeonato campeonato, Map<String, Object> match) {
@@ -151,6 +151,4 @@ public class PartidaServiceImpl implements PartidaService {
             default -> PartidaStatus.ABERTO;
         };
     }
-
-
 }
