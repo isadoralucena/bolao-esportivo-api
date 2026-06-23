@@ -1,5 +1,7 @@
 package com.ufcg.psoft.project.service.partida;
 
+import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,8 +26,10 @@ public class SincronizacaoPartidas {
 
     @Scheduled(fixedDelayString = "${project.sync.scheduler-delay-ms}")
     public void sincronizarPartidas() {
-        List<Campeonato> campeonatos = campeonatoRepository.findByAtivoTrueOrderByUltimaSincronizacaoAsc();
+        List<Campeonato> campeonatos = campeonatoRepository.findByAtivoTrue();
 
+        campeonatos.sort(Comparator.comparing(Campeonato::getUltimaSincronizacao, Comparator.nullsFirst(LocalDateTime::compareTo)));
+        
         int requisicoesFeitas = 0;
 
         for (Campeonato campeonato : campeonatos) {
