@@ -54,21 +54,24 @@ public class CampeonatoServiceImpl implements CampeonatoService {
 
 	@Override
     @Transactional
-	public void sincronizarCampeonato(Long campeonatoId, Long usuarioId, String codigo) {
+	public CampeonatoResponseDTO sincronizarCampeonato(Long campeonatoId, Long usuarioId, String codigo) {
 		verificaAdmin(usuarioId, codigo);
 		Campeonato campeonato = campeonatoRepository.findById(campeonatoId).orElseThrow(CampeonatoNaoExisteException::new);
-        sincronizarCampeonato(campeonato);
+    
+        return sincronizarCampeonato(campeonato);
 	}
 
     @Override
     @Transactional
-    public void sincronizarCampeonato(Campeonato campeonato) {
+    public CampeonatoResponseDTO sincronizarCampeonato(Campeonato campeonato) {
         sincronizarDadosDoCampeonato(campeonato);
         partidaService.sincronizarPartidas(campeonato);
         classificacaoCampeonatoService.sincronizarClassificacao(campeonato.getId());
 
         campeonato.setUltimaSincronizacao(LocalDateTime.now());
         campeonatoRepository.save(campeonato);
+
+        return modelMapper.map(campeonato, CampeonatoResponseDTO.class);
     }
 
 	@Override

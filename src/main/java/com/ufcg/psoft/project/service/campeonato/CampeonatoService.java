@@ -7,8 +7,8 @@ import com.ufcg.psoft.project.dto.campeonato.CampeonatoResponseDTO;
 import com.ufcg.psoft.project.model.Campeonato;
 
 public interface CampeonatoService {
-    void sincronizarCampeonato(Long campeonatoId, Long usuarioId, String codigo);
-    void sincronizarCampeonato(Campeonato campeonato);
+    CampeonatoResponseDTO sincronizarCampeonato(Long campeonatoId, Long usuarioId, String codigo);
+    CampeonatoResponseDTO sincronizarCampeonato(Campeonato campeonato);
 
 	CampeonatoResponseDTO criar(Long userId, String codigo, CampeonatoPostPutRequestDTO campeonatoPostPutRequestDTO);
 	void remover(Long userId, String codigo, Long id);
