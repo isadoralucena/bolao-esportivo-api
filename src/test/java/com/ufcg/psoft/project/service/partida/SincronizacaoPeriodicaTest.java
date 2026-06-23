@@ -22,21 +22,18 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
-import com.ufcg.psoft.project.service.campeonato.ClassificacaoCampeonatoService;
+import com.ufcg.psoft.project.service.campeonato.CampeonatoService;
 import com.ufcg.psoft.project.service.sincronizacaoPeriodica.SincronizacaoPeriodicaServiceImpl;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("Testes da sincronização automática de partidas")
+@DisplayName("Testes da sincronização periódica")
 class SincronizacaoPeriodicaTest {
 
     @Mock
     private CampeonatoRepository campeonatoRepository;
 
     @Mock
-    private PartidaService partidaService;
-
-    @Mock
-    private ClassificacaoCampeonatoService classificacaoCampeonatoService;
+    private CampeonatoService campeonatoService;
 
     @InjectMocks
     private SincronizacaoPeriodicaServiceImpl sincronizacaoPeriodicaService;
@@ -51,9 +48,9 @@ class SincronizacaoPeriodicaTest {
     void quandoSincronizaOrdenaPorUltimaSincronizacaoERespeitaQuota() {
         // Arrange
         Campeonato nuncaSincronizado = campeonato(
-                1L,
-                "Nunca sincronizado",
-                null);
+            1L,
+             "Nunca sincronizado",
+              null);
 
         Campeonato sincronizadoMaisAntigo = campeonato(
                 2L,
@@ -75,25 +72,25 @@ class SincronizacaoPeriodicaTest {
         sincronizacaoPeriodicaService.sincronizarCampeonatosAtivos();
 
         // Assert
-        InOrder inOrder = Mockito.inOrder(partidaService);
+        InOrder inOrder = Mockito.inOrder(campeonatoService);
 
-        inOrder.verify(partidaService).sincronizarPartidas(nuncaSincronizado);
-        inOrder.verify(partidaService).sincronizarPartidas(sincronizadoMaisAntigo);
+        inOrder.verify(campeonatoService).sincronizarCampeonato(nuncaSincronizado);
+        inOrder.verify(campeonatoService).sincronizarCampeonato(sincronizadoMaisAntigo);
 
-        verify(partidaService, never()).sincronizarPartidas(sincronizadoMaisRecente);
+        verify(campeonatoService, never()).sincronizarCampeonato(sincronizadoMaisRecente);
     }
 
     @Test
-    @DisplayName("Quando não há campeonatos ativos, não sincroniza partidas")
-    void quandoNaoHaCampeonatosAtivosNaoSincronizaPartidas() {
+    @DisplayName("Quando não há campeonatos ativos, não sincroniza nenhum campeonato")
+    void quandoNaoHaCampeonatosAtivosNaoSincronizaNenhumCampeonato() {
         // Arrange
         when(campeonatoRepository.findByAtivoTrue()).thenReturn(new ArrayList<>());
 
         // Act
         sincronizacaoPeriodicaService.sincronizarCampeonatosAtivos();
-
+        
         // Assert
-        verify(partidaService, never()).sincronizarPartidas(any(Campeonato.class));
+        verify(campeonatoService, never()).sincronizarCampeonato(any(Campeonato.class));
     }
 
     @Test
@@ -109,12 +106,12 @@ class SincronizacaoPeriodicaTest {
 
         when(campeonatoRepository.findByAtivoTrue()).thenReturn(new ArrayList<>(List.of(campeonato)));
 
-
+        
         // Act
         sincronizacaoPeriodicaService.sincronizarCampeonatosAtivos();
 
         // Assert
-        verify(partidaService, never()).sincronizarPartidas(any(Campeonato.class));
+        verify(campeonatoService, never()).sincronizarCampeonato(any(Campeonato.class));
     }
 
     @Test
@@ -132,8 +129,8 @@ class SincronizacaoPeriodicaTest {
         sincronizacaoPeriodicaService.sincronizarCampeonatosAtivos();
 
         // Assert
-        verify(partidaService).sincronizarPartidas(campeonato1);
-        verify(partidaService).sincronizarPartidas(campeonato2);
+        verify(campeonatoService).sincronizarCampeonato(campeonato1);
+        verify(campeonatoService).sincronizarCampeonato(campeonato2);
     }
 
     private Campeonato campeonato(Long id, String nome, LocalDateTime ultimaSincronizacao) {

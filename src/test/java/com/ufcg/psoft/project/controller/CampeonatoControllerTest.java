@@ -2,10 +2,13 @@ package com.ufcg.psoft.project.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ufcg.psoft.project.dto.campeonato.CampeonatoPostPutRequestDTO;
+import com.ufcg.psoft.project.dto.campeonato.CampeonatoResponseDTO;
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.model.Usuario;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
+import com.ufcg.psoft.project.service.campeonato.CampeonatoService;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -13,11 +16,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.UUID;
 
+import static org.mockito.Mockito.doReturn;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -39,6 +44,9 @@ public class CampeonatoControllerTest {
 
 	@Autowired
 	CampeonatoRepository campeonatoRepository;
+
+    @SpyBean
+    CampeonatoService campeonatoService;
 
 	private Usuario adminUser;
 	private Usuario normalUser;
@@ -236,14 +244,25 @@ public class CampeonatoControllerTest {
 			.andExpect(status().isNoContent());
 	}
 
-	@Test
-	@DisplayName("Sincronizar campeonatos com admin")
-	void sincronizarComAdmin() throws Exception {
-		mockMvc.perform(post(URI_CAMPEONATOS + "/sincronizar")
-				.param("userId", adminUser.getId().toString())
-				.param("senha", adminUser.getCodigo()))
-			.andExpect(status().isOk());
-	}
+    @Test
+    @DisplayName("Sincronizar campeonato com admin")
+    void sincronizarComAdmin() throws Exception {
+        Campeonato campeonato = campeonatoRepository.save(Campeonato.builder()
+                .nome("Campeonato Brasileiro")
+                .url("https://api.football-data.org/v4/competitions/2013")
+                .codigo("BSA")
+                .ativo(false)
+                .build());
+
+        doReturn(new CampeonatoResponseDTO(campeonato))
+                .when(campeonatoService)
+                .sincronizarCampeonato(campeonato.getId(), adminUser.getId(), adminUser.getCodigo());
+
+        mockMvc.perform(post(URI_CAMPEONATOS + "/" + campeonato.getId() + "/sincronizar")
+                .param("userId", adminUser.getId().toString())
+                .param("senha", adminUser.getCodigo()))
+                .andExpect(status().isOk());
+    }
 
 	@Test
 	@DisplayName("Ativar campeonato com usuário não admin")
@@ -283,12 +302,23 @@ public class CampeonatoControllerTest {
 			.andExpect(status().isBadRequest());
 	}
 
-	@Test
-	@DisplayName("Sincronizar campeonatos com usuário não admin")
-	void sincronizarComUsuarioNaoAdmin() throws Exception {
-		mockMvc.perform(post(URI_CAMPEONATOS + "/sincronizar")
-				.param("userId", normalUser.getId().toString())
-				.param("senha", normalUser.getCodigo()))
-			.andExpect(status().isBadRequest());
-	}
+    @Test
+    @DisplayName("Sincronizar campeonato com usuário não admin")
+    void sincronizarComUsuarioNaoAdmin() throws Exception {
+        Campeonato campeonato = campeonatoRepository.save(Campeonato.builder()
+                .nome("Campeonato Brasileiro")
+                .url("https://api.football-data.org/v4/competitions/2013")
+                .codigo("BSA")
+                .ativo(false)
+                .build());
+
+        doReturn(new CampeonatoResponseDTO(campeonato))
+                .when(campeonatoService)
+                .sincronizarCampeonato(campeonato.getId(), adminUser.getId(), adminUser.getCodigo());
+
+        mockMvc.perform(post(URI_CAMPEONATOS + "/" + campeonato.getId() + "/sincronizar")
+                .param("userId", normalUser.getId().toString())
+                .param("senha", normalUser.getCodigo()))
+                .andExpect(status().isBadRequest());
+    }
 }

@@ -1,9 +1,13 @@
 package com.ufcg.psoft.project.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ufcg.psoft.project.dto.campeonato.CampeonatoResponseDTO;
 import com.ufcg.psoft.project.dto.palpite.PalpitePostPutRequestDTO;
+import com.ufcg.psoft.project.exception.CodigoDeAcessoInvalidoException;
 import com.ufcg.psoft.project.model.*;
 import com.ufcg.psoft.project.repository.*;
+import com.ufcg.psoft.project.service.campeonato.CampeonatoService;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -11,12 +15,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 
 import static org.hamcrest.Matchers.*;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -45,6 +51,9 @@ public class PalpiteControllerTests {
 
     @Autowired
     PalpiteRepository palpiteRepository;
+
+    @MockBean
+    CampeonatoService campeonatoService;
 
     private Usuario usuario;
     private Usuario adminUser;
@@ -105,6 +114,9 @@ public class PalpiteControllerTests {
                 .golsMandante(2)
                 .golsVisitante(1)
                 .build();
+
+    when(campeonatoService.sincronizarCampeonato(campeonato.getId(), adminUser.getId(), adminUser.getCodigo()))
+            .thenReturn(new CampeonatoResponseDTO(campeonato));
     }
 
     @AfterEach
@@ -326,20 +338,22 @@ public class PalpiteControllerTests {
     }
 
     @Test
-    @DisplayName("Sincronizar partidas com admin retorna campeonatos na resposta")
+    @DisplayName("Sincronizar partidas com admin retorna campeonato na resposta")
     void sincronizarPartidasComAdmin() throws Exception {
-        mockMvc.perform(post("/campeonatos/sincronizar")
+        mockMvc.perform(post("/campeonatos/{campeonatoId}/sincronizar", campeonato.getId())
                 .param("userId", adminUser.getId().toString())
                 .param("senha", adminUser.getCodigo()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(greaterThan(0))))
-                .andExpect(jsonPath("$[0].nome").isNotEmpty());
+                .andExpect(jsonPath("$.nome").isNotEmpty());
     }
 
     @Test
     @DisplayName("Sincronizar partidas com usuario nao admin retorna 400")
     void sincronizarPartidasNaoAdmin() throws Exception {
-        mockMvc.perform(post("/campeonatos/sincronizar")
+        when(campeonatoService.sincronizarCampeonato(campeonato.getId(), usuario.getId(), usuario.getCodigo()))
+                .thenThrow(new CodigoDeAcessoInvalidoException());
+
+        mockMvc.perform(post("/campeonatos/{campeonatoId}/sincronizar", campeonato.getId())
                 .param("userId", usuario.getId().toString())
                 .param("senha", usuario.getCodigo()))
                 .andExpect(status().isBadRequest());
