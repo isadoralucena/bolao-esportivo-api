@@ -23,10 +23,11 @@ import org.springframework.test.util.ReflectionTestUtils;
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.service.campeonato.ClassificacaoCampeonatoService;
+import com.ufcg.psoft.project.service.sincronizacaoPeriodica.SincronizacaoPeriodicaServiceImpl;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Testes da sincronização automática de partidas")
-class SincronizacaoPartidasTest {
+class SincronizacaoPeriodicaTest {
 
     @Mock
     private CampeonatoRepository campeonatoRepository;
@@ -38,11 +39,11 @@ class SincronizacaoPartidasTest {
     private ClassificacaoCampeonatoService classificacaoCampeonatoService;
 
     @InjectMocks
-    private SincronizacaoPartidas sincronizacaoPartidas;
+    private SincronizacaoPeriodicaServiceImpl sincronizacaoPeriodicaService;
 
     @BeforeEach
     void setup() {
-        ReflectionTestUtils.setField(sincronizacaoPartidas, "maxSincronizacoesPorCiclo", 2);
+        ReflectionTestUtils.setField(sincronizacaoPeriodicaService, "maxSincronizacoesPorCiclo", 2);
     }
 
     @Test
@@ -71,7 +72,7 @@ class SincronizacaoPartidasTest {
         )));
 
         // Act
-        sincronizacaoPartidas.sincronizarPartidas();
+        sincronizacaoPeriodicaService.sincronizarCampeonatosAtivos();
 
         // Assert
         InOrder inOrder = Mockito.inOrder(partidaService);
@@ -89,7 +90,7 @@ class SincronizacaoPartidasTest {
         when(campeonatoRepository.findByAtivoTrue()).thenReturn(new ArrayList<>());
 
         // Act
-        sincronizacaoPartidas.sincronizarPartidas();
+        sincronizacaoPeriodicaService.sincronizarCampeonatosAtivos();
 
         // Assert
         verify(partidaService, never()).sincronizarPartidas(any(Campeonato.class));
@@ -99,7 +100,7 @@ class SincronizacaoPartidasTest {
     @DisplayName("Quando quota do ciclo é zero, não sincroniza nenhum campeonato")
     void quandoQuotaDoCicloEZeroNaoSincronizaNenhumCampeonato() {
         // Arrange
-        ReflectionTestUtils.setField(sincronizacaoPartidas, "maxSincronizacoesPorCiclo", 0);
+        ReflectionTestUtils.setField(sincronizacaoPeriodicaService, "maxSincronizacoesPorCiclo", 0);
 
         Campeonato campeonato = campeonato(
                 1L,
@@ -110,7 +111,7 @@ class SincronizacaoPartidasTest {
 
 
         // Act
-        sincronizacaoPartidas.sincronizarPartidas();
+        sincronizacaoPeriodicaService.sincronizarCampeonatosAtivos();
 
         // Assert
         verify(partidaService, never()).sincronizarPartidas(any(Campeonato.class));
@@ -120,7 +121,7 @@ class SincronizacaoPartidasTest {
     @DisplayName("Quando quota é maior que a quantidade de campeonatos, sincroniza todos")
     void quandoQuotaMaiorQueQuantidadeDeCampeonatosSincronizaTodos() {
         // Arrange
-        ReflectionTestUtils.setField(sincronizacaoPartidas, "maxSincronizacoesPorCiclo", 10);
+        ReflectionTestUtils.setField(sincronizacaoPeriodicaService, "maxSincronizacoesPorCiclo", 10);
 
         Campeonato campeonato1 = campeonato(1L, "Campeonato 1", null);
         Campeonato campeonato2 = campeonato(2L, "Campeonato 2", LocalDateTime.of(2026, 1, 1, 1, 1));
@@ -128,7 +129,7 @@ class SincronizacaoPartidasTest {
         when(campeonatoRepository.findByAtivoTrue()).thenReturn(new ArrayList<>(List.of(campeonato1, campeonato2)));
 
         // Act
-        sincronizacaoPartidas.sincronizarPartidas();
+        sincronizacaoPeriodicaService.sincronizarCampeonatosAtivos();
 
         // Assert
         verify(partidaService).sincronizarPartidas(campeonato1);

@@ -1,4 +1,4 @@
-package com.ufcg.psoft.project.service.partida;
+package com.ufcg.psoft.project.service.sincronizacaoPeriodica;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -12,9 +12,10 @@ import org.springframework.beans.factory.annotation.Value;
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.service.campeonato.ClassificacaoCampeonatoService;
+import com.ufcg.psoft.project.service.partida.PartidaService;
 
 @Service
-public class SincronizacaoPartidas {
+public class SincronizacaoPeriodicaServiceImpl implements SincronizacaoPeriodicaService {
 
     @Autowired
     private CampeonatoRepository campeonatoRepository;
@@ -29,7 +30,7 @@ public class SincronizacaoPartidas {
     private int maxSincronizacoesPorCiclo;
 
     @Scheduled(fixedDelayString = "${project.sync.scheduler-delay-ms}")
-    public void sincronizarPartidas() {
+    public void sincronizarCampeonatosAtivos() {
         List<Campeonato> campeonatos = campeonatoRepository.findByAtivoTrue();
 
         campeonatos.sort(Comparator.comparing(Campeonato::getUltimaSincronizacao, Comparator.nullsFirst(LocalDateTime::compareTo)));
