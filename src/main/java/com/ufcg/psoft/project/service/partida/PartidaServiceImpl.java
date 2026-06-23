@@ -96,9 +96,6 @@ public class PartidaServiceImpl implements PartidaService {
         for (Map<String, Object> match : matches) {
             salvarOuAtualizarPartida(campeonato, match);
         }
-
-        campeonato.setUltimaSincronizacao(LocalDateTime.now());
-        campeonatoRepository.save(campeonato);
     }
 
     private void salvarOuAtualizarPartida(Campeonato campeonato, Map<String, Object> match) {
