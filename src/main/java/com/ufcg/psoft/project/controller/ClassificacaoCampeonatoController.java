@@ -17,7 +17,7 @@ public class ClassificacaoCampeonatoController {
     @Autowired
     private ClassificacaoCampeonatoService classificacaoCampeonatoService;
 
-    @GetMapping("{campeonatoId}/classificacao")
+    @GetMapping("/{campeonatoId}/classificacao")
     public ResponseEntity<?> listarClassificacao(@PathVariable Long campeonatoId) {
         return ResponseEntity
                 .status(HttpStatus.OK)
