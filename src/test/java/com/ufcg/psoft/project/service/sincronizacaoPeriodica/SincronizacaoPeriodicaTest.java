@@ -1,4 +1,4 @@
-package com.ufcg.psoft.project.service.partida;
+package com.ufcg.psoft.project.service.sincronizacaoPeriodica;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
@@ -23,7 +23,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.service.campeonato.CampeonatoService;
-import com.ufcg.psoft.project.service.sincronizacaoPeriodica.SincronizacaoPeriodicaServiceImpl;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Testes da sincronização periódica")
