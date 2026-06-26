@@ -87,10 +87,14 @@ public class CampeonatoController {
 			.body("");
 	}
 
-	@PostMapping("/sincronizar")
-	public ResponseEntity<?> sincronizarCampeonatos(@RequestParam Long userId, @RequestParam String senha) {
-		return ResponseEntity
-			.status(HttpStatus.OK)
-			.body(campeonatoService.sincronizar(userId, senha));
-	}
+    @PostMapping("/{campeonatoId}/sincronizar")
+    public ResponseEntity<?> sincronizarCampeonato(
+            @PathVariable Long campeonatoId,
+            @RequestParam Long userId,
+            @RequestParam String senha) {
+
+        return ResponseEntity
+            .status(HttpStatus.OK)
+            .body(campeonatoService.sincronizarCampeonato(campeonatoId, userId, senha));
+    }
 }

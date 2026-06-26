@@ -3,6 +3,7 @@ package com.ufcg.psoft.project.service.campeonato;
 import com.ufcg.psoft.project.dto.campeonato.CampeonatoPostPutRequestDTO;
 import com.ufcg.psoft.project.dto.campeonato.CampeonatoResponseDTO;
 import com.ufcg.psoft.project.exception.CampeonatoNaoExisteException;
+import com.ufcg.psoft.project.exception.CampeonatoSyncException;
 import com.ufcg.psoft.project.exception.CodigoDeAcessoInvalidoException;
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
@@ -10,6 +11,9 @@ import com.ufcg.psoft.project.model.Usuario;
 
 import com.ufcg.psoft.project.repository.UsuarioRepository;
 import com.ufcg.psoft.project.service.partida.PartidaService;
+
+import jakarta.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +25,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -37,9 +42,11 @@ public class CampeonatoServiceImpl implements CampeonatoService {
 	@Autowired
 	private PartidaService partidaService;
 
+    @Autowired
+	private ClassificacaoCampeonatoService classificacaoCampeonatoService;
+
 	@Autowired
 	private ModelMapper modelMapper;
-
 
 	@Value("${project.football-data.api-token:}")
 	private String apiToken;
@@ -47,46 +54,26 @@ public class CampeonatoServiceImpl implements CampeonatoService {
 	private final RestTemplate restTemplate = new RestTemplate();
 
 	@Override
-	public List<CampeonatoResponseDTO> sincronizar(Long userId, String codigo) {
-		verificaAdmin(userId, codigo);
-		List<Campeonato> campeonatos = campeonatoRepository.findAll();
-
-		HttpHeaders headers = new HttpHeaders();
-		if (apiToken != null && !apiToken.isEmpty()) {
-			headers.set("X-Auth-Token", apiToken);
-		}
-		HttpEntity<Void> entity = new HttpEntity<>(headers);
-
-		for (Campeonato campeonato : campeonatos) {
-			try {
-				ResponseEntity<Map> response = restTemplate.exchange(
-						campeonato.getUrl(),
-						HttpMethod.GET,
-						entity,
-						Map.class
-						);
-
-				if (response.getBody() != null) {
-					Map<String, Object> body = response.getBody();
-					if (body.containsKey("name")) {
-						campeonato.setNome((String) body.get("name"));
-					}
-					if (body.containsKey("code")) {
-						campeonato.setCodigo((String) body.get("code"));
-					}
-					campeonatoRepository.save(campeonato);
-					partidaService.sincronizarPartidas(campeonato);
-				}
-			} catch (Exception e) {
-				System.err.println("Warning: Não foi possivel sincronizar campeonato com:" + campeonato.getUrl() + " - " + e.getMessage());
-			}
-
-		}
-
-		return campeonatoRepository.findAll().stream()
-			.map(CampeonatoResponseDTO::new)
-			.collect(Collectors.toList());
+    @Transactional
+	public CampeonatoResponseDTO sincronizarCampeonato(Long campeonatoId, Long usuarioId, String codigo) {
+		verificaAdmin(usuarioId, codigo);
+		Campeonato campeonato = campeonatoRepository.findById(campeonatoId).orElseThrow(CampeonatoNaoExisteException::new);
+    
+        return sincronizarCampeonato(campeonato);
 	}
+
+    @Override
+    @Transactional
+    public CampeonatoResponseDTO sincronizarCampeonato(Campeonato campeonato) {
+        sincronizarDadosDoCampeonato(campeonato);
+        partidaService.sincronizarPartidas(campeonato);
+        classificacaoCampeonatoService.sincronizarClassificacao(campeonato.getId());
+
+        campeonato.setUltimaSincronizacao(LocalDateTime.now());
+        campeonatoRepository.save(campeonato);
+
+        return modelMapper.map(campeonato, CampeonatoResponseDTO.class);
+    }
 
 	@Override
 	public CampeonatoResponseDTO criar(Long userId, String codigo, CampeonatoPostPutRequestDTO campeonatoPostPutRequestDTO) {
@@ -154,4 +141,35 @@ public class CampeonatoServiceImpl implements CampeonatoService {
 			throw new CodigoDeAcessoInvalidoException();
 		}
 	}
+
+    private void sincronizarDadosDoCampeonato(Campeonato campeonato) {
+        HttpHeaders headers = new HttpHeaders();
+
+        if (apiToken != null && !apiToken.isEmpty()) {
+            headers.set("X-Auth-Token", apiToken);
+        }
+
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<Map> response = restTemplate.exchange(
+                campeonato.getUrl(),
+                HttpMethod.GET,
+                entity,
+                Map.class
+        );
+
+        Map<String, Object> body = response.getBody();
+
+        if (body == null) {
+            throw new CampeonatoSyncException("Resposta da API sem corpo.");
+        }
+
+        if (body.containsKey("name")) {
+            campeonato.setNome((String) body.get("name"));
+        }
+
+        if (body.containsKey("code")) {
+            campeonato.setCodigo((String) body.get("code"));
+        }
+    }
 }
