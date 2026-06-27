@@ -14,6 +14,7 @@ import com.ufcg.psoft.project.dto.grupo.GrupoPostRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.GrupoPutRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.ParticipantePostRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.RegraPontuacaoPostPutRequestDTO;
+import com.ufcg.psoft.project.dto.palpite.RegrasPalpitesRequestDTO;
 import com.ufcg.psoft.project.service.grupo.GrupoService;
 
 import jakarta.validation.Valid;
