@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import com.ufcg.psoft.project.model.PartidaStatus;
 import com.ufcg.psoft.project.dto.grupo.GrupoPostRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.GrupoPutRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.GrupoResponseDTO;
@@ -37,6 +37,7 @@ import com.ufcg.psoft.project.repository.RegraPontuacaoRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
 import com.ufcg.psoft.project.exception.UsuarioJaParticipanteException;
 import com.ufcg.psoft.project.exception.CampeonatoInativoException;
+import com.ufcg.psoft.project.repository.PartidaRepository;
 
 @Service
 public class GrupoServiceImpl implements GrupoService {
@@ -48,6 +49,8 @@ public class GrupoServiceImpl implements GrupoService {
     private CampeonatoRepository campeonatoRepository;
     @Autowired
     private RegraPontuacaoRepository regraPontuacaoRepository;
+    @Autowired
+    private PartidaRepository partidaRepository;
     @Autowired
     ModelMapper modelMapper;
 
@@ -244,14 +247,28 @@ public class GrupoServiceImpl implements GrupoService {
         if (grupo.getPrivacidade() == PrivacidadeGrupo.PRIVADA) {
             throw new PermissaoNegadaException();
         }
+
         if (!grupo.getCampeonato().getAtivo()) {
             throw new CampeonatoInativoException();
         }
+
+        boolean temPartidasSincronizadas = partidaRepository.existsByCampeonatoId(grupo.getCampeonato().getId());
+        if (temPartidasSincronizadas) {
+            boolean temPartidasValidas = partidaRepository.existsByCampeonatoIdAndStatusIn(
+                    grupo.getCampeonato().getId(),
+                    List.of(PartidaStatus.ABERTO, PartidaStatus.EM_ANDAMENTO)
+            );
+            if (!temPartidasValidas) {
+                throw new CampeonatoInativoException();
+            }
+        }
+
         if (grupo.getParticipantes().contains(usuario)) {
             throw new UsuarioJaParticipanteException();
         }
+
         if (grupo.getLimiteParticipantes() != null &&
-            grupo.getParticipantes().size() >= grupo.getLimiteParticipantes()) {
+                grupo.getParticipantes().size() >= grupo.getLimiteParticipantes()) {
             throw new LimiteDeParticipantesAtingidoException();
         }
     }
