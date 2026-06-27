@@ -237,7 +237,7 @@ public class GrupoServiceImpl implements GrupoService {
         grupo.setMinutosFechamentoPalpites(regrasPalpitesRequestDTO.getMinutosFechamento());
         grupoRepository.save(grupo);
 
-        return modelMapper.map(grupo, GrupoResponseDTO.class);
+        return new GrupoResponseDTO(grupo);
     }
 
     private void validarEntradaEmGrupoPublico(Grupo grupo, Usuario usuario) {
