@@ -18,4 +18,6 @@ public interface PartidaRepository extends JpaRepository<Partida, Long> {
     boolean existsByCampeonatoIdAndStatusIn(Long campeonatoId, List<PartidaStatus> statuses);
 
     boolean existsByCampeonatoId(Long campeonatoId);
+
+    void deleteByCampeonatoId(Long campeonatoId);
 }

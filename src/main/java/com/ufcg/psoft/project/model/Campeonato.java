@@ -8,10 +8,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Data
@@ -39,11 +35,6 @@ public class Campeonato {
 	@JsonProperty("ativo")
 	@Builder.Default
 	private Boolean ativo = false;
-
-	@JsonIgnore
-	@OneToMany(mappedBy = "campeonato", cascade = CascadeType.ALL, orphanRemoval = true)
-	@Builder.Default
-	private List<Partida> partidas = new ArrayList<>();
 
     @JsonProperty("ultimaSincronizacao")
     private LocalDateTime ultimaSincronizacao;

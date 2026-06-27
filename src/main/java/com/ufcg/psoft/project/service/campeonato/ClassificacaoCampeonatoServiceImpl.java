@@ -98,6 +98,11 @@ public class ClassificacaoCampeonatoServiceImpl implements ClassificacaoCampeona
                 .toList();
     }
 
+    @Override
+    public void deleteByCampeonatoId(Long campeonatoId) {
+        classificacaoCampeonatoRepository.deleteByCampeonatoId(campeonatoId);
+    }
+
     private void salvarLinhaClassificacao(Campeonato campeonato, Map<String, Object> linha) {
         Map<String, Object> team = (Map<String, Object>) linha.get("team");
 

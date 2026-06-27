@@ -86,10 +86,14 @@ public class CampeonatoServiceImpl implements CampeonatoService {
 	}
 
 	@Override
+    @Transactional
 	public void remover(Long userId, String codigo, Long id) {
 		verificaAdmin(userId, codigo);
 
 		Campeonato campeonato = campeonatoRepository.findById(id).orElseThrow(CampeonatoNaoExisteException::new);
+
+        classificacaoCampeonatoService.deleteByCampeonatoId(id);
+        partidaService.deleteByCampeonatoId(id);
 		campeonatoRepository.delete(campeonato);
 	}
 

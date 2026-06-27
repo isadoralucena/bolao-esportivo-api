@@ -94,6 +94,11 @@ public class PartidaServiceImpl implements PartidaService {
         }
     }
 
+    @Override
+    public void deleteByCampeonatoId(Long campeonatoId) {
+        partidaRepository.deleteByCampeonatoId(campeonatoId);
+    }
+
     private void salvarOuAtualizarPartida(Campeonato campeonato, Map<String, Object> match) {
         Long codigoExterno = Long.valueOf(match.get("id").toString());
         Map<String, Object> homeTeam = (Map<String, Object>) match.get("homeTeam");

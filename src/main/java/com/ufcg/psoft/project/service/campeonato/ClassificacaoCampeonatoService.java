@@ -8,4 +8,5 @@ import com.ufcg.psoft.project.model.Campeonato;
 public interface ClassificacaoCampeonatoService {
     void sincronizarClassificacao(Long campeonatoId);
     List<ClassificacaoCampeonatoResponseDTO> listarPorCampeonato(Long campeonatoId);
+    void deleteByCampeonatoId(Long campeonatoId);
 }
