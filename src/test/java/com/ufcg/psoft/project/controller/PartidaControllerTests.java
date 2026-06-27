@@ -1,8 +1,11 @@
 package com.ufcg.psoft.project.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ufcg.psoft.project.dto.campeonato.CampeonatoResponseDTO;
 import com.ufcg.psoft.project.model.*;
 import com.ufcg.psoft.project.repository.*;
+import com.ufcg.psoft.project.service.campeonato.CampeonatoService;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -10,12 +13,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -47,6 +52,9 @@ public class PartidaControllerTests {
 
     @Autowired
     PalpiteRepository palpiteRepository;
+
+    @MockBean
+    CampeonatoService campeonatoService;
 
     private Usuario usuario;
     private Usuario adminUser;
@@ -135,6 +143,9 @@ public class PartidaControllerTests {
                 .golsMandante(3)
                 .golsVisitante(1)
                 .build());
+
+        when(campeonatoService.sincronizarCampeonato(campeonato.getId(), adminUser.getId(), adminUser.getCodigo()))
+            .thenReturn(new CampeonatoResponseDTO(campeonato));
     }
 
     @AfterEach
@@ -258,7 +269,7 @@ public class PartidaControllerTests {
     @Test
     @DisplayName("Sincronizar partidas com admin gera partidas no campeonato")
     void sincronizarGeraPartidasNoCampeonato() throws Exception {
-        mockMvc.perform(post("/campeonatos/sincronizar")
+        mockMvc.perform(post("/campeonatos/{campeonatoId}/sincronizar", campeonato.getId())
                 .param("userId", adminUser.getId().toString())
                 .param("senha", adminUser.getCodigo()))
                 .andExpect(status().isOk());
@@ -271,7 +282,7 @@ public class PartidaControllerTests {
     @Test
     @DisplayName("Sincronizar partidas propaga dados corretos (mandante, visitante)")
     void sincronizarPartidasDadosCorretos() throws Exception {
-        mockMvc.perform(post("/campeonatos/sincronizar")
+        mockMvc.perform(post("/campeonatos/{campeonatoId}/sincronizar", campeonato.getId())
                 .param("userId", adminUser.getId().toString())
                 .param("senha", adminUser.getCodigo()))
                 .andExpect(status().isOk());
@@ -283,20 +294,19 @@ public class PartidaControllerTests {
     }
 
     @Test
-    @DisplayName("Sincronizar partidas retorna lista de campeonatos na resposta")
-    void sincronizarRetornaListaDeCampeonatos() throws Exception {
-        mockMvc.perform(post("/campeonatos/sincronizar")
+    @DisplayName("Sincronizar partidas retorna campeonato sincronizado na resposta")
+    void sincronizarRetornaCampeonatoNaResposta() throws Exception {
+        mockMvc.perform(post("/campeonatos/{campeonatoId}/sincronizar", campeonato.getId())
                 .param("userId", adminUser.getId().toString())
                 .param("senha", adminUser.getCodigo()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(greaterThan(0))))
-                .andExpect(jsonPath("$[0].nome").isNotEmpty());
+                .andExpect(jsonPath("$.nome").isNotEmpty());
     }
 
     @Test
     @DisplayName("Sincronizar duas vezes nao duplica partidas")
     void sincronizarDuasVezesNaoDuplica() throws Exception {
-        mockMvc.perform(post("/campeonatos/sincronizar")
+        mockMvc.perform(post("/campeonatos/{campeonatoId}/sincronizar", campeonato.getId())
                 .param("userId", adminUser.getId().toString())
                 .param("senha", adminUser.getCodigo()))
                 .andExpect(status().isOk());
@@ -304,9 +314,10 @@ public class PartidaControllerTests {
         String primeiroResponse = mockMvc.perform(get("/campeonatos/{campeonatoId}/partidas", campeonato.getId()))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
+
         int primeiroTamanho = JsonPath.parse(primeiroResponse).read("$", List.class).size();
 
-        mockMvc.perform(post("/campeonatos/sincronizar")
+        mockMvc.perform(post("/campeonatos/{campeonatoId}/sincronizar", campeonato.getId())
                 .param("userId", adminUser.getId().toString())
                 .param("senha", adminUser.getCodigo()))
                 .andExpect(status().isOk());
@@ -314,6 +325,7 @@ public class PartidaControllerTests {
         String segundoResponse = mockMvc.perform(get("/campeonatos/{campeonatoId}/partidas", campeonato.getId()))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
+
         int segundoTamanho = JsonPath.parse(segundoResponse).read("$", List.class).size();
 
         assertEquals(primeiroTamanho, segundoTamanho);
