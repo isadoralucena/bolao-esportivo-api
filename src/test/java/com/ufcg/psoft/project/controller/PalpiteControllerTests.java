@@ -105,7 +105,7 @@ public class PalpiteControllerTests {
                 .codigoExterno(1L)
                 .mandante("Time A")
                 .visitante("Time B")
-                .data(LocalDateTime.now().plusDays(7))
+                .data(LocalDateTime.now().plusMinutes(60))
                 .status(PartidaStatus.ABERTO)
                 .rodada(1)
                 .build());
@@ -183,7 +183,7 @@ public class PalpiteControllerTests {
                 .codigoExterno(2L)
                 .mandante("Time X")
                 .visitante("Time Y")
-                .data(LocalDateTime.now().plusDays(7))
+                .data(LocalDateTime.now().plusMinutes(60))
                 .status(PartidaStatus.ABERTO)
                 .rodada(1)
                 .build());
@@ -292,7 +292,7 @@ public class PalpiteControllerTests {
                 .codigoExterno(2L)
                 .mandante("Time C")
                 .visitante("Time D")
-                .data(LocalDateTime.now().plusDays(8))
+                .data(LocalDateTime.now().plusMinutes(60))
                 .status(PartidaStatus.ABERTO)
                 .rodada(2)
                 .build());
