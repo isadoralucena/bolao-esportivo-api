@@ -94,7 +94,7 @@ public class PalpiteEdicaoControllerTests {
                 .codigoExterno(1L)
                 .mandante("Time A")
                 .visitante("Time B")
-                .data(LocalDateTime.now().plusDays(7))
+                .data(LocalDateTime.now().plusMinutes(60))
                 .status(PartidaStatus.ABERTO)
                 .rodada(1)
                 .build());
@@ -208,7 +208,7 @@ public class PalpiteEdicaoControllerTests {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(dto)))
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.message").value("O palpite não pode ser editado ou removido pois a partida não está mais aberta!"));
+                    .andExpect(jsonPath("$.message").value("O palpite não pode ser editado ou removido pois o tempo de criação do palpite expirou!"));
         }
 
         @Test
@@ -287,7 +287,7 @@ public class PalpiteEdicaoControllerTests {
                             .param("usuarioId", usuario.getId().toString())
                             .param("codigo", usuario.getCodigo()))
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.message").value("O palpite não pode ser editado ou removido pois a partida não está mais aberta!"));
+                    .andExpect(jsonPath("$.message").value("O palpite não pode ser editado ou removido pois o tempo de criação do palpite expirou!"));
         }
     }
 }
