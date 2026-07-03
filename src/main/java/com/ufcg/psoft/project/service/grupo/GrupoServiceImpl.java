@@ -1,5 +1,8 @@
 package com.ufcg.psoft.project.service.grupo;
 
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -11,7 +14,9 @@ import com.ufcg.psoft.project.model.PartidaStatus;
 import com.ufcg.psoft.project.dto.grupo.GrupoPostRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.GrupoPutRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.GrupoResponseDTO;
+import com.ufcg.psoft.project.dto.grupo.CriteriosDesempateResponseDTO;
 import com.ufcg.psoft.project.dto.grupo.ParticipantePostRequestDTO;
+import com.ufcg.psoft.project.dto.grupo.CriteriosDesempatePutRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.RegraPontuacaoPostPutRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.RegraPontuacaoResponseDTO;
 import com.ufcg.psoft.project.dto.palpite.RegrasPalpitesRequestDTO;
@@ -21,6 +26,7 @@ import com.ufcg.psoft.project.exception.CodigoDeAcessoInvalidoException;
 import com.ufcg.psoft.project.exception.GrupoNaoExisteException;
 import com.ufcg.psoft.project.exception.LimiteDeParticipantesAtingidoException;
 import com.ufcg.psoft.project.exception.PermissaoNegadaException;
+import com.ufcg.psoft.project.exception.CriteriosDesempateInvalidosException;
 import com.ufcg.psoft.project.exception.RegraPontuacaoDuplicadaException;
 import com.ufcg.psoft.project.exception.RegraPontuacaoNaoExisteException;
 import com.ufcg.psoft.project.exception.RegraDeTempoInvalidaException;
@@ -30,6 +36,7 @@ import com.ufcg.psoft.project.model.Grupo;
 import com.ufcg.psoft.project.model.PrivacidadeGrupo;
 import com.ufcg.psoft.project.model.RegraPontuacao;
 import com.ufcg.psoft.project.model.TipoRegraPontuacao;
+import com.ufcg.psoft.project.model.TipoCriterioDesempate;
 import com.ufcg.psoft.project.model.Usuario;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.repository.GrupoRepository;
@@ -65,7 +72,7 @@ public class GrupoServiceImpl implements GrupoService {
         grupo.setOrganizador(usuarioLogado);
 
         grupoRepository.save(grupo);
-        return modelMapper.map(grupo, GrupoResponseDTO.class);
+        return new GrupoResponseDTO(grupo);
     }
 
     public GrupoResponseDTO recuperar(Long usuarioId, String codigoAcesso, Long id) {
@@ -79,7 +86,7 @@ public class GrupoServiceImpl implements GrupoService {
             }
         }
 
-        return modelMapper.map(grupo, GrupoResponseDTO.class);
+        return new GrupoResponseDTO(grupo);
     }
 
     public List<GrupoResponseDTO> listar(Long usuarioId, String codigoAcesso) {
@@ -88,7 +95,7 @@ public class GrupoServiceImpl implements GrupoService {
         
         return grupos.stream()
                 .filter(g -> g.getPrivacidade() == PrivacidadeGrupo.PUBLICA || g.getParticipantes().contains(usuarioLogado))
-                .map(grupo -> modelMapper.map(grupo, GrupoResponseDTO.class))
+            .map(GrupoResponseDTO::new)
                 .collect(Collectors.toList());
     }
 
@@ -102,7 +109,7 @@ public class GrupoServiceImpl implements GrupoService {
         
         modelMapper.map(grupoPutRequestDto, grupo);
         grupo = grupoRepository.save(grupo);
-        return modelMapper.map(grupo, GrupoResponseDTO.class);
+        return new GrupoResponseDTO(grupo);
     }
 
     public void remover(Long usuarioId, String codigoAcesso, Long id) {
@@ -113,6 +120,43 @@ public class GrupoServiceImpl implements GrupoService {
         }
 
         grupoRepository.delete(grupo);
+    }
+
+    public GrupoResponseDTO configurarCriteriosDesempate(Long grupoId, Long usuarioId, String codigoAcesso, CriteriosDesempatePutRequestDTO criteriosDesempatePutRequestDTO) {
+        Grupo grupo = grupoRepository.findById(grupoId).orElseThrow(GrupoNaoExisteException::new);
+        Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
+
+        if (!grupo.getOrganizador().equals(usuarioLogado)) {
+            throw new PermissaoNegadaException();
+        }
+
+        validarCriteriosDesempate(criteriosDesempatePutRequestDTO.getCriteriosDesempate());
+
+        grupo.setCriteriosDesempate(new ArrayList<>(criteriosDesempatePutRequestDTO.getCriteriosDesempate()));
+        grupoRepository.save(grupo);
+        return new GrupoResponseDTO(grupo);
+    }
+
+    public List<CriteriosDesempateResponseDTO> listarCriteriosDesempate(Long usuarioId, String codigoAcesso, Long grupoId) {
+        Grupo grupo = grupoRepository.findById(grupoId).orElseThrow(GrupoNaoExisteException::new);
+        Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
+
+        if (grupo.getPrivacidade() == PrivacidadeGrupo.PRIVADA) {
+            boolean isMembroOuDono = grupo.getParticipantes().contains(usuarioLogado) || grupo.getOrganizador().equals(usuarioLogado);
+            if (!isMembroOuDono) {
+                throw new PermissaoNegadaException();
+            }
+        }
+
+            List<CriteriosDesempateResponseDTO> criteriosDesempate = new ArrayList<>();
+            for (int prioridade = 0; prioridade < grupo.getCriteriosDesempate().size(); prioridade++) {
+                criteriosDesempate.add(CriteriosDesempateResponseDTO.builder()
+                    .tipoCriterioDesempate(grupo.getCriteriosDesempate().get(prioridade))
+                    .prioridade(prioridade + 1)
+                    .build());
+            }
+
+            return criteriosDesempate;
     }
 
     public GrupoResponseDTO adicionarParticipante(Long usuarioId, String codigoAcesso, Long grupoId, ParticipantePostRequestDTO participantePostRequestDto) {
@@ -176,7 +220,7 @@ public class GrupoServiceImpl implements GrupoService {
             
             grupo.getParticipantes().add(usuarioLogado);
             grupoRepository.save(grupo);
-            return modelMapper.map(grupo, GrupoResponseDTO.class);
+            return new GrupoResponseDTO(grupo);
         }
 
     public RegraPontuacaoResponseDTO inserirRegraPontuacao(Long usuarioId, String codigoAcesso, Long grupoId, RegraPontuacaoPostPutRequestDTO regraPontuacaoPostPutRequestDto){
@@ -241,6 +285,18 @@ public class GrupoServiceImpl implements GrupoService {
         grupoRepository.save(grupo);
 
         return new GrupoResponseDTO(grupo);
+    }
+
+    private void validarCriteriosDesempate(List<TipoCriterioDesempate> criteriosDesempate) {
+        Set<TipoCriterioDesempate> criteriosValidos = EnumSet.allOf(TipoCriterioDesempate.class);
+
+        if (criteriosDesempate == null
+                || criteriosDesempate.isEmpty()
+                || criteriosDesempate.contains(null)
+                || criteriosDesempate.size() != new HashSet<>(criteriosDesempate).size()
+                || !criteriosValidos.containsAll(criteriosDesempate)) {
+            throw new CriteriosDesempateInvalidosException();
+        }
     }
 
     private void validarEntradaEmGrupoPublico(Grupo grupo, Usuario usuario) {
