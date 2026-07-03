@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ufcg.psoft.project.dto.grupo.CriteriosDesempatePutRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.GrupoPostRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.GrupoPutRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.ParticipantePostRequestDTO;
@@ -161,6 +162,27 @@ public class GrupoController {
 				.status(HttpStatus.NO_CONTENT)
 				.build();
 	}
+
+        @PutMapping("/{grupoId}/criterios-desempate")
+        public ResponseEntity<?> configurarCriteriosDesempate(
+                        @RequestParam Long usuarioId,
+                        @RequestParam String codigoAcesso,
+                        @PathVariable Long grupoId,
+                        @RequestBody @Valid CriteriosDesempatePutRequestDTO criteriosDesempatePutRequestDTO) {
+                return ResponseEntity
+                                .status(HttpStatus.OK)
+                                .body(grupoService.configurarCriteriosDesempate(grupoId, usuarioId, codigoAcesso, criteriosDesempatePutRequestDTO));
+        }
+
+        @GetMapping("/{grupoId}/criterios-desempate")
+        public ResponseEntity<?> listarCriteriosDesempate(
+                        @RequestParam Long usuarioId,
+                        @RequestParam String codigoAcesso,
+                        @PathVariable Long grupoId) {
+                return ResponseEntity
+                                .status(HttpStatus.OK)
+                                .body(grupoService.listarCriteriosDesempate(usuarioId, codigoAcesso, grupoId));
+        }
 
         @PutMapping("/{grupoId}/regras-palpites")
         public ResponseEntity<?> configurarRegrasPalpites(
