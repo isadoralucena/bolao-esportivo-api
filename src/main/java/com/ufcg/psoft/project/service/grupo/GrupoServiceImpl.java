@@ -20,6 +20,7 @@ import com.ufcg.psoft.project.exception.CampeonatoNaoExisteException;
 import com.ufcg.psoft.project.exception.CodigoDeAcessoInvalidoException;
 import com.ufcg.psoft.project.exception.GrupoNaoExisteException;
 import com.ufcg.psoft.project.exception.LimiteDeParticipantesAtingidoException;
+import com.ufcg.psoft.project.exception.LimiteDeParticipantesInvalidoException;
 import com.ufcg.psoft.project.exception.PermissaoNegadaException;
 import com.ufcg.psoft.project.exception.RegraPontuacaoDuplicadaException;
 import com.ufcg.psoft.project.exception.RegraPontuacaoNaoExisteException;
@@ -58,11 +59,16 @@ public class GrupoServiceImpl implements GrupoService {
         Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
 
         Campeonato campeonato = campeonatoRepository.findById(grupoPostRequestDto.getCampeonatoId())
-            .orElseThrow(CampeonatoNaoExisteException::new);
-        
+                .orElseThrow(CampeonatoNaoExisteException::new);
+
+        if (!campeonato.getAtivo()) {
+            throw new CampeonatoInativoException();
+        }
+
         Grupo grupo = modelMapper.map(grupoPostRequestDto, Grupo.class);
         grupo.setCampeonato(campeonato);
         grupo.setOrganizador(usuarioLogado);
+        grupo.getParticipantes().add(usuarioLogado);
 
         grupoRepository.save(grupo);
         return modelMapper.map(grupo, GrupoResponseDTO.class);
@@ -100,6 +106,11 @@ public class GrupoServiceImpl implements GrupoService {
             throw new PermissaoNegadaException();
         }
         
+        Integer novoLimite = grupoPutRequestDto.getLimiteParticipantes();
+        if (novoLimite != null && novoLimite < grupo.getParticipantes().size()) {
+            throw new LimiteDeParticipantesInvalidoException();
+        }
+
         modelMapper.map(grupoPutRequestDto, grupo);
         grupo = grupoRepository.save(grupo);
         return modelMapper.map(grupo, GrupoResponseDTO.class);
@@ -119,16 +130,14 @@ public class GrupoServiceImpl implements GrupoService {
         Grupo grupo = grupoRepository.findById(grupoId).orElseThrow(GrupoNaoExisteException::new);
         Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
 
-        if (grupo.getLimiteParticipantes() != null && grupo.getParticipantes().size() >= grupo.getLimiteParticipantes()) {
-            throw new LimiteDeParticipantesAtingidoException(); 
+        if (!grupo.getOrganizador().equals(usuarioLogado)) {
+            throw new PermissaoNegadaException();
         }
 
         Usuario participanteParaAdicionar = usuarioRepository.findById(participantePostRequestDto.getUsuarioId())
                 .orElseThrow(UsuarioNaoExisteException::new);
 
-        if (!grupo.getOrganizador().equals(usuarioLogado)) {
-            throw new PermissaoNegadaException();
-        }
+        validarEntradaGrupo(grupo, participanteParaAdicionar);
 
         grupo.getParticipantes().add(participanteParaAdicionar);
         grupoRepository.save(grupo);
@@ -142,7 +151,12 @@ public class GrupoServiceImpl implements GrupoService {
         Usuario participante = usuarioRepository.findById(participanteId)
                 .orElseThrow(UsuarioNaoExisteException::new);
 
-        if (!grupo.getOrganizador().equals(usuarioLogado)) {
+
+        if (!grupo.getOrganizador().equals(usuarioLogado)) { // checa se o usuario logado é o organizador
+            throw new PermissaoNegadaException();
+        }
+
+        if (grupo.getOrganizador().equals(participante)) { // impede remoçao do proprio organizador
             throw new PermissaoNegadaException();
         }
 
@@ -167,17 +181,19 @@ public class GrupoServiceImpl implements GrupoService {
     }
 
     public GrupoResponseDTO entrarEmGrupoPublico(Long grupoId, Long usuarioId, String codigoAcesso) {
-            Grupo grupo = grupoRepository.findById(grupoId)
-                    .orElseThrow(GrupoNaoExisteException::new);
-            
-            Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
-            
-            validarEntradaEmGrupoPublico(grupo, usuarioLogado);
-            
-            grupo.getParticipantes().add(usuarioLogado);
-            grupoRepository.save(grupo);
-            return modelMapper.map(grupo, GrupoResponseDTO.class);
+        Grupo grupo = grupoRepository.findById(grupoId).orElseThrow(GrupoNaoExisteException::new);
+        Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
+
+        if (grupo.getPrivacidade() == PrivacidadeGrupo.PRIVADA) {
+            throw new PermissaoNegadaException();
         }
+
+        validarEntradaGrupo(grupo, usuarioLogado);
+
+        grupo.getParticipantes().add(usuarioLogado);
+        grupoRepository.save(grupo);
+        return modelMapper.map(grupo, GrupoResponseDTO.class);
+    }
 
     public RegraPontuacaoResponseDTO inserirRegraPontuacao(Long usuarioId, String codigoAcesso, Long grupoId, RegraPontuacaoPostPutRequestDTO regraPontuacaoPostPutRequestDto){
         Grupo grupo = grupoRepository.findById(grupoId).orElseThrow(GrupoNaoExisteException::new);
@@ -243,11 +259,7 @@ public class GrupoServiceImpl implements GrupoService {
         return new GrupoResponseDTO(grupo);
     }
 
-    private void validarEntradaEmGrupoPublico(Grupo grupo, Usuario usuario) {
-        if (grupo.getPrivacidade() == PrivacidadeGrupo.PRIVADA) {
-            throw new PermissaoNegadaException();
-        }
-
+    private void validarEntradaGrupo(Grupo grupo, Usuario usuario) {
         if (!grupo.getCampeonato().getAtivo()) {
             throw new CampeonatoInativoException();
         }
@@ -256,8 +268,7 @@ public class GrupoServiceImpl implements GrupoService {
         if (temPartidasSincronizadas) {
             boolean temPartidasValidas = partidaRepository.existsByCampeonatoIdAndStatusIn(
                     grupo.getCampeonato().getId(),
-                    List.of(PartidaStatus.ABERTO, PartidaStatus.EM_ANDAMENTO)
-            );
+                    List.of(PartidaStatus.ABERTO, PartidaStatus.EM_ANDAMENTO));
             if (!temPartidasValidas) {
                 throw new CampeonatoInativoException();
             }
@@ -267,8 +278,7 @@ public class GrupoServiceImpl implements GrupoService {
             throw new UsuarioJaParticipanteException();
         }
 
-        if (grupo.getLimiteParticipantes() != null &&
-                grupo.getParticipantes().size() >= grupo.getLimiteParticipantes()) {
+        if (grupo.getLimiteParticipantes() != null && grupo.getParticipantes().size() >= grupo.getLimiteParticipantes()) {
             throw new LimiteDeParticipantesAtingidoException();
         }
     }
