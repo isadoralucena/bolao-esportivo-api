@@ -259,7 +259,7 @@ public class GrupoServiceImpl implements GrupoService {
         return new GrupoResponseDTO(grupo);
     }
 
-    private void validarEntradaGrupo(Grupo grupo, Usuario usuario) {
+    public void validarEntradaGrupo(Grupo grupo, Usuario usuario) {
         if (!grupo.getCampeonato().getAtivo()) {
             throw new CampeonatoInativoException();
         }
