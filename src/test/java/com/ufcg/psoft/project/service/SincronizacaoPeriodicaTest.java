@@ -1,4 +1,4 @@
-package com.ufcg.psoft.project.service.sincronizacaoPeriodica;
+package com.ufcg.psoft.project.service;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -24,6 +24,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.service.campeonato.CampeonatoService;
+import com.ufcg.psoft.project.service.sincronizacaoPeriodica.SincronizacaoPeriodicaServiceImpl;
 
 @SpringBootTest
 @AutoConfigureMockMvc
