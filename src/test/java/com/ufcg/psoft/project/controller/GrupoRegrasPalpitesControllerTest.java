@@ -109,6 +109,7 @@ public class GrupoRegrasPalpitesControllerTest {
                 .organizador(organizador)
                 .build());
 
+        grupo.getParticipantes().add(organizador);
         grupo.getParticipantes().add(participante);
         grupoRepository.save(grupo);
 

@@ -83,6 +83,8 @@ public class GrupoRegraPontuacaoControllerTest {
                 .campeonato(campeonatoAtivo)
                 .organizador(organizador)
                 .build());
+        grupoPublico.getParticipantes().add(organizador);
+        grupoRepository.save(grupoPublico);
 
         grupoPrivado = grupoRepository.save(Grupo.builder()
                 .nome("Grupo Privado")
@@ -92,6 +94,8 @@ public class GrupoRegraPontuacaoControllerTest {
                 .campeonato(campeonatoAtivo)
                 .organizador(organizador)
                 .build());
+        grupoPrivado.getParticipantes().add(organizador);
+        grupoRepository.save(grupoPrivado);
 
         regraPontuacaoDto = RegraPontuacaoPostPutRequestDTO.builder()
                 .tipoRegraPontuacao(TipoRegraPontuacao.ACERTO_VENCEDOR)
@@ -337,8 +341,9 @@ public class GrupoRegraPontuacaoControllerTest {
 		@Test
 		@DisplayName("Quando um participante lista regras de pontuação com sucesso")
 		void quandoParticipanteListaRegrasPontuacaoComSucesso() throws Exception {
-			grupoPublico.getParticipantes().add(outroUsuario);
-			grupoRepository.save(grupoPublico);
+			Grupo grupoAtualizado = grupoRepository.findById(grupoPublico.getId()).orElseThrow();
+			grupoAtualizado.getParticipantes().add(outroUsuario);
+			grupoRepository.save(grupoAtualizado);
 
 			String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao")
 							.contentType(MediaType.APPLICATION_JSON)
@@ -357,9 +362,6 @@ public class GrupoRegraPontuacaoControllerTest {
 		@Test
 		@DisplayName("Quando um usuário não membro tenta listar regras de pontuação")
 		void quandoUsuarioNaoMembroTentaListarRegrasPontuacao() throws Exception {
-			grupoPublico.getParticipantes().remove(outroUsuario);
-			grupoRepository.save(grupoPublico);
-
 			String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao")
 							.contentType(MediaType.APPLICATION_JSON)
 							.param("usuarioId", outroUsuario.getId().toString())
