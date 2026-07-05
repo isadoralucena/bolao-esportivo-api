@@ -206,6 +206,50 @@ public class GrupoControllerTest {
     }
 
     @Test
+    @DisplayName("Quando usuário não membro tenta recuperar grupo privado")
+    void quandoUsuarioNaoMembroTentaRecuperarGrupoPrivado() throws Exception {
+        HashSet<Usuario> participantesPrivado = new HashSet<>();
+        participantesPrivado.add(organizador);
+
+        Grupo grupoPrivado = grupoRepository.save(Grupo.builder()
+                .nome("Grupo privado")
+                .descricao("Descrição privada")
+                .privacidade(PrivacidadeGrupo.PRIVADA)
+                .limiteParticipantes(5)
+                .campeonato(campeonato)
+                .organizador(organizador)
+                .participantes(participantesPrivado)
+                .build());
+
+        driver.perform(get(URI_GRUPOS + "/" + grupoPrivado.getId())
+                .param("usuarioId", participante.getId().toString())
+                .param("codigoAcesso", participante.getCodigo()))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Quando usuário não membro tenta listar participantes de grupo privado")
+    void quandoUsuarioNaoMembroTentaListarParticipantesDeGrupoPrivado() throws Exception {
+        HashSet<Usuario> participantesPrivado = new HashSet<>();
+        participantesPrivado.add(organizador);
+
+        Grupo grupoPrivado = grupoRepository.save(Grupo.builder()
+                .nome("Grupo privado")
+                .descricao("Descrição privada")
+                .privacidade(PrivacidadeGrupo.PRIVADA)
+                .limiteParticipantes(5)
+                .campeonato(campeonato)
+                .organizador(organizador)
+                .participantes(participantesPrivado)
+                .build());
+
+        driver.perform(get(URI_GRUPOS + "/" + grupoPrivado.getId() + "/participantes")
+                .param("usuarioId", participante.getId().toString())
+                .param("codigoAcesso", participante.getCodigo()))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     @DisplayName("Quando listar grupos disponíveis")
     void quandoListarGrupos() throws Exception {
         driver.perform(get(URI_GRUPOS)

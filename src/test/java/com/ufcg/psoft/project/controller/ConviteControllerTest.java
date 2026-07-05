@@ -180,6 +180,27 @@ public class ConviteControllerTest {
         }
 
         @Test
+        @DisplayName("Quando tenta criar convite para grupo com campeonato inativo")
+        void quandoCriaConviteParaGrupoComCampeonatoInativo() throws Exception {
+            campeonato.setAtivo(false);
+            campeonatoRepository.save(campeonato);
+
+            String responseJsonString = driver.perform(post(URI_CONVITES)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("codigoAcesso", organizador.getCodigo())
+                    .content(objectMapper.writeValueAsString(conviteDTO)))
+                    .andExpect(status().isBadRequest())
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString();
+
+            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
+
+            assertAll(
+                    () -> assertEquals("O campeonato associado a este grupo não está ativo!", resultado.getMessage())
+            );
+        }
+
+        @Test
         @DisplayName("Quando tenta criar convite com código de acesso inválido")
         void quandoCriaConviteComCodigoInvalido() throws Exception {
             String responseJsonString = driver.perform(post(URI_CONVITES)

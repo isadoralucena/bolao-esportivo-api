@@ -6,10 +6,13 @@ import com.ufcg.psoft.project.dto.grupo.GrupoResponseDTO;
 import com.ufcg.psoft.project.exception.CustomErrorType;
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.model.Grupo;
+import com.ufcg.psoft.project.model.Partida;
+import com.ufcg.psoft.project.model.PartidaStatus;
 import com.ufcg.psoft.project.model.PrivacidadeGrupo;
 import com.ufcg.psoft.project.model.Usuario;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.repository.GrupoRepository;
+import com.ufcg.psoft.project.repository.PartidaRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
 
 import org.junit.jupiter.api.*;
@@ -27,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -46,6 +50,9 @@ public class GrupoPublicoControllerTest {
 
     @Autowired
     CampeonatoRepository campeonatoRepository;
+
+    @Autowired
+    PartidaRepository partidaRepository;
 
     @Autowired
     WebApplicationContext webApplicationContext;
@@ -136,6 +143,7 @@ public class GrupoPublicoControllerTest {
 
     @AfterEach
     void tearDown() {
+        partidaRepository.deleteAll();
         grupoRepository.deleteAll();
         campeonatoRepository.deleteAll();
         usuarioRepository.deleteAll();
@@ -210,6 +218,33 @@ public class GrupoPublicoControllerTest {
 
             assertAll(
                     () -> assertEquals("O campeonato associado a este grupo não está ativo!", resultado.getMessage())
+            );
+        }
+
+        @Test
+        @DisplayName("Quando um usuário tenta entrar em grupo sem partidas válidas")
+        void quandoUsuarioTentaEntrarEmGrupoSemPartidasValidas() throws Exception {
+            partidaRepository.save(Partida.builder()
+                    .campeonato(campeonatoAtivo)
+                    .codigoExterno(123L)
+                    .mandante("Time A")
+                    .visitante("Time B")
+                    .data(LocalDateTime.now().plusDays(1))
+                    .status(PartidaStatus.FINALIZADO)
+                    .build());
+
+            String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/entrar")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .param("usuarioId", participante.getId().toString())
+                            .param("codigoAcesso", participante.getCodigo()))
+                    .andExpect(status().isBadRequest())
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString();
+
+            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
+
+            assertAll(
+                    () -> assertEquals("O campeonato não possui partida válidas!", resultado.getMessage())
             );
         }
 
