@@ -7,7 +7,6 @@ import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.model.Grupo;
 import com.ufcg.psoft.project.model.Partida;
 import com.ufcg.psoft.project.model.PartidaStatus;
-import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.PartidaRepository;
 
@@ -24,6 +23,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -59,7 +59,7 @@ public class PartidaServiceImpl implements PartidaService {
 
     @Override
     @Transactional
-    public void sincronizarPartidas(Campeonato campeonato) {
+    public List<PartidaResponseDTO> sincronizarPartidas(Campeonato campeonato) {
         HttpHeaders headers = new HttpHeaders();
         
         if (apiToken != null && !apiToken.isEmpty()) {
@@ -89,9 +89,13 @@ public class PartidaServiceImpl implements PartidaService {
             throw new PartidaSyncException("Resposta da API sem campo matches.");
         }
 
+        List<PartidaResponseDTO> resultado = new ArrayList<>();
+
         for (Map<String, Object> match : matches) {
-            salvarOuAtualizarPartida(campeonato, match);
+            resultado.add(salvarOuAtualizarPartida(campeonato, match));
         }
+
+        return resultado;
     }
 
     @Override
@@ -99,7 +103,7 @@ public class PartidaServiceImpl implements PartidaService {
         partidaRepository.deleteByCampeonatoId(campeonatoId);
     }
 
-    private void salvarOuAtualizarPartida(Campeonato campeonato, Map<String, Object> match) {
+    private PartidaResponseDTO salvarOuAtualizarPartida(Campeonato campeonato, Map<String, Object> match) {
         Long codigoExterno = Long.valueOf(match.get("id").toString());
         Map<String, Object> homeTeam = (Map<String, Object>) match.get("homeTeam");
         Map<String, Object> awayTeam = (Map<String, Object>) match.get("awayTeam");
@@ -137,6 +141,7 @@ public class PartidaServiceImpl implements PartidaService {
         }
 
         partidaRepository.save(partida);
+        return new PartidaResponseDTO(partida);
     }
 
     private static PartidaStatus converterStatus(String statusApi) {
