@@ -21,6 +21,7 @@ import com.ufcg.psoft.project.exception.CodigoDeAcessoInvalidoException;
 import com.ufcg.psoft.project.exception.GrupoNaoExisteException;
 import com.ufcg.psoft.project.exception.LimiteDeParticipantesAtingidoException;
 import com.ufcg.psoft.project.exception.LimiteDeParticipantesInvalidoException;
+import com.ufcg.psoft.project.exception.PartidasInvalidasException;
 import com.ufcg.psoft.project.exception.PermissaoNegadaException;
 import com.ufcg.psoft.project.exception.RegraPontuacaoDuplicadaException;
 import com.ufcg.psoft.project.exception.RegraPontuacaoNaoExisteException;
@@ -270,7 +271,7 @@ public class GrupoServiceImpl implements GrupoService {
                     grupo.getCampeonato().getId(),
                     List.of(PartidaStatus.ABERTO, PartidaStatus.EM_ANDAMENTO));
             if (!temPartidasValidas) {
-                throw new CampeonatoInativoException();
+                throw new PartidasInvalidasException();
             }
         }
 
