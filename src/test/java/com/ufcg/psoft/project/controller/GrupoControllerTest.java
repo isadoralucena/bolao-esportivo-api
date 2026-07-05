@@ -337,6 +337,16 @@ public class GrupoControllerTest {
                 .andExpect(status().isNoContent());
     }
 
+
+    @Test
+    @DisplayName("Quando usuário comum tenta remover o grupo")
+    void quandoUsuarioComumTentaRemoverGrupo() throws Exception {
+        driver.perform(delete(URI_GRUPOS + "/" + grupo.getId())
+                .param("usuarioId", participante.getId().toString())
+                .param("codigoAcesso", participante.getCodigo()))
+                .andExpect(status().isBadRequest());
+    }
+
     @Test
     @DisplayName("Quando tentar remover um grupo inexistente")
     void quandoRemoverGrupoInexistente() throws Exception {

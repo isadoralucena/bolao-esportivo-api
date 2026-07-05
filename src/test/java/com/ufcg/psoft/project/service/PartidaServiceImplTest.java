@@ -1,6 +1,7 @@
 package com.ufcg.psoft.project.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpMethod.GET;
@@ -117,5 +118,95 @@ public class PartidaServiceImplTest {
                 .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
 
         assertThrows(PartidaSyncException.class, () -> partidaService.sincronizarPartidas(campeonato));
+    }
+
+    @Test
+    @DisplayName("Quando sincroniza partidas com token configurado")
+    void quandoSincronizaPartidasComTokenConfigurado() {
+
+        String resposta = """
+                {
+                    "matches": [
+                    ]
+                }
+                """;
+                
+        ReflectionTestUtils.setField(partidaService, "apiToken", "TOKEN");
+
+        Campeonato campeonato = Campeonato.builder()
+                .id(1L)
+                .nome("Campeonato Teste")
+                .url("http://api.test/competitions/1")
+                .codigo("TST")
+                .ativo(true)
+                .build();
+
+        server.expect(requestTo("http://api.test/competitions/1/matches"))
+                .andExpect(method(GET))
+                .andRespond(withSuccess(resposta, MediaType.APPLICATION_JSON));
+
+        List<PartidaResponseDTO> resultado = partidaService.sincronizarPartidas(campeonato);
+
+        assertTrue(resultado.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Quando resposta da API não tem corpo, lança exceção")
+    void quandoRespostaSemCorpoLancaExcecao() {
+        Campeonato campeonato = Campeonato.builder()
+                .id(1L)
+                .nome("Campeonato Teste")
+                .url("http://api.test/competitions/1")
+                .codigo("TST")
+                .ativo(true)
+                .build();
+
+        server.expect(requestTo("http://api.test/competitions/1/matches"))
+                .andExpect(method(GET))
+                .andRespond(withSuccess("", MediaType.APPLICATION_JSON));
+
+        assertThrows(PartidaSyncException.class, () -> partidaService.sincronizarPartidas(campeonato));
+    }
+
+    @Test
+    @DisplayName("Quando sincroniza partidas com diferentes status da API")
+    void quandoSincronizaPartidasComDiferentesStatusDaApi() {
+        Campeonato campeonato = Campeonato.builder()
+                .id(1L)
+                .nome("Campeonato Teste")
+                .url("http://api.test/competitions/1")
+                .codigo("TST")
+                .ativo(true)
+                .build();
+
+        String resposta = """
+                {
+                    "matches": [
+                        {"id": 20, "homeTeam": {"name": "A"}, "awayTeam": {"name": "B"}, "status": "SCHEDULED"},
+                        {"id": 21, "homeTeam": {"name": "C"}, "awayTeam": {"name": "D"}, "status": "LIVE"},
+                        {"id": 22, "homeTeam": {"name": "E"}, "awayTeam": {"name": "F"}, "status": "CANCELLED"},
+                        {"id": 23, "homeTeam": {"name": "G"}, "awayTeam": {"name": "H"}, "status": "UNKNOWN"},
+                        {"id": 24, "homeTeam": {"name": "I"}, "awayTeam": {"name": "J"}, "status": null}
+                    ]
+                }
+                """;
+
+        when(partidaRepository.findByCampeonatoIdAndCodigoExterno(campeonato.getId(), 20L)).thenReturn(Optional.empty());
+        when(partidaRepository.findByCampeonatoIdAndCodigoExterno(campeonato.getId(), 21L)).thenReturn(Optional.empty());
+        when(partidaRepository.findByCampeonatoIdAndCodigoExterno(campeonato.getId(), 22L)).thenReturn(Optional.empty());
+        when(partidaRepository.findByCampeonatoIdAndCodigoExterno(campeonato.getId(), 23L)).thenReturn(Optional.empty());
+        when(partidaRepository.findByCampeonatoIdAndCodigoExterno(campeonato.getId(), 24L)).thenReturn(Optional.empty());
+
+        server.expect(requestTo("http://api.test/competitions/1/matches"))
+                .andExpect(method(GET))
+                .andRespond(withSuccess(resposta, MediaType.APPLICATION_JSON));
+
+        List<PartidaResponseDTO> resultado = partidaService.sincronizarPartidas(campeonato);
+
+        assertEquals(PartidaStatus.ABERTO, resultado.get(0).getStatus());
+        assertEquals(PartidaStatus.EM_ANDAMENTO, resultado.get(1).getStatus());
+        assertEquals(PartidaStatus.CANCELADO, resultado.get(2).getStatus());
+        assertEquals(PartidaStatus.ABERTO, resultado.get(3).getStatus());
+        assertEquals(PartidaStatus.ABERTO, resultado.get(4).getStatus());
     }
 }

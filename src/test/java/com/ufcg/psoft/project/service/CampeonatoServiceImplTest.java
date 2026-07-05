@@ -26,6 +26,7 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
 import com.ufcg.psoft.project.dto.campeonato.CampeonatoResponseDTO;
+import com.ufcg.psoft.project.exception.CampeonatoSyncException;
 import com.ufcg.psoft.project.exception.CodigoDeAcessoInvalidoException;
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.model.Usuario;
@@ -123,4 +124,31 @@ public class CampeonatoServiceImplTest {
         );
     }
 
+
+    @Test
+    @DisplayName("Quando sincroniza campeonato sem novos dados")
+    void quandoSincronizaCampeonatoSemNovosDados() {
+        ReflectionTestUtils.setField(campeonatoService, "apiToken", "TOKEN");
+
+        server.expect(requestTo("http://api.test/competitions/1"))
+                .andExpect(method(GET))
+                .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
+
+        CampeonatoResponseDTO resultado = campeonatoService.sincronizarCampeonato(campeonato);
+
+        assertEquals("Nome antigo", resultado.getNome());
+        assertEquals("OLD", resultado.getCodigo());
+    }
+
+    @Test
+    @DisplayName("Quando resposta da API não tem corpo, sincronização de campeonato falha")
+    void quandoRespostaSemCorpoSincronizacaoCampeonatoFalha() {
+        server.expect(requestTo("http://api.test/competitions/1"))
+                .andExpect(method(GET))
+                .andRespond(withSuccess("", MediaType.APPLICATION_JSON));
+
+        assertThrows(CampeonatoSyncException.class,
+                () -> campeonatoService.sincronizarCampeonato(campeonato)
+        );
+    }
 }

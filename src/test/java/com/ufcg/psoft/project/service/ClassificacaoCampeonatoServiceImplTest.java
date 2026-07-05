@@ -1,6 +1,7 @@
 package com.ufcg.psoft.project.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpMethod.GET;
@@ -108,4 +109,88 @@ public class ClassificacaoCampeonatoServiceImplTest {
                 () -> classificacaoCampeonatoService.sincronizarClassificacao(campeonato.getId())
         );
     }
+
+    @Test
+    @DisplayName("Quando sincroniza classificação com standings vazio, retorna lista vazia")
+    void quandoSincronizaClassificacaoComTokenEStandingsVazio() {
+        String respostaAPI = """
+            {
+                "standings": []
+            }
+        """;
+        ReflectionTestUtils.setField(classificacaoCampeonatoService, "apiToken", "TOKEN");
+
+        when(campeonatoRepository.findById(campeonato.getId())).thenReturn(Optional.of(campeonato));
+
+        server.expect(requestTo("http://api.test/competitions/1/standings"))
+                .andExpect(method(GET))
+                .andRespond(withSuccess(respostaAPI, MediaType.APPLICATION_JSON));
+
+        List<ClassificacaoCampeonatoResponseDTO> resultado = classificacaoCampeonatoService.sincronizarClassificacao(campeonato.getId());
+
+        assertTrue(resultado.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Quando resposta da API não tem corpo, lança exceção")
+    void quandoRespostaSemCorpoLancaExcecao() {
+        when(campeonatoRepository.findById(campeonato.getId())).thenReturn(Optional.of(campeonato));
+
+        server.expect(requestTo("http://api.test/competitions/1/standings"))
+                .andExpect(method(GET))
+                .andRespond(withSuccess("", MediaType.APPLICATION_JSON));
+
+        assertThrows(ClassificacaoCampeonatoSyncException.class,
+                () -> classificacaoCampeonatoService.sincronizarClassificacao(campeonato.getId())
+        );
+    }
+
+    @Test
+    @DisplayName("Quando resposta da API tem tabela vazia, lança exceção")
+    void quandoRespostaComTabelaVaziaLancaExcecao() {
+        String respostaAPI = """
+            {
+                "standings": [
+                    {}
+                ]
+            }
+        """;
+
+        when(campeonatoRepository.findById(campeonato.getId())).thenReturn(Optional.of(campeonato));
+
+        server.expect(requestTo("http://api.test/competitions/1/standings"))
+                .andExpect(method(GET))
+                .andRespond(withSuccess(respostaAPI, MediaType.APPLICATION_JSON));
+
+        assertThrows(ClassificacaoCampeonatoSyncException.class,
+                () -> classificacaoCampeonatoService.sincronizarClassificacao(campeonato.getId())
+        );
+    }
+
+    @Test
+    @DisplayName("Quando linha da classificação não tem time, lança exceção")
+    void quandoLinhaDaClassificacaoNaoTemTimeLancaExcecao() {
+        String respostaAPI = """
+            {
+                "standings": [
+                    {
+                        "table": [
+                            {"position": 1}
+                        ]
+                    }
+                ]
+            }
+        """;
+
+        when(campeonatoRepository.findById(campeonato.getId())).thenReturn(Optional.of(campeonato));
+
+        server.expect(requestTo("http://api.test/competitions/1/standings"))
+                .andExpect(method(GET))
+                .andRespond(withSuccess(respostaAPI, MediaType.APPLICATION_JSON));
+
+        assertThrows(ClassificacaoCampeonatoSyncException.class,
+                () -> classificacaoCampeonatoService.sincronizarClassificacao(campeonato.getId())
+        );
+    }
+
 }

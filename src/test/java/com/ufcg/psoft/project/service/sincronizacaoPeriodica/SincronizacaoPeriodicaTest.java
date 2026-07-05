@@ -1,6 +1,7 @@
 package com.ufcg.psoft.project.service.sincronizacaoPeriodica;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -131,6 +132,30 @@ class SincronizacaoPeriodicaTest {
         // Assert
         verify(campeonatoService).sincronizarCampeonato(campeonato1);
         verify(campeonatoService).sincronizarCampeonato(campeonato2);
+    }
+
+
+    @Test
+    @DisplayName("Quando sincronização de campeonato falha, continua o ciclo")
+    void quandoSincronizacaoDeCampeonatoFalhaContinuaOCiclo() {
+        // Arrange
+        Campeonato campeonatoComErro = campeonato(1L, "Campeonato com erro", null);
+        campeonatoComErro.setUrl("http://api.test/competitions/1");
+
+        Campeonato campeonatoSeguinte = campeonato(2L, "Campeonato seguinte", LocalDateTime.of(2026, 1, 1, 1, 1));
+        campeonatoSeguinte.setUrl("http://api.test/competitions/2");
+
+        when(campeonatoRepository.findByAtivoTrue()).thenReturn(new ArrayList<>(List.of(campeonatoComErro, campeonatoSeguinte)));
+        doThrow(new RuntimeException("erro"))
+                .when(campeonatoService)
+                .sincronizarCampeonato(campeonatoComErro);
+
+        // Act
+        sincronizacaoPeriodicaService.sincronizarCampeonatosAtivos();
+
+        // Assert
+        verify(campeonatoService).sincronizarCampeonato(campeonatoComErro);
+        verify(campeonatoService).sincronizarCampeonato(campeonatoSeguinte);
     }
 
     private Campeonato campeonato(Long id, String nome, LocalDateTime ultimaSincronizacao) {
