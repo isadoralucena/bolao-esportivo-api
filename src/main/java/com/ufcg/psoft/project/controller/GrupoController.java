@@ -15,6 +15,7 @@ import com.ufcg.psoft.project.dto.grupo.GrupoPutRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.ParticipantePostRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.RegraPontuacaoPostPutRequestDTO;
 import com.ufcg.psoft.project.dto.palpite.RegrasPalpitesRequestDTO;
+import com.ufcg.psoft.project.model.Usuario;
 import com.ufcg.psoft.project.service.grupo.GrupoService;
 import com.ufcg.psoft.project.service.pontuacao.PontuacaoService;
 
@@ -178,9 +179,12 @@ public class GrupoController {
     }
 
     @GetMapping("/{grupoId}/pontuacoes")
-    public ResponseEntity<?> listarPontuacoesDoGrupo(@PathVariable Long grupoId) {
+    public ResponseEntity<?> listarPontuacoesDoGrupo(
+            @RequestParam Long usuarioId,
+            @RequestParam String codigoAcesso,
+            @PathVariable Long grupoId) {
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(pontuacaoService.listarPontuacoesDoGrupo(grupoId));
+                .body(pontuacaoService.listarPontuacoesDoGrupo(grupoId, usuarioId, codigoAcesso));
     }
 }

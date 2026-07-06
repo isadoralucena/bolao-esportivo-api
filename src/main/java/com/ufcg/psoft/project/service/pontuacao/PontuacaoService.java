@@ -7,6 +7,6 @@ import com.ufcg.psoft.project.dto.pontuacao.PontuacaoParticipanteResponseDTO;
 
 public interface PontuacaoService {
     List<PalpiteResponseDTO> calcularPontuacoesAssociadasAPartida(Long partidaId);
-    List<PontuacaoParticipanteResponseDTO> listarPontuacoesDoGrupo(Long grupoId);
+    List<PontuacaoParticipanteResponseDTO> listarPontuacoesDoGrupo(Long grupoId, Long usuarioId, String codigoAcesso);
     List<PalpiteResponseDTO> calcularPontuacoesDoGrupo(Long grupoId);
 }

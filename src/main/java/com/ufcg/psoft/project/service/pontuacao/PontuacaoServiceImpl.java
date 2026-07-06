@@ -11,8 +11,10 @@ import org.springframework.stereotype.Service;
 
 import com.ufcg.psoft.project.dto.palpite.PalpiteResponseDTO;
 import com.ufcg.psoft.project.dto.pontuacao.PontuacaoParticipanteResponseDTO;
+import com.ufcg.psoft.project.exception.CodigoDeAcessoInvalidoException;
 import com.ufcg.psoft.project.exception.GrupoNaoExisteException;
 import com.ufcg.psoft.project.exception.PartidaNaoExisteException;
+import com.ufcg.psoft.project.exception.UsuarioNaoExisteException;
 import com.ufcg.psoft.project.model.Grupo;
 import com.ufcg.psoft.project.model.Palpite;
 import com.ufcg.psoft.project.model.Partida;
@@ -24,6 +26,7 @@ import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.PalpiteRepository;
 import com.ufcg.psoft.project.repository.PartidaRepository;
 import com.ufcg.psoft.project.repository.RegraPontuacaoRepository;
+import com.ufcg.psoft.project.repository.UsuarioRepository;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
@@ -45,6 +48,9 @@ public class PontuacaoServiceImpl implements PontuacaoService {
     @Autowired
     private List<Pontuador> pontuadoresDisponiveis;
 
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+    
     private Map<TipoRegraPontuacao, Pontuador> pontuadores;
 
     @PostConstruct
@@ -105,7 +111,9 @@ public class PontuacaoServiceImpl implements PontuacaoService {
     }
 
     @Override   
-    public List<PontuacaoParticipanteResponseDTO> listarPontuacoesDoGrupo(Long grupoId) {
+    public List<PontuacaoParticipanteResponseDTO> listarPontuacoesDoGrupo(Long grupoId, Long usuarioId, String codigoAcesso) {
+        Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
+        
         Grupo grupo = grupoRepository.findById(grupoId)
                 .orElseThrow(GrupoNaoExisteException::new);
 
@@ -113,11 +121,11 @@ public class PontuacaoServiceImpl implements PontuacaoService {
 
         Map<Long, Integer> pontosPorUsuario = new HashMap<>();
         for (Palpite palpite : palpites) {
-            Long usuarioId = palpite.getUsuario().getId();
+            Long usuarioIdPalpite = palpite.getUsuario().getId();
             Integer pontos = palpite.getPontos();
 
             pontosPorUsuario.put(
-                usuarioId,
+                usuarioIdPalpite,
                 pontosPorUsuario.getOrDefault(usuarioId, 0) + pontos
             );
         }
@@ -147,5 +155,13 @@ public class PontuacaoServiceImpl implements PontuacaoService {
         }
 
         return total;
+    }
+
+    private Usuario obterUsuarioValido(Long usuarioId, String codigo) {
+        Usuario usuario = usuarioRepository.findById(usuarioId).orElseThrow(UsuarioNaoExisteException::new);
+        if (!usuario.getCodigo().equals(codigo)) {
+            throw new CodigoDeAcessoInvalidoException();
+        }
+        return usuario;
     }
 }
