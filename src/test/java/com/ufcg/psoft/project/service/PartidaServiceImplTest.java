@@ -103,7 +103,6 @@ public class PartidaServiceImplTest {
         assertEquals(1, partida.getGolsVisitante());
         assertEquals(LocalDateTime.of(2026, 7, 5, 18, 0), partida.getData());
         assertEquals(PartidaStatus.FINALIZADO, partida.getStatus());
-        assertEquals(3, partida.getRodada());
     }
 
     @Test

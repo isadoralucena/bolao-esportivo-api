@@ -322,7 +322,6 @@ public class GrupoRegrasPalpitesControllerTest {
                     .visitante("Time B")
                     .data(LocalDateTime.now().plusMinutes(60))
                     .status(PartidaStatus.ABERTO)
-                    .rodada(1)
                     .build());
 
             driver.perform(post("/grupos/{grupoId}/partidas/{partidaId}/palpites",
@@ -346,7 +345,6 @@ public class GrupoRegrasPalpitesControllerTest {
                     .visitante("Time D")
                     .data(LocalDateTime.now().plusMinutes(180))
                     .status(PartidaStatus.ABERTO)
-                    .rodada(2)
                     .build());
 
             String responseJsonString = driver.perform(post("/grupos/{grupoId}/partidas/{partidaId}/palpites",
@@ -373,7 +371,6 @@ public class GrupoRegrasPalpitesControllerTest {
                     .visitante("Time F")
                     .data(LocalDateTime.now().plusMinutes(180))
                     .status(PartidaStatus.ABERTO)
-                    .rodada(3)
                     .build());
 
             // reconfigura janela para 240min de abertura

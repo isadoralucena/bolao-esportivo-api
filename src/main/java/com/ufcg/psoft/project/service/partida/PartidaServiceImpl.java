@@ -139,11 +139,7 @@ public class PartidaServiceImpl implements PartidaService {
         }
 
         partida.setStatus(PartidaServiceImpl.converterStatus((String) match.get("status")));
-
-        if (match.get("matchday") != null) {
-            partida.setRodada((Integer) match.get("matchday"));
-        }
-
+        
         partidaRepository.save(partida);
 
         if (partida.getStatus() == PartidaStatus.FINALIZADO) {

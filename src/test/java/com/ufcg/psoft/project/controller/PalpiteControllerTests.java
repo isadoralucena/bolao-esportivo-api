@@ -107,7 +107,6 @@ public class PalpiteControllerTests {
                 .visitante("Time B")
                 .data(LocalDateTime.now().plusMinutes(60))
                 .status(PartidaStatus.ABERTO)
-                .rodada(1)
                 .build());
 
         dto = PalpitePostPutRequestDTO.builder()
@@ -185,7 +184,6 @@ public class PalpiteControllerTests {
                 .visitante("Time Y")
                 .data(LocalDateTime.now().plusMinutes(60))
                 .status(PartidaStatus.ABERTO)
-                .rodada(1)
                 .build());
 
         mockMvc.perform(post("/grupos/{grupoId}/partidas/{partidaId}/palpites", grupo.getId(), outraPartida.getId())
@@ -294,7 +292,6 @@ public class PalpiteControllerTests {
                 .visitante("Time D")
                 .data(LocalDateTime.now().plusMinutes(60))
                 .status(PartidaStatus.ABERTO)
-                .rodada(2)
                 .build());
 
         PalpitePostPutRequestDTO dto2 = PalpitePostPutRequestDTO.builder()

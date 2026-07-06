@@ -52,9 +52,6 @@ public class Partida {
     @Column(nullable = false)
     private PartidaStatus status;
 
-    @JsonProperty("rodada")
-    private Integer rodada;
-
     public boolean estaAbertaParaPalpite(JanelaDePalpites janela, LocalDateTime horaAtual) {
         if (this.status != PartidaStatus.ABERTO) {
             return false;

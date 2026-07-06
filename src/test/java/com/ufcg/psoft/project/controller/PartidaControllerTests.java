@@ -129,7 +129,6 @@ public class PartidaControllerTests {
                 .visitante("Time B")
                 .data(LocalDateTime.now().plusDays(7))
                 .status(PartidaStatus.ABERTO)
-                .rodada(1)
                 .build());
 
         partidaFinalizada = partidaRepository.save(Partida.builder()
@@ -139,7 +138,6 @@ public class PartidaControllerTests {
                 .visitante("Time D")
                 .data(LocalDateTime.now().minusDays(1))
                 .status(PartidaStatus.FINALIZADO)
-                .rodada(1)
                 .golsMandante(3)
                 .golsVisitante(1)
                 .build());
@@ -190,7 +188,6 @@ public class PartidaControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].mandante").value("Time A"))
                 .andExpect(jsonPath("$[0].visitante").value("Time B"))
-                .andExpect(jsonPath("$[0].rodada").value(1));
     }
 
     @Test
@@ -256,7 +253,6 @@ public class PartidaControllerTests {
                 .visitante("Time F")
                 .data(LocalDateTime.now().plusDays(14))
                 .status(PartidaStatus.ABERTO)
-                .rodada(2)
                 .build());
 
         mockMvc.perform(get("/grupos/{grupoId}/partidas", grupo.getId()))
