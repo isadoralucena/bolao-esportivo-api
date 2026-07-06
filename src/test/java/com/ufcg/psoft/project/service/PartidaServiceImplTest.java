@@ -32,6 +32,7 @@ import com.ufcg.psoft.project.model.PartidaStatus;
 import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.PartidaRepository;
 import com.ufcg.psoft.project.service.partida.PartidaServiceImpl;
+import com.ufcg.psoft.project.service.pontuacao.PontuacaoService;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -42,6 +43,9 @@ public class PartidaServiceImplTest {
 
     @Mock
     private GrupoRepository grupoRepository;
+
+    @Mock
+    private PontuacaoService pontuacaoService;
 
     @InjectMocks
     private PartidaServiceImpl partidaService;
