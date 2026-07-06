@@ -39,6 +39,9 @@ public class PalpiteResponseDTO {
     @JsonProperty("data")
     private LocalDateTime data;
 
+    @JsonProperty("pontos")
+    private Integer pontos;
+
     public PalpiteResponseDTO(Palpite palpite) {
         this.id = palpite.getId();
         this.partidaId = palpite.getPartida().getId();
@@ -48,5 +51,6 @@ public class PalpiteResponseDTO {
         this.golsMandante = palpite.getGolsMandante();
         this.golsVisitante = palpite.getGolsVisitante();
         this.data = palpite.getData();
+        this.pontos = palpite.getPontos();
     }
 }
