@@ -11,6 +11,7 @@ import com.ufcg.psoft.project.service.campeonato.CampeonatoService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -60,7 +61,12 @@ public class PalpiteControllerTests {
     private Campeonato campeonato;
     private Grupo grupo;
     private Partida partida;
+    private Partida partidaAbertaForaJanela;
+    private Partida partidaEmAndamento;
+    private Partida partidaFinalizada;
+    private Partida partidaCancelada;
     private PalpitePostPutRequestDTO dto;
+    private PalpitePostPutRequestDTO dtoEdicao;
 
     @BeforeEach
     void setUp() {
@@ -110,9 +116,56 @@ public class PalpiteControllerTests {
                 .rodada(1)
                 .build());
 
+        partidaAbertaForaJanela = partidaRepository.save(Partida.builder()
+                .campeonato(campeonato)
+                .codigoExterno(2L)
+                .mandante("Time C")
+                .visitante("Time D")
+                .data(LocalDateTime.now().plusMinutes(180))
+                .status(PartidaStatus.ABERTO)
+                .rodada(2)
+                .build());
+
+        partidaEmAndamento = partidaRepository.save(Partida.builder()
+                .campeonato(campeonato)
+                .codigoExterno(3L)
+                .mandante("Time E")
+                .visitante("Time F")
+                .data(LocalDateTime.now())
+                .status(PartidaStatus.EM_ANDAMENTO)
+                .rodada(3)
+                .build());
+
+        partidaFinalizada = partidaRepository.save(Partida.builder()
+                .campeonato(campeonato)
+                .codigoExterno(4L)
+                .mandante("Time G")
+                .visitante("Time H")
+                .data(LocalDateTime.now().minusHours(2))
+                .status(PartidaStatus.FINALIZADO)
+                .golsMandante(2)
+                .golsVisitante(0)
+                .rodada(4)
+                .build());
+
+        partidaCancelada = partidaRepository.save(Partida.builder()
+                .campeonato(campeonato)
+                .codigoExterno(5L)
+                .mandante("Time I")
+                .visitante("Time J")
+                .data(LocalDateTime.now().plusDays(1))
+                .status(PartidaStatus.CANCELADO)
+                .rodada(5)
+                .build());
+
         dto = PalpitePostPutRequestDTO.builder()
                 .golsMandante(2)
                 .golsVisitante(1)
+                .build();
+
+        dtoEdicao = PalpitePostPutRequestDTO.builder()
+                .golsMandante(3)
+                .golsVisitante(0)
                 .build();
 
     when(campeonatoService.sincronizarCampeonato(campeonato.getId(), adminUser.getId(), adminUser.getCodigo()))
@@ -357,5 +410,277 @@ public class PalpiteControllerTests {
                 .param("userId", usuario.getId().toString())
                 .param("senha", usuario.getCodigo()))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Nested
+    @DisplayName("Controle de estado das partidas na criacao de palpites")
+    class ControleEstadoCriacaoPalpites {
+
+        @Test
+        @DisplayName("Criar palpite em partida aberta e dentro da janela aceita")
+        void criarPalpitePartidaAbertaEDentroJanela() throws Exception {
+            mockMvc.perform(post("/grupos/{grupoId}/partidas/{partidaId}/palpites", grupo.getId(), partida.getId())
+                    .param("usuarioId", usuario.getId().toString())
+                    .param("codigo", usuario.getCodigo())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(dto)))
+                    .andExpect(status().isCreated());
+        }
+
+        @Test
+        @DisplayName("Criar palpite em partida aberta fora da janela retorna 400")
+        void criarPalpitePartidaAbertaForaJanela() throws Exception {
+            mockMvc.perform(post("/grupos/{grupoId}/partidas/{partidaId}/palpites", grupo.getId(), partidaAbertaForaJanela.getId())
+                    .param("usuarioId", usuario.getId().toString())
+                    .param("codigo", usuario.getCodigo())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(dto)))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("Criar palpite em partida em andamento retorna 400")
+        void criarPalpitePartidaEmAndamento() throws Exception {
+            mockMvc.perform(post("/grupos/{grupoId}/partidas/{partidaId}/palpites", grupo.getId(), partidaEmAndamento.getId())
+                    .param("usuarioId", usuario.getId().toString())
+                    .param("codigo", usuario.getCodigo())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(dto)))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("Criar palpite em partida finalizada retorna 400")
+        void criarPalpitePartidaFinalizada() throws Exception {
+            mockMvc.perform(post("/grupos/{grupoId}/partidas/{partidaId}/palpites", grupo.getId(), partidaFinalizada.getId())
+                    .param("usuarioId", usuario.getId().toString())
+                    .param("codigo", usuario.getCodigo())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(dto)))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("Criar palpite em partida cancelada retorna 400")
+        void criarPalpitePartidaCancelada() throws Exception {
+            mockMvc.perform(post("/grupos/{grupoId}/partidas/{partidaId}/palpites", grupo.getId(), partidaCancelada.getId())
+                    .param("usuarioId", usuario.getId().toString())
+                    .param("codigo", usuario.getCodigo())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(dto)))
+                    .andExpect(status().isBadRequest());
+        }
+    }
+
+    @Nested
+    @DisplayName("Controle de estado das partidas na edicao de palpites")
+    class ControleEstadoEdicaoPalpites {
+
+        @Test
+        @DisplayName("Editar palpite em partida aberta e dentro da janela aceita")
+        void editarPalpitePartidaAberta() throws Exception {
+            Palpite palpiteExistente = palpiteRepository.save(Palpite.builder()
+                    .partida(partida)
+                    .usuario(usuario)
+                    .grupo(grupo)
+                    .golsMandante(1)
+                    .golsVisitante(1)
+                    .data(LocalDateTime.now())
+                    .build());
+
+            mockMvc.perform(put("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
+                    grupo.getId(), partida.getId(), palpiteExistente.getId())
+                    .param("usuarioId", usuario.getId().toString())
+                    .param("codigo", usuario.getCodigo())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(dtoEdicao)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.golsMandante").value(3))
+                    .andExpect(jsonPath("$.golsVisitante").value(0));
+        }
+
+        @Test
+        @DisplayName("Editar palpite em partida aberta fora da janela retorna 400")
+        void editarPalpitePartidaAbertaForaJanela() throws Exception {
+            Palpite palpiteExistente = palpiteRepository.save(Palpite.builder()
+                    .partida(partidaAbertaForaJanela)
+                    .usuario(usuario)
+                    .grupo(grupo)
+                    .golsMandante(1)
+                    .golsVisitante(1)
+                    .data(LocalDateTime.now())
+                    .build());
+
+            mockMvc.perform(put("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
+                    grupo.getId(), partidaAbertaForaJanela.getId(), palpiteExistente.getId())
+                    .param("usuarioId", usuario.getId().toString())
+                    .param("codigo", usuario.getCodigo())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(dtoEdicao)))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("Editar palpite em partida em andamento retorna 400")
+        void editarPalpitePartidaEmAndamento() throws Exception {
+            Palpite palpiteExistente = palpiteRepository.save(Palpite.builder()
+                    .partida(partidaEmAndamento)
+                    .usuario(usuario)
+                    .grupo(grupo)
+                    .golsMandante(1)
+                    .golsVisitante(1)
+                    .data(LocalDateTime.now())
+                    .build());
+
+            mockMvc.perform(put("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
+                    grupo.getId(), partidaEmAndamento.getId(), palpiteExistente.getId())
+                    .param("usuarioId", usuario.getId().toString())
+                    .param("codigo", usuario.getCodigo())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(dtoEdicao)))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("Editar palpite em partida finalizada retorna 400")
+        void editarPalpitePartidaFinalizada() throws Exception {
+            Palpite palpiteExistente = palpiteRepository.save(Palpite.builder()
+                    .partida(partidaFinalizada)
+                    .usuario(usuario)
+                    .grupo(grupo)
+                    .golsMandante(1)
+                    .golsVisitante(1)
+                    .data(LocalDateTime.now())
+                    .build());
+
+            mockMvc.perform(put("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
+                    grupo.getId(), partidaFinalizada.getId(), palpiteExistente.getId())
+                    .param("usuarioId", usuario.getId().toString())
+                    .param("codigo", usuario.getCodigo())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(dtoEdicao)))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("Editar palpite em partida cancelada retorna 400")
+        void editarPalpitePartidaCancelada() throws Exception {
+            Palpite palpiteExistente = palpiteRepository.save(Palpite.builder()
+                    .partida(partidaCancelada)
+                    .usuario(usuario)
+                    .grupo(grupo)
+                    .golsMandante(1)
+                    .golsVisitante(1)
+                    .data(LocalDateTime.now())
+                    .build());
+
+            mockMvc.perform(put("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
+                    grupo.getId(), partidaCancelada.getId(), palpiteExistente.getId())
+                    .param("usuarioId", usuario.getId().toString())
+                    .param("codigo", usuario.getCodigo())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(dtoEdicao)))
+                    .andExpect(status().isBadRequest());
+        }
+    }
+
+    @Nested
+    @DisplayName("Controle de estado das partidas na exclusao de palpites")
+    class ControleEstadoExclusaoPalpites {
+
+        @Test
+        @DisplayName("Excluir palpite em partida aberta e dentro da janela aceita")
+        void excluirPalpitePartidaAberta() throws Exception {
+            Palpite palpiteExistente = palpiteRepository.save(Palpite.builder()
+                    .partida(partida)
+                    .usuario(usuario)
+                    .grupo(grupo)
+                    .golsMandante(1)
+                    .golsVisitante(1)
+                    .data(LocalDateTime.now())
+                    .build());
+
+            mockMvc.perform(delete("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
+                    grupo.getId(), partida.getId(), palpiteExistente.getId())
+                    .param("usuarioId", usuario.getId().toString())
+                    .param("codigo", usuario.getCodigo()))
+                    .andExpect(status().isNoContent());
+        }
+
+        @Test
+        @DisplayName("Excluir palpite em partida aberta fora da janela retorna 400")
+        void excluirPalpitePartidaAbertaForaJanela() throws Exception {
+            Palpite palpiteExistente = palpiteRepository.save(Palpite.builder()
+                    .partida(partidaAbertaForaJanela)
+                    .usuario(usuario)
+                    .grupo(grupo)
+                    .golsMandante(1)
+                    .golsVisitante(1)
+                    .data(LocalDateTime.now())
+                    .build());
+
+            mockMvc.perform(delete("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
+                    grupo.getId(), partidaAbertaForaJanela.getId(), palpiteExistente.getId())
+                    .param("usuarioId", usuario.getId().toString())
+                    .param("codigo", usuario.getCodigo()))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("Excluir palpite em partida em andamento retorna 400")
+        void excluirPalpitePartidaEmAndamento() throws Exception {
+            Palpite palpiteExistente = palpiteRepository.save(Palpite.builder()
+                    .partida(partidaEmAndamento)
+                    .usuario(usuario)
+                    .grupo(grupo)
+                    .golsMandante(1)
+                    .golsVisitante(1)
+                    .data(LocalDateTime.now())
+                    .build());
+
+            mockMvc.perform(delete("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
+                    grupo.getId(), partidaEmAndamento.getId(), palpiteExistente.getId())
+                    .param("usuarioId", usuario.getId().toString())
+                    .param("codigo", usuario.getCodigo()))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("Excluir palpite em partida finalizada retorna 400")
+        void excluirPalpitePartidaFinalizada() throws Exception {
+            Palpite palpiteExistente = palpiteRepository.save(Palpite.builder()
+                    .partida(partidaFinalizada)
+                    .usuario(usuario)
+                    .grupo(grupo)
+                    .golsMandante(1)
+                    .golsVisitante(1)
+                    .data(LocalDateTime.now())
+                    .build());
+
+            mockMvc.perform(delete("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
+                    grupo.getId(), partidaFinalizada.getId(), palpiteExistente.getId())
+                    .param("usuarioId", usuario.getId().toString())
+                    .param("codigo", usuario.getCodigo()))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("Excluir palpite em partida cancelada retorna 400")
+        void excluirPalpitePartidaCancelada() throws Exception {
+            Palpite palpiteExistente = palpiteRepository.save(Palpite.builder()
+                    .partida(partidaCancelada)
+                    .usuario(usuario)
+                    .grupo(grupo)
+                    .golsMandante(1)
+                    .golsVisitante(1)
+                    .data(LocalDateTime.now())
+                    .build());
+
+            mockMvc.perform(delete("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
+                    grupo.getId(), partidaCancelada.getId(), palpiteExistente.getId())
+                    .param("usuarioId", usuario.getId().toString())
+                    .param("codigo", usuario.getCodigo()))
+                    .andExpect(status().isBadRequest());
+        }
     }
 }
