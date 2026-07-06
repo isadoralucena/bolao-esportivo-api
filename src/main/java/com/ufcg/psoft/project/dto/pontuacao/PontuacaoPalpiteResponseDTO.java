@@ -30,13 +30,13 @@ public class PontuacaoPalpiteResponseDTO {
     private Integer pontuacao;
 
     @JsonProperty("acertouVencedor")
-    private Boolean acertouVencedor;
+    private boolean acertouVencedor;
 
     @JsonProperty("acertouEmpate")
-    private Boolean acertouEmpate;
+    private boolean acertouEmpate;
 
     @JsonProperty("acertouPlacarExato")
-    private Boolean acertouPlacarExato;
+    private boolean acertouPlacarExato;
 
     public PontuacaoPalpiteResponseDTO(PontuacaoPalpite pontuacaoPalpite) {
         this.palpiteId = pontuacaoPalpite.getPalpite().getId();
@@ -44,8 +44,8 @@ public class PontuacaoPalpiteResponseDTO {
         this.grupoId = pontuacaoPalpite.getPalpite().getGrupo().getId();
         this.partidaId = pontuacaoPalpite.getPalpite().getPartida().getId();
         this.pontuacao = pontuacaoPalpite.getPontuacao();
-        this.acertouVencedor = pontuacaoPalpite.getAcertouVencedor();
-        this.acertouEmpate = pontuacaoPalpite.getAcertouEmpate();
-        this.acertouPlacarExato = pontuacaoPalpite.getAcertouPlacarExato();
+        this.acertouVencedor = pontuacaoPalpite.isAcertouVencedor();
+        this.acertouEmpate = pontuacaoPalpite.isAcertouEmpate();
+        this.acertouPlacarExato = pontuacaoPalpite.isAcertouPlacarExato();
     }
 }

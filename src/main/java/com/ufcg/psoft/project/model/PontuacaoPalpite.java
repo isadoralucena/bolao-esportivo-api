@@ -33,13 +33,13 @@ public class PontuacaoPalpite {
 
     @Column(nullable = false)
     @Builder.Default
-    private Boolean acertouVencedor = false;
+    private boolean acertouVencedor = false;
 
     @Column(nullable = false)
     @Builder.Default
-    private Boolean acertouEmpate = false;
+    private boolean acertouEmpate = false;
 
     @Column(nullable = false)
     @Builder.Default
-    private Boolean acertouPlacarExato = false;
+    private boolean acertouPlacarExato = false;
 }

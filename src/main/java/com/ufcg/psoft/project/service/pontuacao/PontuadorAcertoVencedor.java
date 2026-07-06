@@ -17,7 +17,7 @@ public class PontuadorAcertoVencedor implements Pontuador {
 
     @Override
     public int calcular(PontuacaoPalpite pontuacaoPalpite, RegraPontuacao regra) {
-        if (Boolean.TRUE.equals(pontuacaoPalpite.getAcertouVencedor())) {
+        if (Boolean.TRUE.equals(pontuacaoPalpite.isAcertouVencedor())) {
             return regra.getPontos();
         }
 

@@ -164,15 +164,15 @@ public class PontuacaoServiceImpl implements PontuacaoService {
         for (PontuacaoPalpite pontuacaoPalpite : pontuacoes) {
             pontuacaoTotal += pontuacaoPalpite.getPontuacao();
 
-            if (Boolean.TRUE.equals(pontuacaoPalpite.getAcertouVencedor())) {
+            if (Boolean.TRUE.equals(pontuacaoPalpite.isAcertouVencedor())) {
                 acertosVencedor++;
             }
 
-            if (Boolean.TRUE.equals(pontuacaoPalpite.getAcertouEmpate())) {
+            if (Boolean.TRUE.equals(pontuacaoPalpite.isAcertouEmpate())) {
                 acertosEmpate++;
             }
 
-            if (Boolean.TRUE.equals(pontuacaoPalpite.getAcertouPlacarExato())) {
+            if (Boolean.TRUE.equals(pontuacaoPalpite.isAcertouPlacarExato())) {
                 placaresExatos++;
             }
         }

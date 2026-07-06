@@ -24,24 +24,24 @@ public class PontuacaoParticipanteResponseDTO {
     private String usuarioNome;
 
     @JsonProperty("pontuacao")
-    private Integer pontuacao;
+    private int pontuacao;
 
     @JsonProperty("acertosVencedor")
-    private Integer acertosVencedor;
+    private int acertosVencedor;
 
     @JsonProperty("acertosEmpate")
-    private Integer acertosEmpate;
+    private int acertosEmpate;
 
     @JsonProperty("placaresExatos")
-    private Integer placaresExatos;
+    private int placaresExatos;
 
     public PontuacaoParticipanteResponseDTO(
             Long grupoId,
             Usuario usuario,
-            Integer pontuacao,
-            Integer acertosVencedor,
-            Integer acertosEmpate,
-            Integer placaresExatos
+            int pontuacao,
+            int acertosVencedor,
+            int acertosEmpate,
+            int placaresExatos
     ) {
         this.grupoId = grupoId;
         this.usuarioId = usuario.getId();

@@ -16,7 +16,7 @@ public class PontuadorPlacarExato implements Pontuador {
 
     @Override
     public int calcular(PontuacaoPalpite pontuacaoPalpite, RegraPontuacao regra) {
-        if (Boolean.TRUE.equals(pontuacaoPalpite.getAcertouPlacarExato())) {
+        if (Boolean.TRUE.equals(pontuacaoPalpite.isAcertouPlacarExato())) {
             return regra.getPontos();
         }
 
