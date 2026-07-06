@@ -48,9 +48,4 @@ public class Palpite {
     @Column(nullable = false)
     @Builder.Default
     private LocalDateTime data = LocalDateTime.now();
-
-    @JsonProperty("pontos")
-    @Column(nullable = false)
-    @Builder.Default
-    private Integer pontos = 0;
 }
