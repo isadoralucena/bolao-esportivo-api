@@ -37,6 +37,9 @@ public class PartidaResponseDTO {
     @JsonProperty("status")
     private PartidaStatus status;
 
+    @JsonProperty("mataMata")
+    private boolean mataMata;
+
     public PartidaResponseDTO(Partida partida) {
         this.id = partida.getId();
         this.mandante = partida.getMandante();
@@ -45,5 +48,6 @@ public class PartidaResponseDTO {
         this.golsVisitante = partida.getGolsVisitante();
         this.data = partida.getData();
         this.status = partida.getStatus();
+        this.mataMata = partida.isMataMata();
     }
 }

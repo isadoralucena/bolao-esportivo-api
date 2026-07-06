@@ -140,6 +140,9 @@ public class PartidaServiceImpl implements PartidaService {
 
         partida.setStatus(PartidaServiceImpl.converterStatus((String) match.get("status")));
         
+        boolean mataMata = ehMataMata((String) match.get("stage"));
+        partida.setMataMata(mataMata);
+
         partidaRepository.save(partida);
 
         if (partida.getStatus() == PartidaStatus.FINALIZADO) {
@@ -158,5 +161,34 @@ public class PartidaServiceImpl implements PartidaService {
             case "CANCELLED" -> PartidaStatus.CANCELADO;
             default -> PartidaStatus.ABERTO;
         };
+    }
+
+    private boolean ehMataMata(String stage) {
+        boolean ehMataMata = false;
+        
+        if (stage == null) {
+            return ehMataMata;
+        }
+
+        ehMataMata = switch (stage) {
+            case "FINAL",
+                "THIRD_PLACE",
+                "SEMI_FINALS",
+                "QUARTER_FINALS",
+                "LAST_16",
+                "LAST_32",
+                "LAST_64",
+                "ROUND_4",
+                "ROUND_3",
+                "ROUND_2",
+                "ROUND_1",
+                "PLAYOFF_ROUND_1",
+                "PLAYOFF_ROUND_2",
+                "PLAYOFFS" -> true;
+
+            default -> false;
+        };
+
+        return ehMataMata;
     }
 }
