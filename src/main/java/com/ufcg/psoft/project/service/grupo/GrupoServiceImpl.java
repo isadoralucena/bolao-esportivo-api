@@ -37,6 +37,7 @@ import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.RegraPontuacaoRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
+import com.ufcg.psoft.project.service.pontuacao.PontuacaoService;
 import com.ufcg.psoft.project.exception.UsuarioJaParticipanteException;
 import com.ufcg.psoft.project.exception.CampeonatoInativoException;
 import com.ufcg.psoft.project.repository.PartidaRepository;
@@ -45,16 +46,24 @@ import com.ufcg.psoft.project.repository.PartidaRepository;
 public class GrupoServiceImpl implements GrupoService {
     @Autowired
     GrupoRepository grupoRepository;
+   
     @Autowired
     private UsuarioRepository usuarioRepository;
+    
     @Autowired
     private CampeonatoRepository campeonatoRepository;
+    
     @Autowired
     private RegraPontuacaoRepository regraPontuacaoRepository;
+   
     @Autowired
     private PartidaRepository partidaRepository;
+    
     @Autowired
     ModelMapper modelMapper;
+
+    @Autowired
+    private PontuacaoService pontuacaoService;
 
     public GrupoResponseDTO criar(Long usuarioId, String codigoAcesso, GrupoPostRequestDTO grupoPostRequestDto) {
         Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
@@ -196,7 +205,7 @@ public class GrupoServiceImpl implements GrupoService {
         return modelMapper.map(grupo, GrupoResponseDTO.class);
     }
 
-    public RegraPontuacaoResponseDTO inserirRegraPontuacao(Long usuarioId, String codigoAcesso, Long grupoId, RegraPontuacaoPostPutRequestDTO regraPontuacaoPostPutRequestDto){
+    public RegraPontuacaoResponseDTO inserirRegraPontuacao(Long usuarioId, String codigoAcesso, Long grupoId, RegraPontuacaoPostPutRequestDTO regraPontuacaoPostPutRequestDto) {
         Grupo grupo = grupoRepository.findById(grupoId).orElseThrow(GrupoNaoExisteException::new);
         Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
 
@@ -213,6 +222,9 @@ public class GrupoServiceImpl implements GrupoService {
         RegraPontuacao regraPontuacao = modelMapper.map(regraPontuacaoPostPutRequestDto, RegraPontuacao.class);
         regraPontuacao.setGrupo(grupo);
         regraPontuacao = regraPontuacaoRepository.save(regraPontuacao);
+        
+        pontuacaoService.calcularPontuacoesDoGrupo(grupoId);
+
         return modelMapper.map(regraPontuacao, RegraPontuacaoResponseDTO.class);
     }
 
@@ -240,6 +252,8 @@ public class GrupoServiceImpl implements GrupoService {
         RegraPontuacao regraPontuacao = regraPontuacaoRepository.findById(regraPontuacaoId)
                 .filter(regra -> regra.getGrupo().getId().equals(grupoId))
                 .orElseThrow(RegraPontuacaoNaoExisteException::new);
+
+        pontuacaoService.calcularPontuacoesDoGrupo(grupoId);
 
         regraPontuacaoRepository.delete(regraPontuacao);
     }
