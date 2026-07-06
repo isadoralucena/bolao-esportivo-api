@@ -2,8 +2,8 @@ package com.ufcg.psoft.project.service.pontuacao;
 
 import org.springframework.stereotype.Component;
 
-import com.ufcg.psoft.project.model.Palpite;
-import com.ufcg.psoft.project.model.Partida;
+import com.ufcg.psoft.project.model.PontuacaoPalpite;
+import com.ufcg.psoft.project.model.RegraPontuacao;
 import com.ufcg.psoft.project.model.TipoRegraPontuacao;
 
 @Component
@@ -14,8 +14,9 @@ public class PontuadorBonusRodada implements Pontuador {
         return TipoRegraPontuacao.BONUS_RODADA;
     }
 
+
     @Override
-    public int calcular(Partida partida, Palpite palpite, int pontos) {
-        return 0; // TODO
+    public int calcular(PontuacaoPalpite pontuacaoPalpite, RegraPontuacao regra) {
+        return 0;
     }
 }

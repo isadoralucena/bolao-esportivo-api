@@ -1,8 +1,9 @@
 package com.ufcg.psoft.project.service.pontuacao;
 
-import com.ufcg.psoft.project.controller.CampeonatoController;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ import com.ufcg.psoft.project.model.Palpite;
 import com.ufcg.psoft.project.model.Partida;
 import com.ufcg.psoft.project.model.PartidaStatus;
 import com.ufcg.psoft.project.model.RegraPontuacao;
+import com.ufcg.psoft.project.model.TipoRegraPontuacao;
 import com.ufcg.psoft.project.model.Usuario;
 import com.ufcg.psoft.project.repository.PontuacaoPalpiteRepository;
 import com.ufcg.psoft.project.repository.GrupoRepository;
@@ -28,13 +30,11 @@ import com.ufcg.psoft.project.repository.PartidaRepository;
 import com.ufcg.psoft.project.repository.RegraPontuacaoRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 
 @Service
 public class PontuacaoServiceImpl implements PontuacaoService {
-
-    private final CampeonatoController campeonatoController;
-
     @Autowired
     private PartidaRepository partidaRepository;
 
@@ -53,8 +53,19 @@ public class PontuacaoServiceImpl implements PontuacaoService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    PontuacaoServiceImpl(CampeonatoController campeonatoController) {
-        this.campeonatoController = campeonatoController;
+
+    @Autowired
+    private List<Pontuador> pontuadoresDisponiveis;
+
+    private Map<TipoRegraPontuacao, Pontuador> pontuadores;
+
+    @PostConstruct
+    public void inicializarPontuadores() {
+        this.pontuadores = new EnumMap<>(TipoRegraPontuacao.class);
+
+        for (Pontuador pontuador : pontuadoresDisponiveis) {
+            this.pontuadores.put(pontuador.getTipo(), pontuador);
+        }
     }
 
     @Override
@@ -80,7 +91,7 @@ public class PontuacaoServiceImpl implements PontuacaoService {
             PontuacaoPalpite pontuacaoPalpite = buscarOuCriarPontuacaoPalpite(palpite);
 
             atualizarAcertos(pontuacaoPalpite);
-            int pontuacao = calcularPontuacao(pontuacaoPalpite);
+            int pontuacao = calcularPontuacaoPalpite(pontuacaoPalpite);
             pontuacaoPalpite.setPontuacao(pontuacao);
             
             pontuacoes.add(pontuacaoPalpite);
@@ -115,7 +126,7 @@ public class PontuacaoServiceImpl implements PontuacaoService {
                 PontuacaoPalpite pontuacaoPalpite = buscarOuCriarPontuacaoPalpite(palpite);
 
                 atualizarAcertos(pontuacaoPalpite);
-                int pontuacao = calcularPontuacao(pontuacaoPalpite);
+                int pontuacao = calcularPontuacaoPalpite(pontuacaoPalpite);
                 pontuacaoPalpite.setPontuacao(pontuacao);
 
                 pontuacoes.add(pontuacaoPalpite);
@@ -233,7 +244,7 @@ public class PontuacaoServiceImpl implements PontuacaoService {
         pontuacaoPalpite.setAcertouVencedor(acertouVencedor);
     }
 
-    private int calcularPontuacao(PontuacaoPalpite pontuacaoPalpite) {
+    private int calcularPontuacaoPalpite(PontuacaoPalpite pontuacaoPalpite) {
         Long grupoId = pontuacaoPalpite.getPalpite().getGrupo().getId();
 
         List<RegraPontuacao> regras = regraPontuacaoRepository.findByGrupoId(grupoId);
@@ -248,24 +259,8 @@ public class PontuacaoServiceImpl implements PontuacaoService {
     }
 
     private int calcularPontuacaoDaRegra(PontuacaoPalpite pontuacaoPalpite, RegraPontuacao regra) {
-        switch (regra.getTipoRegraPontuacao()) {
-            case ACERTO_VENCEDOR:
-                return Boolean.TRUE.equals(pontuacaoPalpite.getAcertouVencedor()) ? regra.getPontos() : 0;
-
-            case ACERTO_EMPATE:
-                return Boolean.TRUE.equals(pontuacaoPalpite.getAcertouEmpate()) ? regra.getPontos() : 0;
-
-            case PLACAR_EXATO:
-                return Boolean.TRUE.equals(pontuacaoPalpite.getAcertouPlacarExato()) ? regra.getPontos() : 0;
-
-            case BONUS_RODADA:
-                return 0; // todo
-
-            case BONUS_MATA_MATA:
-                return 0; // todo
-        }
-
-        return 0;
+        Pontuador pontuador = pontuadores.get(regra.getTipoRegraPontuacao());
+        return pontuador.calcular(pontuacaoPalpite, regra);
     }
 
     private Usuario obterUsuarioValido(Long usuarioId, String codigo) {
