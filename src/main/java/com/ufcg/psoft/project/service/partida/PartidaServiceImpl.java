@@ -9,6 +9,7 @@ import com.ufcg.psoft.project.model.Partida;
 import com.ufcg.psoft.project.model.PartidaStatus;
 import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.PartidaRepository;
+import com.ufcg.psoft.project.service.pontuacao.PontuacaoService;
 
 import jakarta.transaction.Transactional;
 
@@ -35,6 +36,9 @@ public class PartidaServiceImpl implements PartidaService {
 
     @Autowired
     private GrupoRepository grupoRepository;
+
+    @Autowired
+    private PontuacaoService pontuacaoService;
 
     @Value("${project.football-data.api-token:}")
     private String apiToken;
@@ -141,6 +145,11 @@ public class PartidaServiceImpl implements PartidaService {
         }
 
         partidaRepository.save(partida);
+
+        if (partida.getStatus() == PartidaStatus.FINALIZADO) {
+            pontuacaoService.calcularPontuacoesAssociadasAPartida(partida.getId());
+        }
+
         return new PartidaResponseDTO(partida);
     }
 

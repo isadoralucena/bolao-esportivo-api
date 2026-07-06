@@ -12,6 +12,8 @@ public interface PalpiteRepository extends JpaRepository<Palpite, Long> {
 
     List<Palpite> findByPartidaIdAndGrupoId(Long partidaId, Long grupoId);
 
+    List<Palpite> findByPartidaId(Long partidaId);
+    
     List<Palpite> findByUsuarioId(Long usuarioId);
 
     Optional<Palpite> findByUsuarioIdAndPartidaIdAndGrupoId(Long usuarioId, Long partidaId, Long grupoId);
