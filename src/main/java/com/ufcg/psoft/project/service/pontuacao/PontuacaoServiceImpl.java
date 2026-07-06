@@ -223,8 +223,7 @@ public class PontuacaoServiceImpl implements PontuacaoService {
     private int calcularPontuacao(PontuacaoPalpite pontuacaoPalpite) {
         Long grupoId = pontuacaoPalpite.getPalpite().getGrupo().getId();
 
-        List<RegraPontuacao> regras =
-                regraPontuacaoRepository.findByGrupoId(grupoId);
+        List<RegraPontuacao> regras = regraPontuacaoRepository.findByGrupoId(grupoId);
 
         int total = 0;
 
