@@ -185,6 +185,6 @@ public class GrupoController {
             @PathVariable Long grupoId) {
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(pontuacaoService.listarPontuacoesDoGrupo(grupoId, usuarioId, codigoAcesso));
+                .body(pontuacaoService.listarPontuacoesParticipantesDoGrupo(grupoId, usuarioId, codigoAcesso));
     }
 }
