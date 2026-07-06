@@ -253,9 +253,8 @@ public class GrupoServiceImpl implements GrupoService {
                 .filter(regra -> regra.getGrupo().getId().equals(grupoId))
                 .orElseThrow(RegraPontuacaoNaoExisteException::new);
 
-        pontuacaoService.calcularPontuacoesDoGrupo(grupoId);
-
         regraPontuacaoRepository.delete(regraPontuacao);
+        pontuacaoService.calcularPontuacoesDoGrupo(grupoId);
     }
 
     public GrupoResponseDTO configurarRegrasPalpites(Long grupoID, Long usuarioId, String codigoAcesso, RegrasPalpitesRequestDTO regrasPalpitesRequestDTO) {
