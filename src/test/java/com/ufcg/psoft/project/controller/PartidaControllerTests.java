@@ -187,7 +187,7 @@ public class PartidaControllerTests {
         mockMvc.perform(get("/campeonatos/{campeonatoId}/partidas", campeonato.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].mandante").value("Time A"))
-                .andExpect(jsonPath("$[0].visitante").value("Time B"))
+                .andExpect(jsonPath("$[0].visitante").value("Time B"));
     }
 
     @Test
