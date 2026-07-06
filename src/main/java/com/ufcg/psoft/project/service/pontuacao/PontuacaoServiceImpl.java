@@ -1,5 +1,6 @@
 package com.ufcg.psoft.project.service.pontuacao;
 
+import com.ufcg.psoft.project.controller.CampeonatoController;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +33,8 @@ import jakarta.transaction.Transactional;
 @Service
 public class PontuacaoServiceImpl implements PontuacaoService {
 
+    private final CampeonatoController campeonatoController;
+
     @Autowired
     private PartidaRepository partidaRepository;
 
@@ -50,9 +53,15 @@ public class PontuacaoServiceImpl implements PontuacaoService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    PontuacaoServiceImpl(CampeonatoController campeonatoController) {
+        this.campeonatoController = campeonatoController;
+    }
+
     @Override
     @Transactional
     public List<PontuacaoPalpiteResponseDTO> calcularPontuacoesAssociadasAPartida(Long partidaId) {
+        // usado para sincronizar automaticamente pontuacoes após a sincronizaçao de uma partida. é chamado pelo service de partida.
+        
         Partida partida = partidaRepository.findById(partidaId)
                 .orElseThrow(PartidaNaoExisteException::new);
 
@@ -87,6 +96,8 @@ public class PontuacaoServiceImpl implements PontuacaoService {
     @Override
     @Transactional
     public List<PontuacaoPalpiteResponseDTO> calcularPontuacoesDoGrupo(Long grupoId) {
+        // usado para sincronizar automaticamente pontuacoes após a modificaçao do conjunto de regras do grupo. é chamado pelo service de grupos.
+
         Grupo grupo = grupoRepository.findById(grupoId)
                 .orElseThrow(GrupoNaoExisteException::new);
 
@@ -120,6 +131,8 @@ public class PontuacaoServiceImpl implements PontuacaoService {
 
     @Override
     public PontuacaoParticipanteResponseDTO calcularPontuacaoParticipanteNoGrupo(Long grupoId, Long participanteId) {
+        // obtem todos os palpites de um participante num grupo, suas respectivas pontuaçoes, e soma.
+        
         Usuario participante = usuarioRepository.findById(participanteId)
                 .orElseThrow(UsuarioNaoExisteException::new);
 
