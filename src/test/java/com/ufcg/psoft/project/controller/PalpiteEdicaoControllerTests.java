@@ -96,7 +96,6 @@ public class PalpiteEdicaoControllerTests {
                 .visitante("Time B")
                 .data(LocalDateTime.now().plusMinutes(60))
                 .status(PartidaStatus.ABERTO)
-                .rodada(1)
                 .build());
 
         partidaFechada = partidaRepository.save(Partida.builder()
@@ -106,7 +105,6 @@ public class PalpiteEdicaoControllerTests {
                 .visitante("Time D")
                 .data(LocalDateTime.now().minusDays(1))
                 .status(PartidaStatus.FINALIZADO)
-                .rodada(2)
                 .build());
 
         palpite = palpiteRepository.save(Palpite.builder()

@@ -7,9 +7,9 @@ import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.model.Grupo;
 import com.ufcg.psoft.project.model.Partida;
 import com.ufcg.psoft.project.model.PartidaStatus;
-import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.PartidaRepository;
+import com.ufcg.psoft.project.service.pontuacao.PontuacaoService;
 
 import jakarta.transaction.Transactional;
 
@@ -24,6 +24,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -35,6 +36,9 @@ public class PartidaServiceImpl implements PartidaService {
 
     @Autowired
     private GrupoRepository grupoRepository;
+
+    @Autowired
+    private PontuacaoService pontuacaoService;
 
     @Value("${project.football-data.api-token:}")
     private String apiToken;
@@ -59,7 +63,7 @@ public class PartidaServiceImpl implements PartidaService {
 
     @Override
     @Transactional
-    public void sincronizarPartidas(Campeonato campeonato) {
+    public List<PartidaResponseDTO> sincronizarPartidas(Campeonato campeonato) {
         HttpHeaders headers = new HttpHeaders();
         
         if (apiToken != null && !apiToken.isEmpty()) {
@@ -89,9 +93,13 @@ public class PartidaServiceImpl implements PartidaService {
             throw new PartidaSyncException("Resposta da API sem campo matches.");
         }
 
+        List<PartidaResponseDTO> resultado = new ArrayList<>();
+
         for (Map<String, Object> match : matches) {
-            salvarOuAtualizarPartida(campeonato, match);
+            resultado.add(salvarOuAtualizarPartida(campeonato, match));
         }
+
+        return resultado;
     }
 
     @Override
@@ -99,7 +107,7 @@ public class PartidaServiceImpl implements PartidaService {
         partidaRepository.deleteByCampeonatoId(campeonatoId);
     }
 
-    private void salvarOuAtualizarPartida(Campeonato campeonato, Map<String, Object> match) {
+    private PartidaResponseDTO salvarOuAtualizarPartida(Campeonato campeonato, Map<String, Object> match) {
         Long codigoExterno = Long.valueOf(match.get("id").toString());
         Map<String, Object> homeTeam = (Map<String, Object>) match.get("homeTeam");
         Map<String, Object> awayTeam = (Map<String, Object>) match.get("awayTeam");
@@ -131,12 +139,17 @@ public class PartidaServiceImpl implements PartidaService {
         }
 
         partida.setStatus(PartidaServiceImpl.converterStatus((String) match.get("status")));
-
-        if (match.get("matchday") != null) {
-            partida.setRodada((Integer) match.get("matchday"));
-        }
+        
+        boolean mataMata = ehMataMata((String) match.get("stage"));
+        partida.setMataMata(mataMata);
 
         partidaRepository.save(partida);
+
+        if (partida.getStatus() == PartidaStatus.FINALIZADO) {
+            pontuacaoService.calcularPontuacoesAssociadasAPartida(partida.getId());
+        }
+
+        return new PartidaResponseDTO(partida);
     }
 
     private static PartidaStatus converterStatus(String statusApi) {
@@ -148,5 +161,34 @@ public class PartidaServiceImpl implements PartidaService {
             case "CANCELLED" -> PartidaStatus.CANCELADO;
             default -> PartidaStatus.ABERTO;
         };
+    }
+
+    private boolean ehMataMata(String stage) {
+        boolean ehMataMata = false;
+        
+        if (stage == null) {
+            return ehMataMata;
+        }
+
+        ehMataMata = switch (stage) {
+            case "FINAL",
+                "THIRD_PLACE",
+                "SEMI_FINALS",
+                "QUARTER_FINALS",
+                "LAST_16",
+                "LAST_32",
+                "LAST_64",
+                "ROUND_4",
+                "ROUND_3",
+                "ROUND_2",
+                "ROUND_1",
+                "PLAYOFF_ROUND_1",
+                "PLAYOFF_ROUND_2",
+                "PLAYOFFS" -> true;
+
+            default -> false;
+        };
+
+        return ehMataMata;
     }
 }

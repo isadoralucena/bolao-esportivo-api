@@ -13,6 +13,8 @@ import com.ufcg.psoft.project.dto.grupo.RegraPontuacaoPostPutRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.RegraPontuacaoResponseDTO;
 import com.ufcg.psoft.project.dto.palpite.RegrasPalpitesRequestDTO;
 import com.ufcg.psoft.project.dto.usuario.UsuarioResponseDTO;
+import com.ufcg.psoft.project.model.Grupo;
+import com.ufcg.psoft.project.model.Usuario;
 
 public interface GrupoService {
     GrupoResponseDTO criar(Long usuarioId, String codigoAcesso, GrupoPostRequestDTO grupoPostRequestDto);
@@ -30,4 +32,5 @@ public interface GrupoService {
     GrupoResponseDTO configurarCriteriosDesempate(Long grupoId, Long usuarioId, String codigoAcesso, CriteriosDesempatePutRequestDTO criteriosDesempatePutRequestDTO);
     List<CriteriosDesempateResponseDTO> listarCriteriosDesempate(Long usuarioId, String codigoAcesso, Long grupoId);
     GrupoResponseDTO configurarRegrasPalpites(Long grupoId, Long usuarioId, String codigo, RegrasPalpitesRequestDTO dto);
+    void validarEntradaGrupo(Grupo grupo, Usuario usuario);
 }
