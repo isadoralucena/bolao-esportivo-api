@@ -94,13 +94,7 @@ public class GrupoServiceImpl implements GrupoService {
     public GrupoResponseDTO recuperar(Long usuarioId, String codigoAcesso, Long id) {
         Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
         Grupo grupo = grupoRepository.findById(id).orElseThrow(GrupoNaoExisteException::new);
-
-        if (grupo.getPrivacidade() == PrivacidadeGrupo.PRIVADA) {
-            boolean isMembroOuDono = grupo.getParticipantes().contains(usuarioLogado) || grupo.getOrganizador().equals(usuarioLogado);
-            if (!isMembroOuDono) {
-                throw new PermissaoNegadaException();
-            }
-        }
+        garantirAcessoLeitura(grupo, usuarioLogado);
 
         return new GrupoResponseDTO(grupo);
     }
@@ -111,7 +105,7 @@ public class GrupoServiceImpl implements GrupoService {
         
         return grupos.stream()
                 .filter(g -> g.getPrivacidade() == PrivacidadeGrupo.PUBLICA || g.getParticipantes().contains(usuarioLogado))
-            .map(GrupoResponseDTO::new)
+                .map(GrupoResponseDTO::new)
                 .collect(Collectors.toList());
     }
 
@@ -119,9 +113,7 @@ public class GrupoServiceImpl implements GrupoService {
         Grupo grupo = grupoRepository.findById(id).orElseThrow(GrupoNaoExisteException::new);
 
         Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
-        if (!grupo.getOrganizador().equals(usuarioLogado)) {
-            throw new PermissaoNegadaException();
-        }
+        garantirOrganizador(grupo, usuarioLogado);
         
         Integer novoLimite = grupoPutRequestDto.getLimiteParticipantes();
         if (novoLimite != null && novoLimite < grupo.getParticipantes().size()) {
@@ -136,9 +128,7 @@ public class GrupoServiceImpl implements GrupoService {
     public void remover(Long usuarioId, String codigoAcesso, Long id) {
         Grupo grupo = grupoRepository.findById(id).orElseThrow(GrupoNaoExisteException::new);
         Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
-        if (!grupo.getOrganizador().equals(usuarioLogado)) {
-            throw new PermissaoNegadaException();
-        }
+        garantirOrganizador(grupo, usuarioLogado);
 
         grupoRepository.delete(grupo);
     }
@@ -146,10 +136,7 @@ public class GrupoServiceImpl implements GrupoService {
     public GrupoResponseDTO configurarCriteriosDesempate(Long grupoId, Long usuarioId, String codigoAcesso, CriteriosDesempatePutRequestDTO criteriosDesempatePutRequestDTO) {
         Grupo grupo = grupoRepository.findById(grupoId).orElseThrow(GrupoNaoExisteException::new);
         Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
-
-        if (!grupo.getOrganizador().equals(usuarioLogado)) {
-            throw new PermissaoNegadaException();
-        }
+        garantirOrganizador(grupo, usuarioLogado);
 
         List<TipoCriterioDesempate> criterios = criteriosDesempatePutRequestDTO.getCriteriosDesempate();
         validarCriteriosDesempate(criterios);
@@ -161,32 +148,23 @@ public class GrupoServiceImpl implements GrupoService {
     public List<CriteriosDesempateResponseDTO> listarCriteriosDesempate(Long usuarioId, String codigoAcesso, Long grupoId) {
         Grupo grupo = grupoRepository.findById(grupoId).orElseThrow(GrupoNaoExisteException::new);
         Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
+        garantirAcessoLeitura(grupo, usuarioLogado);
 
-        if (PrivacidadeGrupo.PRIVADA.equals(grupo.getPrivacidade())) {
-            boolean isMembroOuDono = grupo.getParticipantes().contains(usuarioLogado) || grupo.getOrganizador().equals(usuarioLogado);
-            if (!isMembroOuDono) {
-                throw new PermissaoNegadaException();
-            }
+        List<CriteriosDesempateResponseDTO> criteriosDesempate = new ArrayList<>();
+        for (int prioridade = 0; prioridade < grupo.getCriteriosDesempate().size(); prioridade++) {
+            criteriosDesempate.add(CriteriosDesempateResponseDTO.builder()
+                .tipoCriterioDesempate(grupo.getCriteriosDesempate().get(prioridade))
+                .prioridade(prioridade + 1)
+                .build());
         }
 
-            List<CriteriosDesempateResponseDTO> criteriosDesempate = new ArrayList<>();
-            for (int prioridade = 0; prioridade < grupo.getCriteriosDesempate().size(); prioridade++) {
-                criteriosDesempate.add(CriteriosDesempateResponseDTO.builder()
-                    .tipoCriterioDesempate(grupo.getCriteriosDesempate().get(prioridade))
-                    .prioridade(prioridade + 1)
-                    .build());
-            }
-
-            return criteriosDesempate;
+        return criteriosDesempate;
     }
 
     public GrupoResponseDTO adicionarParticipante(Long usuarioId, String codigoAcesso, Long grupoId, ParticipantePostRequestDTO participantePostRequestDto) {
         Grupo grupo = grupoRepository.findById(grupoId).orElseThrow(GrupoNaoExisteException::new);
         Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
-
-        if (!grupo.getOrganizador().equals(usuarioLogado)) {
-            throw new PermissaoNegadaException();
-        }
+        garantirOrganizador(grupo, usuarioLogado);
 
         Usuario participanteParaAdicionar = usuarioRepository.findById(participantePostRequestDto.getUsuarioId())
                 .orElseThrow(UsuarioNaoExisteException::new);
@@ -204,11 +182,7 @@ public class GrupoServiceImpl implements GrupoService {
 
         Usuario participante = usuarioRepository.findById(participanteId)
                 .orElseThrow(UsuarioNaoExisteException::new);
-
-
-        if (!grupo.getOrganizador().equals(usuarioLogado)) { // checa se o usuario logado é o organizador
-            throw new PermissaoNegadaException();
-        }
+        garantirOrganizador(grupo, usuarioLogado);
 
         if (grupo.getOrganizador().equals(participante)) { // impede remoçao do proprio organizador
             throw new PermissaoNegadaException();
@@ -221,13 +195,7 @@ public class GrupoServiceImpl implements GrupoService {
     public Set<UsuarioResponseDTO> listarParticipantes(Long usuarioId, String codigoAcesso, Long grupoId) {
         Grupo grupo = grupoRepository.findById(grupoId).orElseThrow(GrupoNaoExisteException::new);
         Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
-
-        if (PrivacidadeGrupo.PRIVADA.equals(grupo.getPrivacidade())) {
-            boolean isMembroOuDono = grupo.getParticipantes().contains(usuarioLogado) || grupo.getOrganizador().equals(usuarioLogado);
-            if (!isMembroOuDono) {
-                throw new PermissaoNegadaException();
-            }
-        }
+        garantirAcessoLeitura(grupo, usuarioLogado);
 
         return grupo.getParticipantes().stream()
                 .map(UsuarioResponseDTO::new)
@@ -252,10 +220,7 @@ public class GrupoServiceImpl implements GrupoService {
     public RegraPontuacaoResponseDTO inserirRegraPontuacao(Long usuarioId, String codigoAcesso, Long grupoId, RegraPontuacaoPostPutRequestDTO regraPontuacaoPostPutRequestDto) {
         Grupo grupo = grupoRepository.findById(grupoId).orElseThrow(GrupoNaoExisteException::new);
         Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
-
-        if (!grupo.getOrganizador().equals(usuarioLogado)) {
-            throw new PermissaoNegadaException();
-        }
+        garantirOrganizador(grupo, usuarioLogado);
 
         TipoRegraPontuacao tipo = regraPontuacaoPostPutRequestDto.getTipoRegraPontuacao();
 
@@ -275,10 +240,7 @@ public class GrupoServiceImpl implements GrupoService {
     public Set<RegraPontuacaoResponseDTO> listarRegrasPontuacao(Long usuarioId, String codigoAcesso, Long grupoId){
         Grupo grupo = grupoRepository.findById(grupoId).orElseThrow(GrupoNaoExisteException::new);
         Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
-
-        if (!(grupo.getParticipantes().contains(usuarioLogado) || grupo.getOrganizador().equals(usuarioLogado))) {
-            throw new PermissaoNegadaException();
-        }
+        garantirAcessoLeitura(grupo, usuarioLogado);
 
         return grupo.getRegrasPontuacao().stream()
                 .map(regra -> modelMapper.map(regra, RegraPontuacaoResponseDTO.class))
@@ -288,10 +250,7 @@ public class GrupoServiceImpl implements GrupoService {
     public void removerRegraPontuacao(Long usuarioId, String codigoAcesso, Long grupoId, Long regraPontuacaoId){
         Grupo grupo = grupoRepository.findById(grupoId).orElseThrow(GrupoNaoExisteException::new);
         Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
-
-        if (!grupo.getOrganizador().equals(usuarioLogado)) {
-            throw new PermissaoNegadaException();
-        }
+        garantirOrganizador(grupo, usuarioLogado);
 
         RegraPontuacao regraPontuacao = regraPontuacaoRepository.findById(regraPontuacaoId)
                 .filter(regra -> regra.getGrupo().getId().equals(grupoId))
@@ -306,8 +265,8 @@ public class GrupoServiceImpl implements GrupoService {
                 .orElseThrow(GrupoNaoExisteException::new);
 
         Usuario usuario = obterUsuarioValido(usuarioId, codigoAcesso);
+        garantirOrganizador(grupo, usuario);
 
-        if (!grupo.getOrganizador().getId().equals(usuario.getId())) throw new PermissaoNegadaException();
         if (regrasPalpitesRequestDTO.getMinutosAbertura() <= regrasPalpitesRequestDTO.getMinutosFechamento()) throw new RegraDeTempoInvalidaException();
 
         grupo.setMinutosAberturaPalpites(regrasPalpitesRequestDTO.getMinutosAbertura());
@@ -349,6 +308,19 @@ public class GrupoServiceImpl implements GrupoService {
 
         if (grupo.getLimiteParticipantes() != null && grupo.getParticipantes().size() >= grupo.getLimiteParticipantes()) {
             throw new LimiteDeParticipantesAtingidoException();
+        }
+    }
+
+    private void garantirAcessoLeitura(Grupo grupo, Usuario usuarioLogado) {
+        boolean isMembroOuOrganizador = grupo.getParticipantes().contains(usuarioLogado) || grupo.getOrganizador().equals(usuarioLogado);
+        if (grupo.getPrivacidade() == PrivacidadeGrupo.PRIVADA && !isMembroOuOrganizador) {
+            throw new PermissaoNegadaException();
+        }
+    }
+
+    private void garantirOrganizador(Grupo grupo, Usuario usuarioLogado) {
+        if (!grupo.getOrganizador().equals(usuarioLogado)) {
+            throw new PermissaoNegadaException();
         }
     }
 
