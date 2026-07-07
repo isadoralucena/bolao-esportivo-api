@@ -61,9 +61,9 @@ public class Grupo {
 	@Builder.Default
 	private Set<RegraPontuacao> regrasPontuacao = new HashSet<>();
 
+	@ElementCollection
 	@Enumerated(EnumType.STRING)
 	@OrderColumn(name = "prioridade")
-	@ElementCollection
 	@CollectionTable(
 		name = "grupo_criterios_desempate",
 		joinColumns = @JoinColumn(name = "grupo_id")

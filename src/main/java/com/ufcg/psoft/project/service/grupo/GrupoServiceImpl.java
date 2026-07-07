@@ -2,8 +2,8 @@ package com.ufcg.psoft.project.service.grupo;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -130,9 +130,9 @@ public class GrupoServiceImpl implements GrupoService {
             throw new PermissaoNegadaException();
         }
 
-        validarCriteriosDesempate(criteriosDesempatePutRequestDTO.getCriteriosDesempate());
-
-        grupo.setCriteriosDesempate(new ArrayList<>(criteriosDesempatePutRequestDTO.getCriteriosDesempate()));
+        List<TipoCriterioDesempate> criterios = criteriosDesempatePutRequestDTO.getCriteriosDesempate();
+        validarCriteriosDesempate(criterios);
+        grupo.setCriteriosDesempate(new ArrayList<>(criterios));
         grupoRepository.save(grupo);
         return new GrupoResponseDTO(grupo);
     }
@@ -141,7 +141,7 @@ public class GrupoServiceImpl implements GrupoService {
         Grupo grupo = grupoRepository.findById(grupoId).orElseThrow(GrupoNaoExisteException::new);
         Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
 
-        if (grupo.getPrivacidade() == PrivacidadeGrupo.PRIVADA) {
+        if (PrivacidadeGrupo.PRIVADA.equals(grupo.getPrivacidade())) {
             boolean isMembroOuDono = grupo.getParticipantes().contains(usuarioLogado) || grupo.getOrganizador().equals(usuarioLogado);
             if (!isMembroOuDono) {
                 throw new PermissaoNegadaException();
@@ -198,7 +198,7 @@ public class GrupoServiceImpl implements GrupoService {
         Grupo grupo = grupoRepository.findById(grupoId).orElseThrow(GrupoNaoExisteException::new);
         Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
 
-        if (grupo.getPrivacidade() == PrivacidadeGrupo.PRIVADA) {
+        if (PrivacidadeGrupo.PRIVADA.equals(grupo.getPrivacidade())) {
             boolean isMembroOuDono = grupo.getParticipantes().contains(usuarioLogado) || grupo.getOrganizador().equals(usuarioLogado);
             if (!isMembroOuDono) {
                 throw new PermissaoNegadaException();
@@ -288,13 +288,12 @@ public class GrupoServiceImpl implements GrupoService {
     }
 
     private void validarCriteriosDesempate(List<TipoCriterioDesempate> criteriosDesempate) {
-        Set<TipoCriterioDesempate> criteriosValidos = EnumSet.allOf(TipoCriterioDesempate.class);
+        if (criteriosDesempate == null || criteriosDesempate.isEmpty()
+                || criteriosDesempate.stream().anyMatch(Objects::isNull)) {
+            throw new CriteriosDesempateInvalidosException();
+        }
 
-        if (criteriosDesempate == null
-                || criteriosDesempate.isEmpty()
-                || criteriosDesempate.contains(null)
-                || criteriosDesempate.size() != new HashSet<>(criteriosDesempate).size()
-                || !criteriosValidos.containsAll(criteriosDesempate)) {
+        if (EnumSet.copyOf(criteriosDesempate).size() != criteriosDesempate.size()) {
             throw new CriteriosDesempateInvalidosException();
         }
     }
