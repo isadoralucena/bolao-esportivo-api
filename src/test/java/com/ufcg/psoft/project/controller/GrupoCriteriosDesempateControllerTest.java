@@ -1,7 +1,9 @@
 package com.ufcg.psoft.project.controller;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ufcg.psoft.project.dto.grupo.CriteriosDesempatePutRequestDTO;
+import com.ufcg.psoft.project.dto.grupo.CriteriosDesempateResponseDTO;
 import com.ufcg.psoft.project.dto.grupo.GrupoResponseDTO;
 import com.ufcg.psoft.project.exception.CustomErrorType;
 import com.ufcg.psoft.project.model.Campeonato;
@@ -25,10 +27,14 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -180,6 +186,69 @@ public class GrupoCriteriosDesempateControllerTest {
         }
 
         @Test
+        @DisplayName("Quando o organizador configura uma ordem parcial (2 de 4 critérios)")
+        void quandoOrganizadorConfiguraOrdemParcial() throws Exception {
+            CriteriosDesempatePutRequestDTO dto = CriteriosDesempatePutRequestDTO.builder()
+                    .criteriosDesempate(List.of(
+                            TipoCriterioDesempate.ACERTOS_EMPATE,
+                            TipoCriterioDesempate.ERROS))
+                    .build();
+
+            String responseJsonString = driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .param("usuarioId", organizador.getId().toString())
+                            .param("codigoAcesso", organizador.getCodigo())
+                            .content(objectMapper.writeValueAsString(dto)))
+                    .andExpect(status().isOk())
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+            GrupoResponseDTO resultado = objectMapper.readValue(responseJsonString, GrupoResponseDTO.class);
+
+            assertEquals(dto.getCriteriosDesempate(), resultado.getCriteriosDesempate());
+        }
+
+        @Test
+        @DisplayName("Quando o organizador envia uma lista vazia de critérios")
+        void quandoOrganizadorEnviaListaVazia() throws Exception {
+            CriteriosDesempatePutRequestDTO dto = CriteriosDesempatePutRequestDTO.builder()
+                    .criteriosDesempate(Collections.emptyList())
+                    .build();
+
+            String responseJsonString = driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .param("usuarioId", organizador.getId().toString())
+                            .param("codigoAcesso", organizador.getCodigo())
+                            .content(objectMapper.writeValueAsString(dto)))
+                    .andExpect(status().isBadRequest())
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
+
+            assertEquals("Erros de validacao encontrados", resultado.getMessage());
+        }
+
+        @Test
+        @DisplayName("Quando o organizador envia o campo de critérios nulo (ausente no corpo)")
+        void quandoOrganizadorEnviaListaNula() throws Exception {
+            String corpoSemCriterios = "{}";
+
+            String responseJsonString = driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .param("usuarioId", organizador.getId().toString())
+                            .param("codigoAcesso", organizador.getCodigo())
+                            .content(corpoSemCriterios))
+                    .andExpect(status().isBadRequest())
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
+
+            assertEquals("Erros de validacao encontrados", resultado.getMessage());
+        }
+
+        @Test
         @DisplayName("Quando um usuário que não é organizador tenta configurar os critérios")
         void quandoNaoOrganizadorTentaConfigurar() throws Exception {
             CriteriosDesempatePutRequestDTO dto = CriteriosDesempatePutRequestDTO.builder()
@@ -202,6 +271,167 @@ public class GrupoCriteriosDesempateControllerTest {
             CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
 
             assertEquals("Permissão negada para acessar este recurso.", resultado.getMessage());
+        }
+
+        @Test
+        @DisplayName("Quando o grupo informado não existe")
+        void quandoGrupoNaoExistePut() throws Exception {
+            CriteriosDesempatePutRequestDTO dto = CriteriosDesempatePutRequestDTO.builder()
+                    .criteriosDesempate(List.of(TipoCriterioDesempate.PLACARES_EXATOS))
+                    .build();
+
+            Long idInexistente = 999999L;
+
+            driver.perform(put(URI_GRUPOS + "/" + idInexistente + "/criterios-desempate")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .param("usuarioId", organizador.getId().toString())
+                            .param("codigoAcesso", organizador.getCodigo())
+                            .content(objectMapper.writeValueAsString(dto)))
+                    .andExpect(status().isBadRequest())
+                    .andDo(print());
+        }
+
+        @Test
+        @DisplayName("Quando o código de acesso informado é inválido")
+        void quandoCodigoAcessoInvalidoPut() throws Exception {
+            CriteriosDesempatePutRequestDTO dto = CriteriosDesempatePutRequestDTO.builder()
+                    .criteriosDesempate(List.of(TipoCriterioDesempate.PLACARES_EXATOS))
+                    .build();
+
+            driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .param("usuarioId", organizador.getId().toString())
+                            .param("codigoAcesso", "codigo-errado")
+                            .content(objectMapper.writeValueAsString(dto)))
+                    .andExpect(status().isBadRequest())
+                    .andDo(print());
+        }
+        
+        @Test
+		@DisplayName("Quando o organizador envia um critério de desempate inválido (nulo)")
+		void quandoOrganizadorEnviaCriterioDesempateInvalido() throws Exception {
+			CriteriosDesempatePutRequestDTO dto = CriteriosDesempatePutRequestDTO.builder()
+					.criteriosDesempate(Arrays.asList(
+							TipoCriterioDesempate.PLACARES_EXATOS,
+							null,
+							TipoCriterioDesempate.ACERTOS_VENCEDOR))
+					.build();
+
+			String responseJsonString = driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
+							.contentType(MediaType.APPLICATION_JSON)
+							.param("usuarioId", organizador.getId().toString())
+							.param("codigoAcesso", organizador.getCodigo())
+							.content(objectMapper.writeValueAsString(dto)))
+					.andExpect(status().isBadRequest())
+					.andDo(print())
+					.andReturn()
+					.getResponse()
+					.getContentAsString(StandardCharsets.UTF_8);
+
+			CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
+
+			assertEquals(
+					"Os critérios de desempate devem conter ao menos 1 critério válido, sem repetição.",
+					resultado.getMessage()
+			);
+		}
+
+        @Test
+        @DisplayName("Quando o usuário informado não existe")
+        void quandoUsuarioNaoExistePut() throws Exception {
+            CriteriosDesempatePutRequestDTO dto = CriteriosDesempatePutRequestDTO.builder()
+                    .criteriosDesempate(List.of(TipoCriterioDesempate.PLACARES_EXATOS))
+                    .build();
+
+            Long idInexistente = 999999L;
+
+            driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .param("usuarioId", idInexistente.toString())
+                            .param("codigoAcesso", "111111")
+                            .content(objectMapper.writeValueAsString(dto)))
+                    .andExpect(status().isBadRequest())
+                    .andDo(print());
+        }
+    }
+
+    @Nested
+    @DisplayName("Conjunto de casos de consulta dos critérios de desempate")
+    class consultaDeCriteriosDesempate {
+
+        @Test
+        @DisplayName("Quando o organizador consulta os critérios já configurados")
+        void quandoOrganizadorConsultaCriteriosConfigurados() throws Exception {
+            grupo.setCriteriosDesempate(List.of(
+                    TipoCriterioDesempate.ERROS,
+                    TipoCriterioDesempate.PLACARES_EXATOS));
+            grupoRepository.save(grupo);
+
+            String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
+                            .param("usuarioId", organizador.getId().toString())
+                            .param("codigoAcesso", organizador.getCodigo()))
+                    .andExpect(status().isOk())
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+            List<CriteriosDesempateResponseDTO> resultado = objectMapper.readValue(
+                    responseJsonString, new TypeReference<>() {});
+
+            assertEquals(2, resultado.size());
+            assertEquals(TipoCriterioDesempate.ERROS, resultado.get(0).getTipoCriterioDesempate());
+            assertEquals(1, resultado.get(0).getPrioridade());
+            assertEquals(TipoCriterioDesempate.PLACARES_EXATOS, resultado.get(1).getTipoCriterioDesempate());
+            assertEquals(2, resultado.get(1).getPrioridade());
+        }
+
+        @Test
+        @DisplayName("Quando nenhum critério foi configurado ainda, a consulta retorna lista vazia")
+        void quandoConsultaSemCriteriosConfigurados() throws Exception {
+            String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
+                            .param("usuarioId", organizador.getId().toString())
+                            .param("codigoAcesso", organizador.getCodigo()))
+                    .andExpect(status().isOk())
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+            List<CriteriosDesempateResponseDTO> resultado = objectMapper.readValue(responseJsonString, new TypeReference<>() {});
+
+            assertTrue(resultado.isEmpty());
+        }
+
+        @Test
+        @DisplayName("Quando um usuário que não é organizador consulta os critérios de um grupo público")
+        void quandoNaoOrganizadorConsultaGrupoPublico() throws Exception {
+            grupo.setCriteriosDesempate(List.of(TipoCriterioDesempate.PLACARES_EXATOS));
+            grupoRepository.save(grupo);
+
+            driver.perform(get(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
+                            .param("usuarioId", outroUsuario.getId().toString())
+                            .param("codigoAcesso", outroUsuario.getCodigo()))
+                    .andExpect(status().isOk())
+                    .andDo(print());
+        }
+
+        @Test
+        @DisplayName("Quando o grupo informado não existe")
+        void quandoGrupoNaoExisteGet() throws Exception {
+            Long idInexistente = 999999L;
+
+            driver.perform(get(URI_GRUPOS + "/" + idInexistente + "/criterios-desempate")
+                            .param("usuarioId", organizador.getId().toString())
+                            .param("codigoAcesso", organizador.getCodigo()))
+                    .andExpect(status().isBadRequest())
+                    .andDo(print());
+        }
+
+        @Test
+        @DisplayName("Quando o código de acesso informado é inválido")
+        void quandoCodigoAcessoInvalidoGet() throws Exception {
+            driver.perform(get(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
+                            .param("usuarioId", organizador.getId().toString())
+                            .param("codigoAcesso", "codigo-errado"))
+                    .andExpect(status().isBadRequest())
+                    .andDo(print());
         }
     }
 }
