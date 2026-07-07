@@ -104,7 +104,7 @@ public class GrupoServiceImpl implements GrupoService {
         List<Grupo> grupos = grupoRepository.findAll();
         
         return grupos.stream()
-                .filter(g -> g.getPrivacidade() == PrivacidadeGrupo.PUBLICA || g.getParticipantes().contains(usuarioLogado))
+                .filter((g -> temAcessoLeitura(g, usuarioLogado)))
                 .map(GrupoResponseDTO::new)
                 .collect(Collectors.toList());
     }
@@ -311,9 +311,14 @@ public class GrupoServiceImpl implements GrupoService {
         }
     }
 
+    private boolean temAcessoLeitura(Grupo grupo, Usuario usuarioLogado) {
+        boolean isMembroOuOrganizador = grupo.getParticipantes().contains(usuarioLogado)
+                || grupo.getOrganizador().equals(usuarioLogado);
+        return grupo.getPrivacidade() == PrivacidadeGrupo.PUBLICA || isMembroOuOrganizador;
+    }
+
     private void garantirAcessoLeitura(Grupo grupo, Usuario usuarioLogado) {
-        boolean isMembroOuOrganizador = grupo.getParticipantes().contains(usuarioLogado) || grupo.getOrganizador().equals(usuarioLogado);
-        if (grupo.getPrivacidade() == PrivacidadeGrupo.PRIVADA && !isMembroOuOrganizador) {
+        if (!temAcessoLeitura(grupo, usuarioLogado)) {
             throw new PermissaoNegadaException();
         }
     }
