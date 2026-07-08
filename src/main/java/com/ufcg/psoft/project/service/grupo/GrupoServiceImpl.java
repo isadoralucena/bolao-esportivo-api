@@ -14,7 +14,7 @@ import com.ufcg.psoft.project.model.PartidaStatus;
 import com.ufcg.psoft.project.dto.grupo.GrupoPostRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.GrupoPutRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.GrupoResponseDTO;
-import com.ufcg.psoft.project.dto.grupo.CriteriosDesempateResponseDTO;
+import com.ufcg.psoft.project.dto.grupo.CriterioDesempateResponseDTO;
 import com.ufcg.psoft.project.dto.grupo.ParticipantePostRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.CriteriosDesempatePutRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.RegraPontuacaoPostPutRequestDTO;
@@ -34,6 +34,7 @@ import com.ufcg.psoft.project.exception.RegraPontuacaoNaoExisteException;
 import com.ufcg.psoft.project.exception.RegraDeTempoInvalidaException;
 import com.ufcg.psoft.project.exception.UsuarioNaoExisteException;
 import com.ufcg.psoft.project.model.Campeonato;
+import com.ufcg.psoft.project.model.CriterioDesempate;
 import com.ufcg.psoft.project.model.Grupo;
 import com.ufcg.psoft.project.model.PrivacidadeGrupo;
 import com.ufcg.psoft.project.model.RegraPontuacao;
@@ -140,25 +141,32 @@ public class GrupoServiceImpl implements GrupoService {
 
         List<TipoCriterioDesempate> criterios = criteriosDesempatePutRequestDTO.getCriteriosDesempate();
         validarCriteriosDesempate(criterios);
-        grupo.setCriteriosDesempate(new ArrayList<>(criterios));
+        List<CriterioDesempate> novosCriterios = new ArrayList<>();
+        for (int i = 0; i < criterios.size(); i++) {
+            novosCriterios.add(
+                CriterioDesempate.builder()
+                        .grupo(grupo)
+                        .criterio(criterios.get(i))
+                        .prioridade(i + 1)
+                        .build()
+            );
+        }
+
+        grupo.getCriteriosDesempate().clear();
+        grupo.getCriteriosDesempate().addAll(novosCriterios);
+
         grupoRepository.save(grupo);
         return new GrupoResponseDTO(grupo);
     }
 
-    public List<CriteriosDesempateResponseDTO> listarCriteriosDesempate(Long usuarioId, String codigoAcesso, Long grupoId) {
+    public List<CriterioDesempateResponseDTO> listarCriteriosDesempate(Long usuarioId, String codigoAcesso, Long grupoId) {
         Grupo grupo = grupoRepository.findById(grupoId).orElseThrow(GrupoNaoExisteException::new);
         Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
         garantirAcessoLeitura(grupo, usuarioLogado);
-
-        List<CriteriosDesempateResponseDTO> criteriosDesempate = new ArrayList<>();
-        for (int prioridade = 0; prioridade < grupo.getCriteriosDesempate().size(); prioridade++) {
-            criteriosDesempate.add(CriteriosDesempateResponseDTO.builder()
-                .tipoCriterioDesempate(grupo.getCriteriosDesempate().get(prioridade))
-                .prioridade(prioridade + 1)
-                .build());
-        }
-
-        return criteriosDesempate;
+        
+        return grupo.getCriteriosDesempate().stream()
+            .map(CriterioDesempateResponseDTO::new)
+            .toList();
     }
 
     public GrupoResponseDTO adicionarParticipante(Long usuarioId, String codigoAcesso, Long grupoId, ParticipantePostRequestDTO participantePostRequestDto) {
@@ -277,12 +285,12 @@ public class GrupoServiceImpl implements GrupoService {
     }
 
     private void validarCriteriosDesempate(List<TipoCriterioDesempate> criteriosDesempate) {
-        if (criteriosDesempate == null || criteriosDesempate.isEmpty()
-                || criteriosDesempate.stream().anyMatch(Objects::isNull)) {
-            throw new CriteriosDesempateInvalidosException();
-        }
+        boolean invalido = criteriosDesempate == null
+            || criteriosDesempate.isEmpty()
+            || criteriosDesempate.stream().anyMatch(Objects::isNull)
+            || EnumSet.copyOf(criteriosDesempate).size() != criteriosDesempate.size();
 
-        if (EnumSet.copyOf(criteriosDesempate).size() != criteriosDesempate.size()) {
+        if (invalido) {
             throw new CriteriosDesempateInvalidosException();
         }
     }
