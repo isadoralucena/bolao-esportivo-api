@@ -157,23 +157,32 @@ public class PontuacaoServiceImpl implements PontuacaoService {
         List<PontuacaoPalpite> pontuacoes = pontuacaoPalpiteRepository.findByPalpite_Grupo_IdAndPalpite_Usuario_Id(grupoId, participanteId);
 
         int pontuacaoTotal = 0;
+        int erros = 0;
         int acertosVencedor = 0;
         int acertosEmpate = 0;
         int placaresExatos = 0;
 
         for (PontuacaoPalpite pontuacaoPalpite : pontuacoes) {
+            boolean acertouAlgo = false;
             pontuacaoTotal += pontuacaoPalpite.getPontuacao();
 
-            if (Boolean.TRUE.equals(pontuacaoPalpite.isAcertouVencedor())) {
+            if (pontuacaoPalpite.isAcertouVencedor()) {
                 acertosVencedor++;
+                acertouAlgo = true;
             }
 
-            if (Boolean.TRUE.equals(pontuacaoPalpite.isAcertouEmpate())) {
+            if (pontuacaoPalpite.isAcertouEmpate()) {
                 acertosEmpate++;
+                acertouAlgo = true;
             }
 
-            if (Boolean.TRUE.equals(pontuacaoPalpite.isAcertouPlacarExato())) {
+            if (pontuacaoPalpite.isAcertouPlacarExato()) {
                 placaresExatos++;
+                acertouAlgo = true;
+            }
+
+            if (!acertouAlgo) {
+                erros += 1;
             }
         }
 
@@ -181,6 +190,7 @@ public class PontuacaoServiceImpl implements PontuacaoService {
             grupoId,
             participante,
             pontuacaoTotal,
+            erros,
             acertosVencedor,
             acertosEmpate,
             placaresExatos

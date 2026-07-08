@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@DisplayName("Testes de pontuação automática - US12")
+@DisplayName("Testes de pontuação automática")
 public class GrupoPontuacaoControllerTest {
 
     final String URI_GRUPOS = "/grupos";
@@ -197,7 +197,8 @@ public class GrupoPontuacaoControllerTest {
 
             assertAll(
                     () -> assertFalse(resultado.isEmpty()),
-                    () -> resultado.forEach(r -> assertEquals(0, r.getPontuacao()))
+                    () -> resultado.forEach(r -> assertEquals(0, r.getPontuacao())),
+                    () -> resultado.forEach(r -> assertEquals(0, r.getErros()))
             );
         }
 
@@ -227,6 +228,7 @@ public class GrupoPontuacaoControllerTest {
                     () -> assertEquals(participante.getId(), pontuacaoParticipante.getUsuarioId()),
                     () -> assertEquals(participante.getNome(), pontuacaoParticipante.getUsuarioNome()),
                     () -> assertEquals(10, pontuacaoParticipante.getPontuacao()),
+                    () -> assertEquals(0, pontuacaoParticipante.getErros()),
                     () -> assertEquals(1, pontuacaoParticipante.getAcertosVencedor()),
                     () -> assertEquals(0, pontuacaoParticipante.getAcertosEmpate()),
                     () -> assertEquals(0, pontuacaoParticipante.getPlacaresExatos())
@@ -336,14 +338,39 @@ public class GrupoPontuacaoControllerTest {
         @Test
         @DisplayName("Quando participante não tem pontuações calculadas retorna pontuação zero")
         void quandoParticipanteSemPontuacoes() {
-            PontuacaoParticipanteResponseDTO resultado =
-                    pontuacaoService.calcularPontuacaoParticipanteNoGrupo(grupo.getId(), participante.getId());
+            PontuacaoParticipanteResponseDTO resultado = pontuacaoService.calcularPontuacaoParticipanteNoGrupo(grupo.getId(), participante.getId());
 
             assertAll(
                     () -> assertNotNull(resultado),
                     () -> assertEquals(grupo.getId(), resultado.getGrupoId()),
                     () -> assertEquals(participante.getId(), resultado.getUsuarioId()),
                     () -> assertEquals(0, resultado.getPontuacao()),
+                    () -> assertEquals(0, resultado.getErros()),
+                    () -> assertEquals(0, resultado.getAcertosVencedor()),
+                    () -> assertEquals(0, resultado.getAcertosEmpate()),
+                    () -> assertEquals(0, resultado.getPlacaresExatos())
+            );
+        }
+
+        @Test
+        @DisplayName("Quando participante erra palpite contabiliza erro")
+        void quandoParticipanteErraPalpiteContabilizaErro() throws Exception {
+            palpiteRepository.delete(palpite);
+            palpiteRepository.save(Palpite.builder()
+                    .partida(partida)
+                    .usuario(participante)
+                    .grupo(grupo)
+                    .golsMandante(0)
+                    .golsVisitante(2)
+                    .build());
+
+            inserirRegra(TipoRegraPontuacao.ACERTO_VENCEDOR, 10);
+
+            PontuacaoParticipanteResponseDTO resultado = pontuacaoService.calcularPontuacaoParticipanteNoGrupo(grupo.getId(), participante.getId());
+
+            assertAll(
+                    () -> assertEquals(0, resultado.getPontuacao()),
+                    () -> assertEquals(1, resultado.getErros()),
                     () -> assertEquals(0, resultado.getAcertosVencedor()),
                     () -> assertEquals(0, resultado.getAcertosEmpate()),
                     () -> assertEquals(0, resultado.getPlacaresExatos())
@@ -377,13 +404,13 @@ public class GrupoPontuacaoControllerTest {
             inserirRegra(TipoRegraPontuacao.ACERTO_EMPATE, 3);    
             inserirRegra(TipoRegraPontuacao.PLACAR_EXATO, 10);    
 
-            PontuacaoParticipanteResponseDTO resultado =
-                    pontuacaoService.calcularPontuacaoParticipanteNoGrupo(grupo.getId(), participante.getId());
+            PontuacaoParticipanteResponseDTO resultado = pontuacaoService.calcularPontuacaoParticipanteNoGrupo(grupo.getId(), participante.getId());
 
             assertAll(
                     () -> assertEquals(1, resultado.getAcertosVencedor()), 
                     () -> assertEquals(1, resultado.getAcertosEmpate()),   
-                    () -> assertEquals(1, resultado.getPlacaresExatos()),   
+                    () -> assertEquals(1, resultado.getPlacaresExatos()),
+                    () -> assertEquals(0, resultado.getErros()),
                     () -> assertEquals(18, resultado.getPontuacao())       
             );
         }
@@ -756,8 +783,7 @@ public class GrupoPontuacaoControllerTest {
                     .status(PartidaStatus.ABERTO)
                     .build());
 
-            List<PontuacaoPalpiteResponseDTO> resultado =
-                    pontuacaoService.calcularPontuacoesAssociadasAPartida(partidaAberta.getId());
+            List<PontuacaoPalpiteResponseDTO> resultado = pontuacaoService.calcularPontuacoesAssociadasAPartida(partidaAberta.getId());
 
             assertAll(
                     () -> assertNotNull(resultado),
@@ -797,8 +823,7 @@ public class GrupoPontuacaoControllerTest {
                     .status(PartidaStatus.FINALIZADO)
                     .build());
 
-            List<PontuacaoPalpiteResponseDTO> resultado =
-                    pontuacaoService.calcularPontuacoesAssociadasAPartida(partidaSemPalpites.getId());
+            List<PontuacaoPalpiteResponseDTO> resultado = pontuacaoService.calcularPontuacoesAssociadasAPartida(partidaSemPalpites.getId());
 
             assertAll(
                     () -> assertNotNull(resultado),
@@ -809,16 +834,12 @@ public class GrupoPontuacaoControllerTest {
         @Test
         @DisplayName("Quando partida finalizada tem palpite sem regras retorna pontuação zero")
         void quandoPartidaFinalizadaComPalpiteSemRegras() {
-            List<PontuacaoPalpiteResponseDTO> resultado =
-                    pontuacaoService.calcularPontuacoesAssociadasAPartida(partida.getId());
+            List<PontuacaoPalpiteResponseDTO> resultado = pontuacaoService.calcularPontuacoesAssociadasAPartida(partida.getId());
 
             assertAll(
                     () -> assertNotNull(resultado),
                     () -> assertEquals(1, resultado.size()),
-                    () -> assertEquals(0, resultado.get(0).getPontuacao()),
-                    () -> assertFalse(resultado.get(0).isAcertouVencedor()),
-                    () -> assertFalse(resultado.get(0).isAcertouEmpate()),
-                    () -> assertFalse(resultado.get(0).isAcertouPlacarExato())
+                    () -> assertEquals(0, resultado.get(0).getPontuacao())
             );
         }
 
@@ -827,8 +848,7 @@ public class GrupoPontuacaoControllerTest {
         void quandoPartidaFinalizadaComPalpiteERegra() throws Exception {
             inserirRegra(TipoRegraPontuacao.ACERTO_VENCEDOR, 10);
 
-            List<PontuacaoPalpiteResponseDTO> resultado =
-                    pontuacaoService.calcularPontuacoesAssociadasAPartida(partida.getId());
+            List<PontuacaoPalpiteResponseDTO> resultado = pontuacaoService.calcularPontuacoesAssociadasAPartida(partida.getId());
 
             assertAll(
                     () -> assertNotNull(resultado),
@@ -851,8 +871,7 @@ public class GrupoPontuacaoControllerTest {
             PontuacaoPalpite ppPrimeiro = pontuacaoPalpiteRepository.findByPalpiteId(palpite.getId()).orElseThrow();
             Long idOriginal = ppPrimeiro.getId();
 
-            List<PontuacaoPalpiteResponseDTO> resultado =
-                    pontuacaoService.calcularPontuacoesAssociadasAPartida(partida.getId());
+            List<PontuacaoPalpiteResponseDTO> resultado = pontuacaoService.calcularPontuacoesAssociadasAPartida(partida.getId());
 
             PontuacaoPalpite ppAtualizado = pontuacaoPalpiteRepository.findByPalpiteId(palpite.getId()).orElseThrow();
             assertAll(
@@ -888,8 +907,7 @@ public class GrupoPontuacaoControllerTest {
             inserirRegra(TipoRegraPontuacao.ACERTO_EMPATE, 5);
             inserirRegra(TipoRegraPontuacao.PLACAR_EXATO, 10);
 
-            List<PontuacaoPalpiteResponseDTO> resultado =
-                    pontuacaoService.calcularPontuacoesAssociadasAPartida(partidaEmpateExato.getId());
+            List<PontuacaoPalpiteResponseDTO> resultado = pontuacaoService.calcularPontuacoesAssociadasAPartida(partidaEmpateExato.getId());
 
             PontuacaoPalpiteResponseDTO dto = resultado.stream()
                     .filter(r -> r.getPalpiteId().equals(palpiteEmpateExato.getId()))
