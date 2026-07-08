@@ -61,15 +61,10 @@ public class Grupo {
 	@Builder.Default
 	private Set<RegraPontuacao> regrasPontuacao = new HashSet<>();
 
-	@ElementCollection
-	@Enumerated(EnumType.STRING)
-	@OrderColumn(name = "prioridade")
-	@CollectionTable(
-		name = "grupo_criterios_desempate",
-		joinColumns = @JoinColumn(name = "grupo_id")
-	)
+	@OneToMany(mappedBy = "grupo", cascade = CascadeType.ALL, orphanRemoval = true)
+	@OrderBy("prioridade ASC")
 	@Builder.Default
-	private List<TipoCriterioDesempate> criteriosDesempate = new ArrayList<>();
+	private List<CriterioDesempate> criteriosDesempate = new ArrayList<>();
 
 	@JsonProperty("minutosAberturaPalpites")
 	@Column(nullable = false)
