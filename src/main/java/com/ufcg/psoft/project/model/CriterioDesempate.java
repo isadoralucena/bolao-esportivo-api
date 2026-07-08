@@ -17,11 +17,11 @@ import lombok.ToString;
 @AllArgsConstructor
 @Table(uniqueConstraints = {
     @UniqueConstraint(
-        name = "uk_grupo_tipo_regra",
+        name = "uk_criterio_desempate_grupo",
         columnNames = {"grupo_id", "criterio"}
     )
 })
-class GrupoCriterioDesempate {
+public class CriterioDesempate {
     @JsonProperty("id")
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE)
