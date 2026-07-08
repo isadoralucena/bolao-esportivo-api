@@ -33,10 +33,6 @@ public class PontuacaoPalpite {
 
     @Column(nullable = false)
     @Builder.Default
-    private boolean acertouAlgo = false;
-
-    @Column(nullable = false)
-    @Builder.Default
     private boolean acertouVencedor = false;
 
     @Column(nullable = false)

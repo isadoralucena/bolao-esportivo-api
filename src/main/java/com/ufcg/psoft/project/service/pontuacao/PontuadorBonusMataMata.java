@@ -19,8 +19,9 @@ public class PontuadorBonusMataMata implements Pontuador {
     @Override
     public int calcular(PontuacaoPalpite pontuacaoPalpite, RegraPontuacao regra) {
         Partida partida = pontuacaoPalpite.getPalpite().getPartida();
-
-        if (partida.isMataMata() && pontuacaoPalpite.isAcertouAlgo()) {
+        
+        boolean teveAlgumAcerto = pontuacaoPalpite.isAcertouEmpate() || pontuacaoPalpite.isAcertouPlacarExato() || pontuacaoPalpite.isAcertouVencedor();
+        if (partida.isMataMata() && teveAlgumAcerto) {
             return regra.getPontos();
         }
 

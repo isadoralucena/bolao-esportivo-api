@@ -163,23 +163,26 @@ public class PontuacaoServiceImpl implements PontuacaoService {
         int placaresExatos = 0;
 
         for (PontuacaoPalpite pontuacaoPalpite : pontuacoes) {
+            boolean acertouAlgo = false;
             pontuacaoTotal += pontuacaoPalpite.getPontuacao();
 
-            if (!pontuacaoPalpite.isAcertouAlgo()) {
-                erros += 1;
-                continue;
-            }
-            
             if (pontuacaoPalpite.isAcertouVencedor()) {
                 acertosVencedor++;
+                acertouAlgo = true;
             }
 
             if (pontuacaoPalpite.isAcertouEmpate()) {
                 acertosEmpate++;
+                acertouAlgo = true;
             }
 
             if (pontuacaoPalpite.isAcertouPlacarExato()) {
                 placaresExatos++;
+                acertouAlgo = true;
+            }
+
+            if (!acertouAlgo) {
+                erros += 1;
             }
         }
 
@@ -245,9 +248,7 @@ public class PontuacaoServiceImpl implements PontuacaoService {
 
         boolean acertouEmpate = resultadoReal == 0 && resultadoPalpite == 0;
         boolean acertouVencedor = resultadoReal != 0 && resultadoReal == resultadoPalpite;
-        boolean acertouAlgo = acertouPlacarExato || acertouEmpate || acertouVencedor;
 
-        pontuacaoPalpite.setAcertouAlgo(acertouAlgo);
         pontuacaoPalpite.setAcertouPlacarExato(acertouPlacarExato);
         pontuacaoPalpite.setAcertouEmpate(acertouEmpate);
         pontuacaoPalpite.setAcertouVencedor(acertouVencedor);
