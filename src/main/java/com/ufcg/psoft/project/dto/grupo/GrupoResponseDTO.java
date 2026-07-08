@@ -48,11 +48,11 @@ public class GrupoResponseDTO {
     @JsonProperty("criteriosDesempate")
     private List<TipoCriterioDesempate> criteriosDesempate;
 
-    @JsonProperty("minutosAberturaPalpite")
-    private Integer minutosAberturaPalpite;
+    @JsonProperty("minutosAberturaPalpites")
+    private Integer minutosAberturaPalpites;
 
-    @JsonProperty("minutosFechamentoPalpite")
-    private Integer minutosFechamentoPalpite;
+    @JsonProperty("minutosFechamentoPalpites")
+    private Integer minutosFechamentoPalpites;
 
     public GrupoResponseDTO(Grupo grupo) {
         this.id = grupo.getId();
@@ -68,7 +68,7 @@ public class GrupoResponseDTO {
         this.criteriosDesempate = grupo.getCriteriosDesempate()
                     .stream()
                     .collect(Collectors.toList());
-        this.minutosAberturaPalpite = grupo.getMinutosAberturaPalpites();
-        this.minutosFechamentoPalpite = grupo.getMinutosFechamentoPalpites();
+        this.minutosAberturaPalpites = grupo.getMinutosAberturaPalpites();
+        this.minutosFechamentoPalpites = grupo.getMinutosFechamentoPalpites();
     }
 }

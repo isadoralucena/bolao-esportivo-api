@@ -71,12 +71,12 @@ public class Grupo {
 	@Builder.Default
 	private List<TipoCriterioDesempate> criteriosDesempate = new ArrayList<>();
 
-	@JsonProperty("minutosAberturaPalpite")
+	@JsonProperty("minutosAberturaPalpites")
 	@Column(nullable = false)
 	@Builder.Default
 	private Integer minutosAberturaPalpites = 120;
 
-	@JsonProperty("minutosFechamentoPalpite")
+	@JsonProperty("minutosFechamentoPalpites")
 	@Column(nullable = false)
 	@Builder.Default
 	private Integer minutosFechamentoPalpites = 0;
