@@ -197,7 +197,8 @@ public class GrupoPontuacaoControllerTest {
 
             assertAll(
                     () -> assertFalse(resultado.isEmpty()),
-                    () -> resultado.forEach(r -> assertEquals(0, r.getPontuacao()))
+                    () -> resultado.forEach(r -> assertEquals(0, r.getPontuacao())),
+                    () -> resultado.forEach(r -> assertEquals(0, r.getErros()))
             );
         }
 
@@ -227,6 +228,7 @@ public class GrupoPontuacaoControllerTest {
                     () -> assertEquals(participante.getId(), pontuacaoParticipante.getUsuarioId()),
                     () -> assertEquals(participante.getNome(), pontuacaoParticipante.getUsuarioNome()),
                     () -> assertEquals(10, pontuacaoParticipante.getPontuacao()),
+                    () -> assertEquals(0, pontuacaoParticipante.getErros()),
                     () -> assertEquals(1, pontuacaoParticipante.getAcertosVencedor()),
                     () -> assertEquals(0, pontuacaoParticipante.getAcertosEmpate()),
                     () -> assertEquals(0, pontuacaoParticipante.getPlacaresExatos())
@@ -343,6 +345,32 @@ public class GrupoPontuacaoControllerTest {
                     () -> assertEquals(grupo.getId(), resultado.getGrupoId()),
                     () -> assertEquals(participante.getId(), resultado.getUsuarioId()),
                     () -> assertEquals(0, resultado.getPontuacao()),
+                    () -> assertEquals(0, resultado.getErros()),
+                    () -> assertEquals(0, resultado.getAcertosVencedor()),
+                    () -> assertEquals(0, resultado.getAcertosEmpate()),
+                    () -> assertEquals(0, resultado.getPlacaresExatos())
+            );
+        }
+
+        @Test
+        @DisplayName("Quando participante erra palpite contabiliza erro")
+        void quandoParticipanteErraPalpiteContabilizaErro() throws Exception {
+            palpiteRepository.delete(palpite);
+            palpiteRepository.save(Palpite.builder()
+                    .partida(partida)
+                    .usuario(participante)
+                    .grupo(grupo)
+                    .golsMandante(0)
+                    .golsVisitante(2)
+                    .build());
+
+            inserirRegra(TipoRegraPontuacao.ACERTO_VENCEDOR, 10);
+
+            PontuacaoParticipanteResponseDTO resultado = pontuacaoService.calcularPontuacaoParticipanteNoGrupo(grupo.getId(), participante.getId());
+
+            assertAll(
+                    () -> assertEquals(0, resultado.getPontuacao()),
+                    () -> assertEquals(1, resultado.getErros()),
                     () -> assertEquals(0, resultado.getAcertosVencedor()),
                     () -> assertEquals(0, resultado.getAcertosEmpate()),
                     () -> assertEquals(0, resultado.getPlacaresExatos())
@@ -381,7 +409,8 @@ public class GrupoPontuacaoControllerTest {
             assertAll(
                     () -> assertEquals(1, resultado.getAcertosVencedor()), 
                     () -> assertEquals(1, resultado.getAcertosEmpate()),   
-                    () -> assertEquals(1, resultado.getPlacaresExatos()),   
+                    () -> assertEquals(1, resultado.getPlacaresExatos()),
+                    () -> assertEquals(0, resultado.getErros()),
                     () -> assertEquals(18, resultado.getPontuacao())       
             );
         }
