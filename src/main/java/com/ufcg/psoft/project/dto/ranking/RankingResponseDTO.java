@@ -1,6 +1,6 @@
 package com.ufcg.psoft.project.dto.ranking;
 
-import com.ufcg.psoft.project.dto.pontuacao.PontuacaoParticipanteResponseDTO;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class RankingEntryResponseDTO {
-    private int posicao;
-    private PontuacaoParticipanteResponseDTO pontuacaoParticipante;
+public class RankingResponseDTO {
+    private Long grupoId;
+    private List<RankingEntryResponseDTO> rankingEntrys;
 }

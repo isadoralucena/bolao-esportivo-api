@@ -18,6 +18,7 @@ import com.ufcg.psoft.project.dto.grupo.RegraPontuacaoPostPutRequestDTO;
 import com.ufcg.psoft.project.dto.palpite.RegrasPalpitesRequestDTO;
 import com.ufcg.psoft.project.service.grupo.GrupoService;
 import com.ufcg.psoft.project.service.pontuacao.PontuacaoService;
+import com.ufcg.psoft.project.service.ranking.RankingService;
 
 import jakarta.validation.Valid;
 
@@ -37,6 +38,9 @@ public class GrupoController {
 
     @Autowired
     private PontuacaoService pontuacaoService;
+
+    @Autowired
+    private RankingService rankingService;
 
     @PostMapping("")
     public ResponseEntity<?> criarGrupo(
@@ -207,5 +211,15 @@ public class GrupoController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(pontuacaoService.listarPontuacoesParticipantesDoGrupo(grupoId, usuarioId, codigoAcesso));
+    }
+
+    @GetMapping("{grupoId}/ranking")
+    public ResponseEntity<?> rankingDoGrupo(
+            @RequestParam Long usuarioId,
+            @RequestParam String codigoAcesso,
+            @PathVariable Long grupoId) {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(rankingService.rankingDoGrupo(grupoId, usuarioId, codigoAcesso));
     }
 }

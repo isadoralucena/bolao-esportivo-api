@@ -233,17 +233,6 @@ public class PontuacaoServiceImpl implements PontuacaoService {
             acertosEmpate,
             placaresExatos
         );
-        }
-
-        return new PontuacaoParticipanteResponseDTO(
-            grupoId,
-            participante,
-            pontuacaoTotal,
-            erros,
-            acertosVencedor,
-            acertosEmpate,
-            placaresExatos
-        );
     }
 
     private PontuacaoPalpite buscarOuCriarPontuacaoPalpite(Palpite palpite) {
