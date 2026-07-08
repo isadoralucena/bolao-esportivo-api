@@ -167,26 +167,26 @@ public class GrupoController {
 				.build();
 	}
 
-        @PutMapping("/{grupoId}/criterios-desempate")
-        public ResponseEntity<?> configurarCriteriosDesempate(
-                        @RequestParam Long usuarioId,
-                        @RequestParam String codigoAcesso,
-                        @PathVariable Long grupoId,
-                        @RequestBody @Valid CriteriosDesempatePutRequestDTO criteriosDesempatePutRequestDTO) {
-                return ResponseEntity
-                                .status(HttpStatus.OK)
-                                .body(grupoService.configurarCriteriosDesempate(grupoId, usuarioId, codigoAcesso, criteriosDesempatePutRequestDTO));
-        }
+	@PutMapping("/{grupoId}/criterios-desempate")
+	public ResponseEntity<?> configurarCriteriosDesempate(
+					@RequestParam Long usuarioId,
+					@RequestParam String codigoAcesso,
+					@PathVariable Long grupoId,
+					@RequestBody @Valid CriteriosDesempatePutRequestDTO criteriosDesempatePutRequestDTO) {
+			return ResponseEntity
+							.status(HttpStatus.OK)
+							.body(grupoService.configurarCriteriosDesempate(grupoId, usuarioId, codigoAcesso, criteriosDesempatePutRequestDTO));
+	}
 
-        @GetMapping("/{grupoId}/criterios-desempate")
-        public ResponseEntity<?> listarCriteriosDesempate(
-                        @RequestParam Long usuarioId,
-                        @RequestParam String codigoAcesso,
-                        @PathVariable Long grupoId) {
-                return ResponseEntity
-                                .status(HttpStatus.OK)
-                                .body(grupoService.listarCriteriosDesempate(usuarioId, codigoAcesso, grupoId));
-        }
+	@GetMapping("/{grupoId}/criterios-desempate")
+	public ResponseEntity<?> listarCriteriosDesempate(
+					@RequestParam Long usuarioId,
+					@RequestParam String codigoAcesso,
+					@PathVariable Long grupoId) {
+			return ResponseEntity
+							.status(HttpStatus.OK)
+							.body(grupoService.listarCriteriosDesempate(usuarioId, codigoAcesso, grupoId));
+	}
 
     @PutMapping("/{grupoId}/regras-palpites")
     public ResponseEntity<?> configurarRegrasPalpites(
