@@ -29,6 +29,9 @@ public class PontuacaoPalpiteResponseDTO {
     @JsonProperty("pontuacao")
     private Integer pontuacao;
 
+    @JsonProperty("acertouAlgo")
+    private boolean acertouAlgo;
+
     @JsonProperty("acertouVencedor")
     private boolean acertouVencedor;
 

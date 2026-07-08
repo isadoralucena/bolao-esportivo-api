@@ -19,8 +19,7 @@ public class PontuadorBonusRodada implements Pontuador {
     public int calcular(PontuacaoPalpite pontuacaoPalpite, RegraPontuacao regra) {
         Partida partida = pontuacaoPalpite.getPalpite().getPartida();
 
-        boolean teveAlgumAcerto = pontuacaoPalpite.isAcertouEmpate() || pontuacaoPalpite.isAcertouPlacarExato() || pontuacaoPalpite.isAcertouVencedor();
-        if (!partida.isMataMata() && teveAlgumAcerto) {
+        if (!partida.isMataMata() && pontuacaoPalpite.isAcertouAlgo()) {
             return regra.getPontos();
         }
 

@@ -157,6 +157,7 @@ public class PontuacaoServiceImpl implements PontuacaoService {
         List<PontuacaoPalpite> pontuacoes = pontuacaoPalpiteRepository.findByPalpite_Grupo_IdAndPalpite_Usuario_Id(grupoId, participanteId);
 
         int pontuacaoTotal = 0;
+        int erros = 0;
         int acertosVencedor = 0;
         int acertosEmpate = 0;
         int placaresExatos = 0;
@@ -164,15 +165,20 @@ public class PontuacaoServiceImpl implements PontuacaoService {
         for (PontuacaoPalpite pontuacaoPalpite : pontuacoes) {
             pontuacaoTotal += pontuacaoPalpite.getPontuacao();
 
-            if (Boolean.TRUE.equals(pontuacaoPalpite.isAcertouVencedor())) {
+            if (!pontuacaoPalpite.isAcertouAlgo()) {
+                erros += 1;
+                continue;
+            }
+            
+            if (pontuacaoPalpite.isAcertouVencedor()) {
                 acertosVencedor++;
             }
 
-            if (Boolean.TRUE.equals(pontuacaoPalpite.isAcertouEmpate())) {
+            if (pontuacaoPalpite.isAcertouEmpate()) {
                 acertosEmpate++;
             }
 
-            if (Boolean.TRUE.equals(pontuacaoPalpite.isAcertouPlacarExato())) {
+            if (pontuacaoPalpite.isAcertouPlacarExato()) {
                 placaresExatos++;
             }
         }
@@ -181,6 +187,7 @@ public class PontuacaoServiceImpl implements PontuacaoService {
             grupoId,
             participante,
             pontuacaoTotal,
+            erros,
             acertosVencedor,
             acertosEmpate,
             placaresExatos
@@ -238,7 +245,9 @@ public class PontuacaoServiceImpl implements PontuacaoService {
 
         boolean acertouEmpate = resultadoReal == 0 && resultadoPalpite == 0;
         boolean acertouVencedor = resultadoReal != 0 && resultadoReal == resultadoPalpite;
+        boolean acertouAlgo = acertouPlacarExato || acertouEmpate || acertouVencedor;
 
+        pontuacaoPalpite.setAcertouAlgo(acertouAlgo);
         pontuacaoPalpite.setAcertouPlacarExato(acertouPlacarExato);
         pontuacaoPalpite.setAcertouEmpate(acertouEmpate);
         pontuacaoPalpite.setAcertouVencedor(acertouVencedor);

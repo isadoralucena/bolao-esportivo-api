@@ -26,6 +26,9 @@ public class PontuacaoParticipanteResponseDTO {
     @JsonProperty("pontuacao")
     private int pontuacao;
 
+    @JsonProperty("erros")
+    private int erros;
+
     @JsonProperty("acertosVencedor")
     private int acertosVencedor;
 
@@ -39,6 +42,7 @@ public class PontuacaoParticipanteResponseDTO {
             Long grupoId,
             Usuario usuario,
             int pontuacao,
+            int erros,
             int acertosVencedor,
             int acertosEmpate,
             int placaresExatos
@@ -47,6 +51,7 @@ public class PontuacaoParticipanteResponseDTO {
         this.usuarioId = usuario.getId();
         this.usuarioNome = usuario.getNome();
         this.pontuacao = pontuacao;
+        this.erros = erros;
         this.acertosVencedor = acertosVencedor;
         this.acertosEmpate = acertosEmpate;
         this.placaresExatos = placaresExatos;
