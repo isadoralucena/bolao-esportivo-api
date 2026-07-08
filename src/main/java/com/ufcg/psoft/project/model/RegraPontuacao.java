@@ -17,7 +17,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @Table(uniqueConstraints = {
     @UniqueConstraint(
-        name = "uk_grupo_tipo_regra",
+        name = "uk_grupo_tipo_regra_pontuacao",
         columnNames = {"grupo_id", "tipoRegraPontuacao"}
     )
 })
