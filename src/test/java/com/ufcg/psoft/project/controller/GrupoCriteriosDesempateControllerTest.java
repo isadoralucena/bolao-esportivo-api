@@ -3,10 +3,11 @@ package com.ufcg.psoft.project.controller;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ufcg.psoft.project.dto.grupo.CriteriosDesempatePutRequestDTO;
-import com.ufcg.psoft.project.dto.grupo.CriteriosDesempateResponseDTO;
+import com.ufcg.psoft.project.dto.grupo.CriterioDesempateResponseDTO;
 import com.ufcg.psoft.project.dto.grupo.GrupoResponseDTO;
 import com.ufcg.psoft.project.exception.CustomErrorType;
 import com.ufcg.psoft.project.model.Campeonato;
+import com.ufcg.psoft.project.model.CriterioDesempate;
 import com.ufcg.psoft.project.model.Grupo;
 import com.ufcg.psoft.project.model.PerfilUsuario;
 import com.ufcg.psoft.project.model.PrivacidadeGrupo;
@@ -15,6 +16,9 @@ import com.ufcg.psoft.project.model.Usuario;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
+
+import jakarta.transaction.Transactional;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,6 +31,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -109,6 +114,25 @@ public class GrupoCriteriosDesempateControllerTest {
         usuarioRepository.deleteAll();
     }
 
+    /**
+     * Monta e persiste os critérios de desempate do grupo diretamente via
+     * repositório, simulando o mesmo formato que o serviço real produz
+     * (prioridade derivada da posição, começando em 1).
+     */
+    private void configurarCriteriosDiretamente(Grupo grupo, TipoCriterioDesempate... tipos) {
+        List<CriterioDesempate> criterios = new ArrayList<>();
+        for (int i = 0; i < tipos.length; i++) {
+            criterios.add(CriterioDesempate.builder()
+                    .grupo(grupo)
+                    .criterio(tipos[i])
+                    .prioridade(i + 1)
+                    .build());
+        }
+        grupo.getCriteriosDesempate().clear();
+        grupo.getCriteriosDesempate().addAll(criterios);
+        grupoRepository.save(grupo);
+    }
+
     @Nested
     @DisplayName("Conjunto de casos de configuração dos critérios de desempate")
     class configuracaoDeCriteriosDesempate {
@@ -136,7 +160,46 @@ public class GrupoCriteriosDesempateControllerTest {
             GrupoResponseDTO resultado = objectMapper.readValue(responseJsonString, GrupoResponseDTO.class);
 
             assertNotNull(resultado.getCriteriosDesempate());
-            assertEquals(dto.getCriteriosDesempate(), resultado.getCriteriosDesempate());
+            assertEquals(dto.getCriteriosDesempate().size(), resultado.getCriteriosDesempate().size());
+			for (int i = 0; i < dto.getCriteriosDesempate().size(); i++) {
+				assertEquals(dto.getCriteriosDesempate().get(i),
+						resultado.getCriteriosDesempate().get(i).getCriterio());
+
+				assertEquals(i + 1,
+						resultado.getCriteriosDesempate().get(i).getPrioridade());
+			}
+        }
+
+		@Transactional
+        @Test
+        @DisplayName("Quando o organizador reconfigura os critérios, a ordem antiga é totalmente substituída")
+        void quandoOrganizadorReconfiguraCriterios() throws Exception {
+            configurarCriteriosDiretamente(grupo,
+                    TipoCriterioDesempate.ERRO,
+                    TipoCriterioDesempate.PLACAR_EXATO);
+
+            CriteriosDesempatePutRequestDTO dto = CriteriosDesempatePutRequestDTO.builder()
+                    .criteriosDesempate(List.of(
+                            TipoCriterioDesempate.ACERTO_EMPATE,
+                            TipoCriterioDesempate.ACERTO_VENCEDOR))
+                    .build();
+
+            driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .param("usuarioId", organizador.getId().toString())
+                            .param("codigoAcesso", organizador.getCodigo())
+                            .content(objectMapper.writeValueAsString(dto)))
+                    .andExpect(status().isOk())
+                    .andDo(print());
+
+            Grupo grupoAtualizado = grupoRepository.findById(grupo.getId()).orElseThrow();
+
+            assertEquals(2, grupoAtualizado.getCriteriosDesempate().size());
+            assertEquals(TipoCriterioDesempate.ACERTO_EMPATE, grupoAtualizado.getCriteriosDesempate().get(0).getCriterio());
+            assertEquals(TipoCriterioDesempate.ACERTO_VENCEDOR, grupoAtualizado.getCriteriosDesempate().get(1).getCriterio());
+            assertTrue(grupoAtualizado.getCriteriosDesempate().stream()
+                    .noneMatch(c -> c.getCriterio() == TipoCriterioDesempate.ERRO
+                            || c.getCriterio() == TipoCriterioDesempate.PLACAR_EXATO));
         }
 
         @Test
@@ -182,7 +245,16 @@ public class GrupoCriteriosDesempateControllerTest {
 
             GrupoResponseDTO resultado = objectMapper.readValue(responseJsonString, GrupoResponseDTO.class);
 
-            assertEquals(dto.getCriteriosDesempate(), resultado.getCriteriosDesempate());
+            assertEquals(1, resultado.getCriteriosDesempate().size());
+			assertEquals(
+					TipoCriterioDesempate.PLACAR_EXATO,
+					resultado.getCriteriosDesempate().get(0).getCriterio()
+			);
+
+			assertEquals(
+					1,
+					resultado.getCriteriosDesempate().get(0).getPrioridade()
+			);
         }
 
         @Test
@@ -204,8 +276,18 @@ public class GrupoCriteriosDesempateControllerTest {
                     .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
 
             GrupoResponseDTO resultado = objectMapper.readValue(responseJsonString, GrupoResponseDTO.class);
+            assertEquals(dto.getCriteriosDesempate().size(), resultado.getCriteriosDesempate().size());
+			for (int i = 0; i < dto.getCriteriosDesempate().size(); i++) {
+				assertEquals(
+						dto.getCriteriosDesempate().get(i),
+						resultado.getCriteriosDesempate().get(i).getCriterio()
+				);
 
-            assertEquals(dto.getCriteriosDesempate(), resultado.getCriteriosDesempate());
+				assertEquals(
+						i + 1,
+						resultado.getCriteriosDesempate().get(i).getPrioridade()
+				);
+			}
         }
 
         @Test
@@ -248,7 +330,8 @@ public class GrupoCriteriosDesempateControllerTest {
             assertEquals("Erros de validacao encontrados", resultado.getMessage());
         }
 
-        @Test
+        @Transactional
+		@Test
         @DisplayName("Quando um usuário que não é organizador tenta configurar os critérios")
         void quandoNaoOrganizadorTentaConfigurar() throws Exception {
             CriteriosDesempatePutRequestDTO dto = CriteriosDesempatePutRequestDTO.builder()
@@ -271,6 +354,8 @@ public class GrupoCriteriosDesempateControllerTest {
             CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
 
             assertEquals("Permissão negada para acessar este recurso.", resultado.getMessage());
+            Grupo grupoInalterado = grupoRepository.findById(grupo.getId()).orElseThrow();
+            assertTrue(grupoInalterado.getCriteriosDesempate().isEmpty());
         }
 
         @Test
@@ -362,10 +447,9 @@ public class GrupoCriteriosDesempateControllerTest {
         @Test
         @DisplayName("Quando o organizador consulta os critérios já configurados")
         void quandoOrganizadorConsultaCriteriosConfigurados() throws Exception {
-            grupo.setCriteriosDesempate(List.of(
+            configurarCriteriosDiretamente(grupo,
                     TipoCriterioDesempate.ERRO,
-                    TipoCriterioDesempate.PLACAR_EXATO));
-            grupoRepository.save(grupo);
+                    TipoCriterioDesempate.PLACAR_EXATO);
 
             String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
                             .param("usuarioId", organizador.getId().toString())
@@ -374,15 +458,45 @@ public class GrupoCriteriosDesempateControllerTest {
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
 
-            List<CriteriosDesempateResponseDTO> resultado = objectMapper.readValue(
+            List<CriterioDesempateResponseDTO> resultado = objectMapper.readValue(
                     responseJsonString, new TypeReference<>() {});
 
             assertEquals(2, resultado.size());
-            assertEquals(TipoCriterioDesempate.ERRO, resultado.get(0).getTipoCriterioDesempate());
+            assertEquals(TipoCriterioDesempate.ERRO, resultado.get(0).getCriterio());
             assertEquals(1, resultado.get(0).getPrioridade());
-            assertEquals(TipoCriterioDesempate.PLACAR_EXATO, resultado.get(1).getTipoCriterioDesempate());
+            assertEquals(TipoCriterioDesempate.PLACAR_EXATO, resultado.get(1).getCriterio());
             assertEquals(2, resultado.get(1).getPrioridade());
         }
+
+		@Test
+        @DisplayName("A prioridade retornada reflete o valor persistido, não apenas a posição na lista")
+        void prioridadeRetornadaReflitoValorPersistido() throws Exception {
+            configurarCriteriosDiretamente(grupo,
+                    TipoCriterioDesempate.ACERTO_VENCEDOR,
+                    TipoCriterioDesempate.ACERTO_EMPATE,
+                    TipoCriterioDesempate.ERRO);
+
+            String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
+                            .param("usuarioId", organizador.getId().toString())
+                            .param("codigoAcesso", organizador.getCodigo()))
+                    .andExpect(status().isOk())
+                    .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+            List<CriterioDesempateResponseDTO> resultado = objectMapper.readValue(
+                    responseJsonString, new TypeReference<>() {});
+
+            assertEquals(3, resultado.size());
+			List<TipoCriterioDesempate> criteriosEsperados = List.of(
+					TipoCriterioDesempate.ACERTO_VENCEDOR,
+					TipoCriterioDesempate.ACERTO_EMPATE,
+					TipoCriterioDesempate.ERRO
+			);
+
+			for (int i = 0; i < criteriosEsperados.size(); i++) {
+				assertEquals(i + 1, resultado.get(i).getPrioridade());
+				assertEquals(criteriosEsperados.get(i), resultado.get(i).getCriterio());
+			}
+		}
 
         @Test
         @DisplayName("Quando nenhum critério foi configurado ainda, a consulta retorna lista vazia")
@@ -394,7 +508,7 @@ public class GrupoCriteriosDesempateControllerTest {
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
 
-            List<CriteriosDesempateResponseDTO> resultado = objectMapper.readValue(responseJsonString, new TypeReference<>() {});
+            List<CriterioDesempateResponseDTO> resultado = objectMapper.readValue(responseJsonString, new TypeReference<>() {});
 
             assertTrue(resultado.isEmpty());
         }
@@ -402,8 +516,7 @@ public class GrupoCriteriosDesempateControllerTest {
         @Test
         @DisplayName("Quando um usuário que não é organizador consulta os critérios de um grupo público")
         void quandoNaoOrganizadorConsultaGrupoPublico() throws Exception {
-            grupo.setCriteriosDesempate(List.of(TipoCriterioDesempate.PLACAR_EXATO));
-            grupoRepository.save(grupo);
+            configurarCriteriosDiretamente(grupo, TipoCriterioDesempate.PLACAR_EXATO);
 
             driver.perform(get(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
                             .param("usuarioId", outroUsuario.getId().toString())
