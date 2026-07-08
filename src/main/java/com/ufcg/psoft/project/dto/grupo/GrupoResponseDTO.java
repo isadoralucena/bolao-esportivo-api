@@ -9,7 +9,6 @@ import com.ufcg.psoft.project.dto.usuario.UsuarioResponseDTO;
 import com.ufcg.psoft.project.dto.campeonato.CampeonatoResponseDTO;
 import com.ufcg.psoft.project.model.Grupo;
 import com.ufcg.psoft.project.model.PrivacidadeGrupo;
-import com.ufcg.psoft.project.model.TipoCriterioDesempate;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -46,7 +45,7 @@ public class GrupoResponseDTO {
     private Set<UsuarioResponseDTO> participantes;
 
     @JsonProperty("criteriosDesempate")
-    private List<TipoCriterioDesempate> criteriosDesempate;
+    private List<CriterioDesempateResponseDTO> criteriosDesempate;
 
     @JsonProperty("minutosAberturaPalpites")
     private Integer minutosAberturaPalpites;
@@ -66,8 +65,9 @@ public class GrupoResponseDTO {
         this.privacidade = grupo.getPrivacidade();
         this.limiteParticipantes = grupo.getLimiteParticipantes();
         this.criteriosDesempate = grupo.getCriteriosDesempate()
-                    .stream()
-                    .collect(Collectors.toList());
+                .stream()
+                .map(CriterioDesempateResponseDTO::new)
+                .toList();
         this.minutosAberturaPalpites = grupo.getMinutosAberturaPalpites();
         this.minutosFechamentoPalpites = grupo.getMinutosFechamentoPalpites();
     }

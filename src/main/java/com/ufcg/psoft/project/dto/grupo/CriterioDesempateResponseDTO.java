@@ -1,6 +1,7 @@
 package com.ufcg.psoft.project.dto.grupo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.ufcg.psoft.project.model.CriterioDesempate;
 import com.ufcg.psoft.project.model.TipoCriterioDesempate;
 
 import lombok.AllArgsConstructor;
@@ -12,11 +13,16 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CriteriosDesempateResponseDTO {
+public class CriterioDesempateResponseDTO {
 
-	@JsonProperty("tipoCriterioDesempate")
-	private TipoCriterioDesempate tipoCriterioDesempate;
+	@JsonProperty("criterio")
+	private TipoCriterioDesempate criterio;
 
 	@JsonProperty("prioridade")
 	private Integer prioridade;
+
+	public CriterioDesempateResponseDTO(CriterioDesempate criterio) {
+        this.criterio = criterio.getCriterio();
+        this.prioridade = criterio.getPrioridade();
+    }
 }
