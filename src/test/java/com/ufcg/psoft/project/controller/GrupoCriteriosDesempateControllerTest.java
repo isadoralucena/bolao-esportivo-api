@@ -118,10 +118,10 @@ public class GrupoCriteriosDesempateControllerTest {
         void quandoOrganizadorConfiguraOrdemValida() throws Exception {
             CriteriosDesempatePutRequestDTO dto = CriteriosDesempatePutRequestDTO.builder()
                     .criteriosDesempate(List.of(
-                            TipoCriterioDesempate.PLACARES_EXATOS,
-                            TipoCriterioDesempate.ERROS,
-                            TipoCriterioDesempate.ACERTOS_VENCEDOR,
-                            TipoCriterioDesempate.ACERTOS_EMPATE))
+                            TipoCriterioDesempate.PLACAR_EXATO,
+                            TipoCriterioDesempate.ERRO,
+                            TipoCriterioDesempate.ACERTO_VENCEDOR,
+                            TipoCriterioDesempate.ACERTO_EMPATE))
                     .build();
 
             String responseJsonString = driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
@@ -144,10 +144,10 @@ public class GrupoCriteriosDesempateControllerTest {
         void quandoOrganizadorEnviaCriteriosRepetidos() throws Exception {
             CriteriosDesempatePutRequestDTO dto = CriteriosDesempatePutRequestDTO.builder()
                     .criteriosDesempate(List.of(
-                            TipoCriterioDesempate.PLACARES_EXATOS,
-                            TipoCriterioDesempate.PLACARES_EXATOS,
-                            TipoCriterioDesempate.ACERTOS_VENCEDOR,
-                            TipoCriterioDesempate.ACERTOS_EMPATE))
+                            TipoCriterioDesempate.PLACAR_EXATO,
+                            TipoCriterioDesempate.PLACAR_EXATO,
+                            TipoCriterioDesempate.ACERTO_VENCEDOR,
+                            TipoCriterioDesempate.ACERTO_EMPATE))
                     .build();
 
             String responseJsonString = driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
@@ -168,7 +168,7 @@ public class GrupoCriteriosDesempateControllerTest {
         @DisplayName("Quando o organizador configura apenas um critério de desempate")
         void quandoOrganizadorConfiguraUmCriterio() throws Exception {
             CriteriosDesempatePutRequestDTO dto = CriteriosDesempatePutRequestDTO.builder()
-                    .criteriosDesempate(List.of(TipoCriterioDesempate.PLACARES_EXATOS))
+                    .criteriosDesempate(List.of(TipoCriterioDesempate.PLACAR_EXATO))
                     .build();
 
             String responseJsonString = driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
@@ -190,8 +190,8 @@ public class GrupoCriteriosDesempateControllerTest {
         void quandoOrganizadorConfiguraOrdemParcial() throws Exception {
             CriteriosDesempatePutRequestDTO dto = CriteriosDesempatePutRequestDTO.builder()
                     .criteriosDesempate(List.of(
-                            TipoCriterioDesempate.ACERTOS_EMPATE,
-                            TipoCriterioDesempate.ERROS))
+                            TipoCriterioDesempate.ACERTO_EMPATE,
+                            TipoCriterioDesempate.ERRO))
                     .build();
 
             String responseJsonString = driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
@@ -253,10 +253,10 @@ public class GrupoCriteriosDesempateControllerTest {
         void quandoNaoOrganizadorTentaConfigurar() throws Exception {
             CriteriosDesempatePutRequestDTO dto = CriteriosDesempatePutRequestDTO.builder()
                     .criteriosDesempate(List.of(
-                            TipoCriterioDesempate.PLACARES_EXATOS,
-                            TipoCriterioDesempate.ERROS,
-                            TipoCriterioDesempate.ACERTOS_VENCEDOR,
-                            TipoCriterioDesempate.ACERTOS_EMPATE))
+                            TipoCriterioDesempate.PLACAR_EXATO,
+                            TipoCriterioDesempate.ERRO,
+                            TipoCriterioDesempate.ACERTO_VENCEDOR,
+                            TipoCriterioDesempate.ACERTO_EMPATE))
                     .build();
 
             String responseJsonString = driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
@@ -277,7 +277,7 @@ public class GrupoCriteriosDesempateControllerTest {
         @DisplayName("Quando o grupo informado não existe")
         void quandoGrupoNaoExistePut() throws Exception {
             CriteriosDesempatePutRequestDTO dto = CriteriosDesempatePutRequestDTO.builder()
-                    .criteriosDesempate(List.of(TipoCriterioDesempate.PLACARES_EXATOS))
+                    .criteriosDesempate(List.of(TipoCriterioDesempate.PLACAR_EXATO))
                     .build();
 
             Long idInexistente = 999999L;
@@ -295,7 +295,7 @@ public class GrupoCriteriosDesempateControllerTest {
         @DisplayName("Quando o código de acesso informado é inválido")
         void quandoCodigoAcessoInvalidoPut() throws Exception {
             CriteriosDesempatePutRequestDTO dto = CriteriosDesempatePutRequestDTO.builder()
-                    .criteriosDesempate(List.of(TipoCriterioDesempate.PLACARES_EXATOS))
+                    .criteriosDesempate(List.of(TipoCriterioDesempate.PLACAR_EXATO))
                     .build();
 
             driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
@@ -312,9 +312,9 @@ public class GrupoCriteriosDesempateControllerTest {
 		void quandoOrganizadorEnviaCriterioDesempateInvalido() throws Exception {
 			CriteriosDesempatePutRequestDTO dto = CriteriosDesempatePutRequestDTO.builder()
 					.criteriosDesempate(Arrays.asList(
-							TipoCriterioDesempate.PLACARES_EXATOS,
+							TipoCriterioDesempate.PLACAR_EXATO,
 							null,
-							TipoCriterioDesempate.ACERTOS_VENCEDOR))
+							TipoCriterioDesempate.ACERTO_VENCEDOR))
 					.build();
 
 			String responseJsonString = driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
@@ -340,7 +340,7 @@ public class GrupoCriteriosDesempateControllerTest {
         @DisplayName("Quando o usuário informado não existe")
         void quandoUsuarioNaoExistePut() throws Exception {
             CriteriosDesempatePutRequestDTO dto = CriteriosDesempatePutRequestDTO.builder()
-                    .criteriosDesempate(List.of(TipoCriterioDesempate.PLACARES_EXATOS))
+                    .criteriosDesempate(List.of(TipoCriterioDesempate.PLACAR_EXATO))
                     .build();
 
             Long idInexistente = 999999L;
@@ -363,8 +363,8 @@ public class GrupoCriteriosDesempateControllerTest {
         @DisplayName("Quando o organizador consulta os critérios já configurados")
         void quandoOrganizadorConsultaCriteriosConfigurados() throws Exception {
             grupo.setCriteriosDesempate(List.of(
-                    TipoCriterioDesempate.ERROS,
-                    TipoCriterioDesempate.PLACARES_EXATOS));
+                    TipoCriterioDesempate.ERRO,
+                    TipoCriterioDesempate.PLACAR_EXATO));
             grupoRepository.save(grupo);
 
             String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
@@ -378,9 +378,9 @@ public class GrupoCriteriosDesempateControllerTest {
                     responseJsonString, new TypeReference<>() {});
 
             assertEquals(2, resultado.size());
-            assertEquals(TipoCriterioDesempate.ERROS, resultado.get(0).getTipoCriterioDesempate());
+            assertEquals(TipoCriterioDesempate.ERRO, resultado.get(0).getTipoCriterioDesempate());
             assertEquals(1, resultado.get(0).getPrioridade());
-            assertEquals(TipoCriterioDesempate.PLACARES_EXATOS, resultado.get(1).getTipoCriterioDesempate());
+            assertEquals(TipoCriterioDesempate.PLACAR_EXATO, resultado.get(1).getTipoCriterioDesempate());
             assertEquals(2, resultado.get(1).getPrioridade());
         }
 
@@ -402,7 +402,7 @@ public class GrupoCriteriosDesempateControllerTest {
         @Test
         @DisplayName("Quando um usuário que não é organizador consulta os critérios de um grupo público")
         void quandoNaoOrganizadorConsultaGrupoPublico() throws Exception {
-            grupo.setCriteriosDesempate(List.of(TipoCriterioDesempate.PLACARES_EXATOS));
+            grupo.setCriteriosDesempate(List.of(TipoCriterioDesempate.PLACAR_EXATO));
             grupoRepository.save(grupo);
 
             driver.perform(get(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")

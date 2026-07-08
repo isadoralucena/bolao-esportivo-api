@@ -1,8 +1,8 @@
 package com.ufcg.psoft.project.model;
 
 public enum TipoCriterioDesempate {
-    PLACARES_EXATOS,
-    ERROS,
-    ACERTOS_VENCEDOR,
-    ACERTOS_EMPATE
+    PLACAR_EXATO,
+    ERRO,
+    ACERTO_VENCEDOR,
+    ACERTO_EMPATE
 }
