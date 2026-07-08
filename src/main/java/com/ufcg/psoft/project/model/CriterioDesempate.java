@@ -15,6 +15,7 @@ import lombok.ToString;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Table(uniqueConstraints = {
     @UniqueConstraint(
         name = "uk_criterio_desempate_grupo",
@@ -25,11 +26,11 @@ public class CriterioDesempate {
     @JsonProperty("id")
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private Long id;
+    @EqualsAndHashCode.Include
+	private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "grupo_id")
-    @EqualsAndHashCode.Exclude
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "grupo_id", nullable = false)
     @ToString.Exclude
     private Grupo grupo;
 

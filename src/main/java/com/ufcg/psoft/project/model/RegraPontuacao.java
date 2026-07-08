@@ -15,6 +15,7 @@ import lombok.ToString;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Table(uniqueConstraints = {
     @UniqueConstraint(
         name = "uk_grupo_tipo_regra_pontuacao",
@@ -25,6 +26,7 @@ public class RegraPontuacao {
     @JsonProperty("id")
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @EqualsAndHashCode.Include
 	private Long id;
 
     @JsonProperty("tipoRegraPontuacao")
@@ -36,9 +38,8 @@ public class RegraPontuacao {
     @Column(nullable = false)
     private Integer pontos;
 
-    @ManyToOne
-    @JoinColumn(name = "grupo_id")
-    @EqualsAndHashCode.Exclude
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "grupo_id", nullable = false)
     @ToString.Exclude
     private Grupo grupo;
 }
