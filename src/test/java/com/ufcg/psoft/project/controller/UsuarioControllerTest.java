@@ -416,6 +416,28 @@ public class UsuarioControllerTest {
         }
 
         @Test
+        @DisplayName("Quando criamos usuario com email já cadastrado")
+        void quandoCriamosUsuarioComEmailJaCadastrado() throws Exception {
+            // Arrange
+            usuarioPostPutRequestDTO.setEmail(usuario.getEmail().toUpperCase());
+
+            // Act
+            String responseJsonString = driver.perform(post(URI_USUARIOS)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
+                    .andExpect(status().isBadRequest())
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString();
+
+            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
+
+            // Assert
+            assertAll(
+                    () -> assertEquals("Já existe outro usuário com esse email cadastrado!", resultado.getMessage())
+            );
+        }
+
+        @Test
         @DisplayName("Quando alteramos usuario usando email de outro usuario")
         void quandoAlteramosUsuarioComEmailDuplicado() throws Exception {
             // Arrange
@@ -595,6 +617,43 @@ public class UsuarioControllerTest {
             // Assert
             assertAll(
                     () -> assertEquals(3, resultado.size())
+            );
+        }
+
+        @Test
+        @DisplayName("Quando buscamos usuarios filtrando pelo nome")
+        void quandoBuscamosUsuariosFiltrandoPeloNome() throws Exception {
+            // Arrange
+            usuarioRepository.save(Usuario.builder()
+                    .nome("Maria Buscada")
+                    .username("maria")
+                    .email("maria@email.com")
+                    .endereco("Rua Maria")
+                    .codigo("246810")
+                    .build());
+            usuarioRepository.save(Usuario.builder()
+                    .nome("Carlos Outro")
+                    .username("carlos")
+                    .email("carlos@email.com")
+                    .endereco("Rua Carlos")
+                    .codigo("135790")
+                    .build());
+
+            // Act
+            String responseJsonString = driver.perform(get(URI_USUARIOS)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .param("nome", "Maria"))
+                    .andExpect(status().isOk())
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString();
+
+            List<Usuario> resultado = objectMapper.readValue(responseJsonString, new TypeReference<>() {
+            });
+
+            // Assert
+            assertAll(
+                    () -> assertEquals(1, resultado.size()),
+                    () -> assertEquals("Maria Buscada", resultado.get(0).getNome())
             );
         }
 

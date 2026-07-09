@@ -6,10 +6,13 @@ import com.ufcg.psoft.project.dto.grupo.GrupoResponseDTO;
 import com.ufcg.psoft.project.exception.CustomErrorType;
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.model.Grupo;
+import com.ufcg.psoft.project.model.Partida;
+import com.ufcg.psoft.project.model.PartidaStatus;
 import com.ufcg.psoft.project.model.PrivacidadeGrupo;
 import com.ufcg.psoft.project.model.Usuario;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.repository.GrupoRepository;
+import com.ufcg.psoft.project.repository.PartidaRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
 
 import org.junit.jupiter.api.*;
@@ -27,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -46,6 +50,9 @@ public class GrupoPublicoControllerTest {
 
     @Autowired
     CampeonatoRepository campeonatoRepository;
+
+    @Autowired
+    PartidaRepository partidaRepository;
 
     @Autowired
     WebApplicationContext webApplicationContext;
@@ -107,6 +114,8 @@ public class GrupoPublicoControllerTest {
                 .campeonato(campeonatoAtivo)
                 .organizador(organizador)
                 .build());
+        grupoPublico.getParticipantes().add(organizador);
+        grupoRepository.save(grupoPublico);
 
         grupoPrivado = grupoRepository.save(Grupo.builder()
                 .nome("Grupo Privado")
@@ -116,6 +125,8 @@ public class GrupoPublicoControllerTest {
                 .campeonato(campeonatoAtivo)
                 .organizador(organizador)
                 .build());
+        grupoPrivado.getParticipantes().add(organizador);
+        grupoRepository.save(grupoPrivado);
 
         grupoPublicoSemVagas = grupoRepository.save(Grupo.builder()
                 .nome("Grupo Publico Sem Vagas")
@@ -132,6 +143,7 @@ public class GrupoPublicoControllerTest {
 
     @AfterEach
     void tearDown() {
+        partidaRepository.deleteAll();
         grupoRepository.deleteAll();
         campeonatoRepository.deleteAll();
         usuarioRepository.deleteAll();
@@ -191,6 +203,8 @@ public class GrupoPublicoControllerTest {
                     .campeonato(campeonatoInativo)
                     .organizador(organizador)
                     .build());
+            grupoComCampeonatoInativo.getParticipantes().add(organizador);
+            grupoRepository.save(grupoComCampeonatoInativo);
 
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoComCampeonatoInativo.getId() + "/entrar")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -208,10 +222,38 @@ public class GrupoPublicoControllerTest {
         }
 
         @Test
+        @DisplayName("Quando um usuário tenta entrar em grupo sem partidas válidas")
+        void quandoUsuarioTentaEntrarEmGrupoSemPartidasValidas() throws Exception {
+            partidaRepository.save(Partida.builder()
+                    .campeonato(campeonatoAtivo)
+                    .codigoExterno(123L)
+                    .mandante("Time A")
+                    .visitante("Time B")
+                    .data(LocalDateTime.now().plusDays(1))
+                    .status(PartidaStatus.FINALIZADO)
+                    .build());
+
+            String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/entrar")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .param("usuarioId", participante.getId().toString())
+                            .param("codigoAcesso", participante.getCodigo()))
+                    .andExpect(status().isBadRequest())
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString();
+
+            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
+
+            assertAll(
+                    () -> assertEquals("O campeonato não possui partida válidas!", resultado.getMessage())
+            );
+        }
+
+        @Test
         @DisplayName("Quando um usuário tenta entrar em um grupo que já participa")
         void quandoUsuarioTentaEntrarEmGrupoQueJaParticipa() throws Exception {
-            grupoPublico.getParticipantes().add(participante);
-            grupoRepository.save(grupoPublico);
+            Grupo grupoAtualizado = grupoRepository.findById(grupoPublico.getId()).orElseThrow();
+            grupoAtualizado.getParticipantes().add(participante);
+            grupoRepository.save(grupoAtualizado);
 
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/entrar")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -285,123 +327,122 @@ public class GrupoPublicoControllerTest {
         @Test
         @DisplayName("Quando o organizador tenta entrar no próprio grupo")
         void quandoOrganizadorTentaEntrarNoProprioGrupo() throws Exception {
-        grupoPublico.getParticipantes().add(organizador);
-        grupoRepository.save(grupoPublico);
+            String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/entrar")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .param("usuarioId", organizador.getId().toString())
+                            .param("codigoAcesso", organizador.getCodigo()))
+                    .andExpect(status().isBadRequest())
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString();
 
-        String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/entrar")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .param("usuarioId", organizador.getId().toString())
-                        .param("codigoAcesso", organizador.getCodigo()))
-                .andExpect(status().isBadRequest())
-                .andDo(print())
-                .andReturn().getResponse().getContentAsString();
+            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
 
-        CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
-
-        assertAll(
-                () -> assertEquals("O usuário já é participante deste grupo!", resultado.getMessage())
-        );
+            assertAll(
+                    () -> assertEquals("O usuário já é participante deste grupo!", resultado.getMessage())
+            );
         }
 
         @Test
         @DisplayName("Quando um usuário entra em grupo público sem limite de participantes")
         void quandoUsuarioEntraEmGrupoSemLimite() throws Exception {
-        Grupo grupoSemLimite = grupoRepository.save(Grupo.builder()
-                .nome("Grupo Sem Limite")
-                .descricao("Grupo sem limite de participantes")
-                .privacidade(PrivacidadeGrupo.PUBLICA)
-                .limiteParticipantes(null)
-                .campeonato(campeonatoAtivo)
-                .organizador(organizador)
-                .build());
+            Grupo grupoSemLimite = grupoRepository.save(Grupo.builder()
+                    .nome("Grupo Sem Limite")
+                    .descricao("Grupo sem limite de participantes")
+                    .privacidade(PrivacidadeGrupo.PUBLICA)
+                    .limiteParticipantes(null)
+                    .campeonato(campeonatoAtivo)
+                    .organizador(organizador)
+                    .build());
+            grupoSemLimite.getParticipantes().add(organizador);
+            grupoRepository.save(grupoSemLimite);
 
-        String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoSemLimite.getId() + "/entrar")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .param("usuarioId", participante.getId().toString())
-                        .param("codigoAcesso", participante.getCodigo()))
-                .andExpect(status().isOk())
-                .andDo(print())
-                .andReturn().getResponse().getContentAsString();
+            String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoSemLimite.getId() + "/entrar")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .param("usuarioId", participante.getId().toString())
+                            .param("codigoAcesso", participante.getCodigo()))
+                    .andExpect(status().isOk())
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString();
 
-        GrupoResponseDTO resultado = objectMapper.readValue(responseJsonString, GrupoResponseDTO.class);
+            GrupoResponseDTO resultado = objectMapper.readValue(responseJsonString, GrupoResponseDTO.class);
 
-        assertAll(
-                () -> assertNotNull(resultado.getId()),
-                () -> assertTrue(resultado.getParticipantes().stream()
-                        .anyMatch(p -> p.getId().equals(participante.getId())))
-        );
+            assertAll(
+                    () -> assertNotNull(resultado.getId()),
+                    () -> assertTrue(resultado.getParticipantes().stream()
+                            .anyMatch(p -> p.getId().equals(participante.getId())))
+            );
         }
 
         @Test
         @DisplayName("Quando múltiplos usuários entram no mesmo grupo público")
         void quandoMultiplosUsuariosEntramNoMesmoGrupo() throws Exception {
-        Usuario outroParticipante = usuarioRepository.save(Usuario.builder()
-                .nome("Outro Participante")
-                .username("outro")
-                .email("outro@email.com")
-                .endereco("Rua do Outro, 3")
-                .codigo("333333")
-                .build());
+            Usuario outroParticipante = usuarioRepository.save(Usuario.builder()
+                    .nome("Outro Participante")
+                    .username("outro")
+                    .email("outro@email.com")
+                    .endereco("Rua do Outro, 3")
+                    .codigo("333333")
+                    .build());
 
-        driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/entrar")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .param("usuarioId", participante.getId().toString())
-                        .param("codigoAcesso", participante.getCodigo()))
-                .andExpect(status().isOk());
+            Grupo grupoAtualizado = grupoRepository.findById(grupoPublico.getId()).orElseThrow();
+            grupoAtualizado.getParticipantes().add(participante);
+            grupoRepository.save(grupoAtualizado);
 
-        String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/entrar")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .param("usuarioId", outroParticipante.getId().toString())
-                        .param("codigoAcesso", outroParticipante.getCodigo()))
-                .andExpect(status().isOk())
-                .andDo(print())
-                .andReturn().getResponse().getContentAsString();
+            String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/entrar")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .param("usuarioId", outroParticipante.getId().toString())
+                            .param("codigoAcesso", outroParticipante.getCodigo()))
+                    .andExpect(status().isOk())
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString();
 
-        GrupoResponseDTO resultado = objectMapper.readValue(responseJsonString, GrupoResponseDTO.class);
+            GrupoResponseDTO resultado = objectMapper.readValue(responseJsonString, GrupoResponseDTO.class);
 
-        assertAll(
-                () -> assertEquals(2, resultado.getParticipantes().size()),
-                () -> assertTrue(resultado.getParticipantes().stream()
-                        .anyMatch(p -> p.getId().equals(participante.getId()))),
-                () -> assertTrue(resultado.getParticipantes().stream()
-                        .anyMatch(p -> p.getId().equals(outroParticipante.getId())))
-        );
+            assertAll(
+                    () -> assertEquals(3, resultado.getParticipantes().size()),
+                    () -> assertTrue(resultado.getParticipantes().stream()
+                            .anyMatch(p -> p.getId().equals(organizador.getId()))),
+                    () -> assertTrue(resultado.getParticipantes().stream()
+                            .anyMatch(p -> p.getId().equals(participante.getId()))),
+                    () -> assertTrue(resultado.getParticipantes().stream()
+                            .anyMatch(p -> p.getId().equals(outroParticipante.getId())))
+            );
         }
 
         @Test
         @DisplayName("Quando um usuário inexistente tenta entrar em um grupo")
         void quandoUsuarioInexistenteTentaEntrarEmGrupo() throws Exception {
-        String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/entrar")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .param("usuarioId", "999999")
-                        .param("codigoAcesso", "111111"))
-                .andExpect(status().isBadRequest())
-                .andDo(print())
-                .andReturn().getResponse().getContentAsString();
+            String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/entrar")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .param("usuarioId", "999999")
+                            .param("codigoAcesso", "111111"))
+                    .andExpect(status().isBadRequest())
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString();
 
-        CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
+            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
 
-        assertAll(
-                () -> assertEquals("O usuário consultado não existe!", resultado.getMessage())
-        );
+            assertAll(
+                    () -> assertEquals("O usuário consultado não existe!", resultado.getMessage())
+            );
         }
 
         @Test
         @DisplayName("Quando tenta entrar sem informar o usuarioId")
         void quandoEntrarSemInformarUsuarioId() throws Exception {
-        driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/entrar")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .param("codigoAcesso", participante.getCodigo()))
-                .andExpect(status().isBadRequest());
-        }
+            driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/entrar")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .param("codigoAcesso", participante.getCodigo()))
+                    .andExpect(status().isBadRequest());
+            }
 
-        @Test
-        @DisplayName("Quando tenta entrar sem informar o codigoAcesso")
-        void quandoEntrarSemInformarCodigoAcesso() throws Exception {
-        driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/entrar")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .param("usuarioId", participante.getId().toString()))
-                .andExpect(status().isBadRequest());
+            @Test
+            @DisplayName("Quando tenta entrar sem informar o codigoAcesso")
+            void quandoEntrarSemInformarCodigoAcesso() throws Exception {
+            driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/entrar")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .param("usuarioId", participante.getId().toString()))
+                    .andExpect(status().isBadRequest());
         }
     }
 }

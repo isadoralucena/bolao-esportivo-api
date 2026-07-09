@@ -107,6 +107,8 @@ public class GrupoControllerTests {
                 .campeonato(campeonatoAtivo)
                 .organizador(organizador)
                 .build());
+        grupoPublico.getParticipantes().add(organizador);
+        grupoRepository.save(grupoPublico);
 
         grupoPrivado = grupoRepository.save(Grupo.builder()
                 .nome("Grupo Privado")
@@ -116,6 +118,8 @@ public class GrupoControllerTests {
                 .campeonato(campeonatoAtivo)
                 .organizador(organizador)
                 .build());
+        grupoPrivado.getParticipantes().add(organizador);
+        grupoRepository.save(grupoPrivado);
 
         grupoPublicoSemVagas = grupoRepository.save(Grupo.builder()
                 .nome("Grupo Publico Sem Vagas")
@@ -191,6 +195,8 @@ public class GrupoControllerTests {
                     .campeonato(campeonatoInativo)
                     .organizador(organizador)
                     .build());
+            grupoComCampeonatoInativo.getParticipantes().add(organizador);
+            grupoRepository.save(grupoComCampeonatoInativo);
 
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoComCampeonatoInativo.getId() + "/entrar")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -210,8 +216,9 @@ public class GrupoControllerTests {
         @Test
         @DisplayName("Quando um usuário tenta entrar em um grupo que já participa")
         void quandoUsuarioTentaEntrarEmGrupoQueJaParticipa() throws Exception {
-            grupoPublico.getParticipantes().add(participante);
-            grupoRepository.save(grupoPublico);
+            Grupo grupoAtualizado = grupoRepository.findById(grupoPublico.getId()).orElseThrow();
+            grupoAtualizado.getParticipantes().add(participante);
+            grupoRepository.save(grupoAtualizado);
 
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/entrar")
                             .contentType(MediaType.APPLICATION_JSON)

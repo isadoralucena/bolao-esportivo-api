@@ -1,6 +1,7 @@
-package com.ufcg.psoft.project.service.sincronizacaoPeriodica;
+package com.ufcg.psoft.project.service;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -12,19 +13,21 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.service.campeonato.CampeonatoService;
+import com.ufcg.psoft.project.service.sincronizacaoPeriodica.SincronizacaoPeriodicaServiceImpl;
 
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest
+@AutoConfigureMockMvc
 @DisplayName("Testes da sincronização periódica")
 class SincronizacaoPeriodicaTest {
 
@@ -130,6 +133,30 @@ class SincronizacaoPeriodicaTest {
         // Assert
         verify(campeonatoService).sincronizarCampeonato(campeonato1);
         verify(campeonatoService).sincronizarCampeonato(campeonato2);
+    }
+
+
+    @Test
+    @DisplayName("Quando sincronização de campeonato falha, continua o ciclo")
+    void quandoSincronizacaoDeCampeonatoFalhaContinuaOCiclo() {
+        // Arrange
+        Campeonato campeonatoComErro = campeonato(1L, "Campeonato com erro", null);
+        campeonatoComErro.setUrl("http://api.test/competitions/1");
+
+        Campeonato campeonatoSeguinte = campeonato(2L, "Campeonato seguinte", LocalDateTime.of(2026, 1, 1, 1, 1));
+        campeonatoSeguinte.setUrl("http://api.test/competitions/2");
+
+        when(campeonatoRepository.findByAtivoTrue()).thenReturn(new ArrayList<>(List.of(campeonatoComErro, campeonatoSeguinte)));
+        doThrow(new RuntimeException("erro"))
+                .when(campeonatoService)
+                .sincronizarCampeonato(campeonatoComErro);
+
+        // Act
+        sincronizacaoPeriodicaService.sincronizarCampeonatosAtivos();
+
+        // Assert
+        verify(campeonatoService).sincronizarCampeonato(campeonatoComErro);
+        verify(campeonatoService).sincronizarCampeonato(campeonatoSeguinte);
     }
 
     private Campeonato campeonato(Long id, String nome, LocalDateTime ultimaSincronizacao) {

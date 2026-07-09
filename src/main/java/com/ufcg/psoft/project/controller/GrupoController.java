@@ -15,7 +15,9 @@ import com.ufcg.psoft.project.dto.grupo.GrupoPutRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.ParticipantePostRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.RegraPontuacaoPostPutRequestDTO;
 import com.ufcg.psoft.project.dto.palpite.RegrasPalpitesRequestDTO;
+import com.ufcg.psoft.project.model.Usuario;
 import com.ufcg.psoft.project.service.grupo.GrupoService;
+import com.ufcg.psoft.project.service.pontuacao.PontuacaoService;
 
 import jakarta.validation.Valid;
 
@@ -32,6 +34,9 @@ import org.springframework.http.ResponseEntity;
 public class GrupoController {
     @Autowired
     GrupoService grupoService;
+
+    @Autowired
+    private PontuacaoService pontuacaoService;
 
     @PostMapping("")
     public ResponseEntity<?> criarGrupo(
@@ -162,14 +167,24 @@ public class GrupoController {
 				.build();
 	}
 
-        @PutMapping("/{grupoId}/regras-palpites")
-        public ResponseEntity<?> configurarRegrasPalpites(
-                @PathVariable Long grupoId,
-                @RequestParam Long usuarioId,
-                @RequestParam String codigo,
-                @RequestBody @Valid RegrasPalpitesRequestDTO regrasPalpitesRequestDTO) {
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(grupoService.configurarRegrasPalpites(grupoId, usuarioId, codigo, regrasPalpitesRequestDTO));
-        }
+    @PutMapping("/{grupoId}/regras-palpites")
+    public ResponseEntity<?> configurarRegrasPalpites(
+            @PathVariable Long grupoId,
+            @RequestParam Long usuarioId,
+            @RequestParam String codigo,
+            @RequestBody @Valid RegrasPalpitesRequestDTO regrasPalpitesRequestDTO) {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(grupoService.configurarRegrasPalpites(grupoId, usuarioId, codigo, regrasPalpitesRequestDTO));
+    }
+
+    @GetMapping("/{grupoId}/pontuacoes")
+    public ResponseEntity<?> listarPontuacoesDoGrupo(
+            @RequestParam Long usuarioId,
+            @RequestParam String codigoAcesso,
+            @PathVariable Long grupoId) {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(pontuacaoService.listarPontuacoesParticipantesDoGrupo(grupoId, usuarioId, codigoAcesso));
+    }
 }

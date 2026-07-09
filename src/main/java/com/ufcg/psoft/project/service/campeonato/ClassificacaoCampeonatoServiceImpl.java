@@ -1,6 +1,7 @@
 package com.ufcg.psoft.project.service.campeonato;
 
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +39,7 @@ public class ClassificacaoCampeonatoServiceImpl implements ClassificacaoCampeona
 
     @Override
     @Transactional
-    public void sincronizarClassificacao(Long campeonatoId) {
+    public List<ClassificacaoCampeonatoResponseDTO> sincronizarClassificacao(Long campeonatoId) {
         Campeonato campeonato = campeonatoRepository.findById(campeonatoId).orElseThrow(CampeonatoNaoExisteException::new);
 
         HttpHeaders headers = new HttpHeaders();
@@ -69,7 +70,7 @@ public class ClassificacaoCampeonatoServiceImpl implements ClassificacaoCampeona
         }
 
         if (standings.isEmpty()) {
-            return; // aceitável um campeonato ainda não ter classificações.
+            return List.of(); // aceitável um campeonato ainda não ter classificações.
         }
 
         Map<String, Object> standing = standings.get(0);
@@ -81,9 +82,13 @@ public class ClassificacaoCampeonatoServiceImpl implements ClassificacaoCampeona
 
         classificacaoCampeonatoRepository.deleteByCampeonatoId(campeonato.getId());
 
+        List<ClassificacaoCampeonatoResponseDTO> resultado = new ArrayList<>();
+
         for (Map<String, Object> linha : table) {
-            salvarLinhaClassificacao(campeonato, linha);
+            resultado.add(salvarLinhaClassificacao(campeonato, linha));
         }
+
+        return resultado;
     }
 
     @Override
@@ -103,7 +108,7 @@ public class ClassificacaoCampeonatoServiceImpl implements ClassificacaoCampeona
         classificacaoCampeonatoRepository.deleteByCampeonatoId(campeonatoId);
     }
 
-    private void salvarLinhaClassificacao(Campeonato campeonato, Map<String, Object> linha) {
+    private ClassificacaoCampeonatoResponseDTO salvarLinhaClassificacao(Campeonato campeonato, Map<String, Object> linha) {
         Map<String, Object> team = (Map<String, Object>) linha.get("team");
 
         if (team == null) {
@@ -117,5 +122,7 @@ public class ClassificacaoCampeonatoServiceImpl implements ClassificacaoCampeona
                 .build();
 
         classificacaoCampeonatoRepository.save(classificacao);
+
+        return new ClassificacaoCampeonatoResponseDTO(classificacao);
     }
 }

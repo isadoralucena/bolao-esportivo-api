@@ -83,8 +83,11 @@ public class GrupoControllerTest {
                 .nome("Campeonato Brasileiro")
                 .url("https://api.football-data.org/v4/competitions/2013")
                 .codigo("BSA")
-                .ativo(false)
+                .ativo(true)
                 .build());
+
+        HashSet<Usuario> participantesGrupo = new HashSet<>();
+        participantesGrupo.add(organizador);
 
         grupo = grupoRepository.save(Grupo.builder()
                 .nome("Grupo base")
@@ -93,7 +96,7 @@ public class GrupoControllerTest {
                 .limiteParticipantes(5)
                 .campeonato(campeonato)
                 .organizador(organizador)
-                .participantes(new HashSet<>())
+                .participantes(participantesGrupo)
                 .build());
 
         grupoPostRequestDTO = GrupoPostRequestDTO.builder()
@@ -138,7 +141,22 @@ public class GrupoControllerTest {
                 .andExpect(jsonPath("$.privacidade").value("PUBLICA"))
                 .andExpect(jsonPath("$.limiteParticipantes").value(10))
                 .andExpect(jsonPath("$.organizador.id").value(organizador.getId()))
+                .andExpect(jsonPath("$.participantes.length()").value(1))
                 .andExpect(jsonPath("$.campeonato.id").value(campeonato.getId()));
+    }
+
+    @Test
+    @DisplayName("Quando tentar criar um grupo com campeonato inativo")
+    void quandoCriarGrupoComCampeonatoInativo() throws Exception {
+        campeonato.setAtivo(false);
+        campeonatoRepository.save(campeonato);
+
+        driver.perform(post(URI_GRUPOS)
+                .param("usuarioId", organizador.getId().toString())
+                .param("codigoAcesso", organizador.getCodigo())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(grupoPostRequestDTO)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -188,6 +206,50 @@ public class GrupoControllerTest {
     }
 
     @Test
+    @DisplayName("Quando usuário não membro tenta recuperar grupo privado")
+    void quandoUsuarioNaoMembroTentaRecuperarGrupoPrivado() throws Exception {
+        HashSet<Usuario> participantesPrivado = new HashSet<>();
+        participantesPrivado.add(organizador);
+
+        Grupo grupoPrivado = grupoRepository.save(Grupo.builder()
+                .nome("Grupo privado")
+                .descricao("Descrição privada")
+                .privacidade(PrivacidadeGrupo.PRIVADA)
+                .limiteParticipantes(5)
+                .campeonato(campeonato)
+                .organizador(organizador)
+                .participantes(participantesPrivado)
+                .build());
+
+        driver.perform(get(URI_GRUPOS + "/" + grupoPrivado.getId())
+                .param("usuarioId", participante.getId().toString())
+                .param("codigoAcesso", participante.getCodigo()))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Quando usuário não membro tenta listar participantes de grupo privado")
+    void quandoUsuarioNaoMembroTentaListarParticipantesDeGrupoPrivado() throws Exception {
+        HashSet<Usuario> participantesPrivado = new HashSet<>();
+        participantesPrivado.add(organizador);
+
+        Grupo grupoPrivado = grupoRepository.save(Grupo.builder()
+                .nome("Grupo privado")
+                .descricao("Descrição privada")
+                .privacidade(PrivacidadeGrupo.PRIVADA)
+                .limiteParticipantes(5)
+                .campeonato(campeonato)
+                .organizador(organizador)
+                .participantes(participantesPrivado)
+                .build());
+
+        driver.perform(get(URI_GRUPOS + "/" + grupoPrivado.getId() + "/participantes")
+                .param("usuarioId", participante.getId().toString())
+                .param("codigoAcesso", participante.getCodigo()))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     @DisplayName("Quando listar grupos disponíveis")
     void quandoListarGrupos() throws Exception {
         driver.perform(get(URI_GRUPOS)
@@ -213,6 +275,22 @@ public class GrupoControllerTest {
                 .andExpect(jsonPath("$.descricao").value("Descrição modificada"))
                 .andExpect(jsonPath("$.privacidade").value("PUBLICA"))
                 .andExpect(jsonPath("$.limiteParticipantes").value(12));
+    }
+
+    @Test
+    @DisplayName("Quando tentar reduzir limite abaixo da quantidade atual de participantes")
+    void quandoTentarReduzirLimiteAbaixoDaQuantidadeAtualDeParticipantes() throws Exception {
+        grupo.getParticipantes().add(participante);
+        grupoRepository.save(grupo);
+
+        grupoPutRequestDTO.setLimiteParticipantes(1);
+
+        driver.perform(put(URI_GRUPOS + "/" + grupo.getId())
+                .param("usuarioId", organizador.getId().toString())
+                .param("codigoAcesso", organizador.getCodigo())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(grupoPutRequestDTO)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -259,6 +337,16 @@ public class GrupoControllerTest {
                 .andExpect(status().isNoContent());
     }
 
+
+    @Test
+    @DisplayName("Quando usuário comum tenta remover o grupo")
+    void quandoUsuarioComumTentaRemoverGrupo() throws Exception {
+        driver.perform(delete(URI_GRUPOS + "/" + grupo.getId())
+                .param("usuarioId", participante.getId().toString())
+                .param("codigoAcesso", participante.getCodigo()))
+                .andExpect(status().isBadRequest());
+    }
+
     @Test
     @DisplayName("Quando tentar remover um grupo inexistente")
     void quandoRemoverGrupoInexistente() throws Exception {
@@ -291,8 +379,7 @@ public class GrupoControllerTest {
                 .param("codigoAcesso", organizador.getCodigo()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$[0].id").value(participante.getId()))
-                .andExpect(jsonPath("$[0].nome").value("Maria participante"));
+                .andExpect(jsonPath("$.length()").value(2));
     }
 
     @Test
@@ -332,6 +419,15 @@ public class GrupoControllerTest {
     }
 
     @Test
+    @DisplayName("Quando tenta remover o organizador da lista de participantes")
+    void quandoTentaRemoverOrganizadorDosParticipantes() throws Exception {
+        driver.perform(delete(URI_GRUPOS + "/" + grupo.getId() + "/participantes/" + organizador.getId())
+                .param("usuarioId", organizador.getId().toString())
+                .param("codigoAcesso", organizador.getCodigo()))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     @DisplayName("Quando tenta remover um participante inexistente")
     void quandoRemoverParticipanteInexistente() throws Exception {
         driver.perform(delete(URI_GRUPOS + "/" + grupo.getId() + "/participantes/99999")
@@ -357,7 +453,7 @@ public class GrupoControllerTest {
                 .param("codigoAcesso", organizador.getCodigo()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(0));
+                .andExpect(jsonPath("$.length()").value(1));
     }
 
     @Test

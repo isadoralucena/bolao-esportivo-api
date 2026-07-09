@@ -11,6 +11,8 @@ import com.ufcg.psoft.project.dto.grupo.RegraPontuacaoPostPutRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.RegraPontuacaoResponseDTO;
 import com.ufcg.psoft.project.dto.palpite.RegrasPalpitesRequestDTO;
 import com.ufcg.psoft.project.dto.usuario.UsuarioResponseDTO;
+import com.ufcg.psoft.project.model.Grupo;
+import com.ufcg.psoft.project.model.Usuario;
 
 public interface GrupoService {
     GrupoResponseDTO criar(Long usuarioId, String codigoAcesso, GrupoPostRequestDTO grupoPostRequestDto);
@@ -26,4 +28,5 @@ public interface GrupoService {
     Set<RegraPontuacaoResponseDTO> listarRegrasPontuacao(Long usuarioId, String codigoAcesso, Long grupoId);
     void removerRegraPontuacao(Long usuarioId, String codigoAcesso, Long grupoId, Long regraPontuacaoId);
     GrupoResponseDTO configurarRegrasPalpites(Long grupoId, Long usuarioId, String codigo, RegrasPalpitesRequestDTO dto);
+    void validarEntradaGrupo(Grupo grupo, Usuario usuario);
 }
