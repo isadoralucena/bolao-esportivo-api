@@ -18,28 +18,28 @@ import lombok.ToString;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Table(uniqueConstraints = {
     @UniqueConstraint(
-        name = "uk_grupo_tipo_regra_pontuacao",
-        columnNames = {"grupo_id", "tipoRegraPontuacao"}
+        name = "uk_criterio_desempate_grupo",
+        columnNames = {"grupo_id", "criterio"}
     )
 })
-public class RegraPontuacao {
+public class CriterioDesempate {
     @JsonProperty("id")
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE)
     @EqualsAndHashCode.Include
 	private Long id;
 
-    @JsonProperty("tipoRegraPontuacao")
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private TipoRegraPontuacao tipoRegraPontuacao;
-
-    @JsonProperty("pontos")
-    @Column(nullable = false)
-    private Integer pontos;
-
     @ManyToOne(optional = false)
     @JoinColumn(name = "grupo_id", nullable = false)
     @ToString.Exclude
     private Grupo grupo;
+
+    @JsonProperty("tipoCriterioDesempate")
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TipoCriterioDesempate criterio;
+
+    @JsonProperty("prioridade")
+    @Column(nullable = false)
+    private Integer prioridade;
 }

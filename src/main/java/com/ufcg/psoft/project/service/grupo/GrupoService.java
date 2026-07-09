@@ -6,7 +6,9 @@ import java.util.Set;
 import com.ufcg.psoft.project.dto.grupo.GrupoPostRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.GrupoPutRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.GrupoResponseDTO;
+import com.ufcg.psoft.project.dto.grupo.CriterioDesempateResponseDTO;
 import com.ufcg.psoft.project.dto.grupo.ParticipantePostRequestDTO;
+import com.ufcg.psoft.project.dto.grupo.CriteriosDesempatePutRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.RegraPontuacaoPostPutRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.RegraPontuacaoResponseDTO;
 import com.ufcg.psoft.project.dto.palpite.RegrasPalpitesRequestDTO;
@@ -27,6 +29,8 @@ public interface GrupoService {
     RegraPontuacaoResponseDTO inserirRegraPontuacao(Long usuarioId, String codigoAcesso, Long grupoId, RegraPontuacaoPostPutRequestDTO regraPontuacaoPostPutRequestDto);
     Set<RegraPontuacaoResponseDTO> listarRegrasPontuacao(Long usuarioId, String codigoAcesso, Long grupoId);
     void removerRegraPontuacao(Long usuarioId, String codigoAcesso, Long grupoId, Long regraPontuacaoId);
+    GrupoResponseDTO configurarCriteriosDesempate(Long grupoId, Long usuarioId, String codigoAcesso, CriteriosDesempatePutRequestDTO criteriosDesempatePutRequestDTO);
+    List<CriterioDesempateResponseDTO> listarCriteriosDesempate(Long usuarioId, String codigoAcesso, Long grupoId);
     GrupoResponseDTO configurarRegrasPalpites(Long grupoId, Long usuarioId, String codigo, RegrasPalpitesRequestDTO dto);
     void validarEntradaGrupo(Grupo grupo, Usuario usuario);
 }

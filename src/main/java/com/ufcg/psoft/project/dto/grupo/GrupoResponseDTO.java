@@ -1,5 +1,6 @@
 package com.ufcg.psoft.project.dto.grupo;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -43,11 +44,14 @@ public class GrupoResponseDTO {
     @JsonProperty("participantes")
     private Set<UsuarioResponseDTO> participantes;
 
-    @JsonProperty("minutosAberturaPalpite")
-    private Integer minutosAberturaPalpite;
+    @JsonProperty("criteriosDesempate")
+    private List<CriterioDesempateResponseDTO> criteriosDesempate;
 
-    @JsonProperty("minutosFechamentoPalpite")
-    private Integer minutosFechamentoPalpite;
+    @JsonProperty("minutosAberturaPalpites")
+    private Integer minutosAberturaPalpites;
+
+    @JsonProperty("minutosFechamentoPalpites")
+    private Integer minutosFechamentoPalpites;
 
     public GrupoResponseDTO(Grupo grupo) {
         this.id = grupo.getId();
@@ -60,7 +64,11 @@ public class GrupoResponseDTO {
                 .collect(Collectors.toSet());
         this.privacidade = grupo.getPrivacidade();
         this.limiteParticipantes = grupo.getLimiteParticipantes();
-        this.minutosAberturaPalpite = grupo.getMinutosAberturaPalpites();
-        this.minutosFechamentoPalpite = grupo.getMinutosFechamentoPalpites();
+        this.criteriosDesempate = grupo.getCriteriosDesempate()
+                .stream()
+                .map(CriterioDesempateResponseDTO::new)
+                .toList();
+        this.minutosAberturaPalpites = grupo.getMinutosAberturaPalpites();
+        this.minutosFechamentoPalpites = grupo.getMinutosFechamentoPalpites();
     }
 }

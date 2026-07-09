@@ -144,8 +144,8 @@ public class GrupoRegrasPalpitesControllerTest {
             GrupoResponseDTO resultado = objectMapper.readValue(responseJsonString, GrupoResponseDTO.class);
 
             assertAll(
-                    () -> assertEquals(120, resultado.getMinutosAberturaPalpite()),
-                    () -> assertEquals(0, resultado.getMinutosFechamentoPalpite())
+                    () -> assertEquals(120, resultado.getMinutosAberturaPalpites()),
+                    () -> assertEquals(0, resultado.getMinutosFechamentoPalpites())
             );
         }
 
@@ -166,8 +166,8 @@ public class GrupoRegrasPalpitesControllerTest {
             GrupoResponseDTO resultado = objectMapper.readValue(responseJsonString, GrupoResponseDTO.class);
 
             assertAll(
-                    () -> assertEquals(60, resultado.getMinutosAberturaPalpite()),
-                    () -> assertEquals(30, resultado.getMinutosFechamentoPalpite())
+                    () -> assertEquals(60, resultado.getMinutosAberturaPalpites()),
+                    () -> assertEquals(30, resultado.getMinutosFechamentoPalpites())
             );
         }
 
