@@ -31,6 +31,7 @@ import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.model.PartidaStatus;
 import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.PartidaRepository;
+import com.ufcg.psoft.project.service.notificacao.NotificacaoService;
 import com.ufcg.psoft.project.service.partida.PartidaServiceImpl;
 import com.ufcg.psoft.project.service.pontuacao.PontuacaoService;
 
@@ -46,6 +47,9 @@ public class PartidaServiceImplTest {
 
     @Mock
     private PontuacaoService pontuacaoService;
+
+    @Mock
+    private NotificacaoService notificacaoService;
 
     @InjectMocks
     private PartidaServiceImpl partidaService;
