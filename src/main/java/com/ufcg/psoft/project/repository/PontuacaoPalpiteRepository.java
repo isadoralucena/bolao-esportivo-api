@@ -11,4 +11,5 @@ public interface PontuacaoPalpiteRepository extends JpaRepository<PontuacaoPalpi
     List<PontuacaoPalpite> findByPalpite_Partida_Id(Long partidaId);
     List<PontuacaoPalpite> findByPalpite_Grupo_Id(Long grupoId);
     List<PontuacaoPalpite> findByPalpite_Grupo_IdAndPalpite_Usuario_Id(Long grupoId, Long usuarioId);
+    List<PontuacaoPalpite> findByPalpite_Usuario_Id(Long usuarioId);
 }

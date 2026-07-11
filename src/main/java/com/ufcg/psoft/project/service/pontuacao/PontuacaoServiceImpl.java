@@ -183,6 +183,44 @@ public class PontuacaoServiceImpl implements PontuacaoService {
 
         List<PontuacaoPalpite> pontuacoes = pontuacaoPalpiteRepository.findByPalpite_Grupo_IdAndPalpite_Usuario_Id(grupoId, participanteId);
 
+        return calcularPontuacaoParticipante(grupoId, participante, pontuacoes);
+    }
+
+    @Override
+    public List<PontuacaoParticipanteResponseDTO> listarPontuacoesParticipantesDoGrupo(Long grupoId, Long usuarioId, String codigoAcesso) {
+        Usuario usuario = obterUsuarioValido(usuarioId, codigoAcesso);
+
+        Grupo grupo = grupoRepository.findById(grupoId)
+                .orElseThrow(GrupoNaoExisteException::new);
+
+        if (!grupo.getParticipantes().contains(usuario)) {
+            throw new UsuarioNaoParticipanteException();
+        }
+
+        List<PontuacaoParticipanteResponseDTO> pontuacoes = new ArrayList<>();
+        for (Usuario participante : grupo.getParticipantes()) {
+            PontuacaoParticipanteResponseDTO pontuacaoParticipante = calcularPontuacaoParticipanteNoGrupo(grupoId, participante.getId());
+            pontuacoes.add(pontuacaoParticipante);
+        }
+
+        return pontuacoes;
+    }
+
+    @Override
+    public PontuacaoParticipanteResponseDTO calcularPontuacaoGlobalDoParticipante(Long usuarioId) {
+        Usuario usuario = usuarioRepository.findById(usuarioId).orElseThrow(UsuarioNaoExisteException::new);
+        List<PontuacaoPalpite> pontuacoes = pontuacaoPalpiteRepository.findByPalpite_Usuario_Id(usuarioId);
+        return calcularPontuacaoParticipante(null, usuario, pontuacoes);
+    }
+
+    @Override
+    public List<PontuacaoParticipanteResponseDTO> listarPontuacoesGlobais() {
+        return usuarioRepository.findAll().stream()
+            .map(usuario -> calcularPontuacaoGlobalDoParticipante(usuario.getId()))
+            .toList();
+    }
+
+    private PontuacaoParticipanteResponseDTO calcularPontuacaoParticipante(Long grupoId, Usuario participante, List<PontuacaoPalpite> pontuacoes) {
         int pontuacaoTotal = 0;
         int erros = 0;
         int acertosVencedor = 0;
@@ -222,26 +260,6 @@ public class PontuacaoServiceImpl implements PontuacaoService {
             acertosEmpate,
             placaresExatos
         );
-    }
-
-    @Override
-    public List<PontuacaoParticipanteResponseDTO> listarPontuacoesParticipantesDoGrupo(Long grupoId, Long usuarioId, String codigoAcesso) {
-        Usuario usuario = obterUsuarioValido(usuarioId, codigoAcesso);
-
-        Grupo grupo = grupoRepository.findById(grupoId)
-                .orElseThrow(GrupoNaoExisteException::new);
-
-        if (!grupo.getParticipantes().contains(usuario)) {
-            throw new UsuarioNaoParticipanteException();
-        }
-
-        List<PontuacaoParticipanteResponseDTO> pontuacoes = new ArrayList<>();
-        for (Usuario participante : grupo.getParticipantes()) {
-            PontuacaoParticipanteResponseDTO pontuacaoParticipante = calcularPontuacaoParticipanteNoGrupo(grupoId, participante.getId());
-            pontuacoes.add(pontuacaoParticipante);
-        }
-
-        return pontuacoes;
     }
 
     private PontuacaoPalpite buscarOuCriarPontuacaoPalpite(Palpite palpite) {

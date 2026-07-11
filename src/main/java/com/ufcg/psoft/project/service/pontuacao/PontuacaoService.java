@@ -10,4 +10,6 @@ public interface PontuacaoService {
     List<PontuacaoPalpiteResponseDTO> calcularPontuacoesDoGrupo(Long grupoId);
     PontuacaoParticipanteResponseDTO calcularPontuacaoParticipanteNoGrupo(Long grupoId, Long participanteId);
     List<PontuacaoParticipanteResponseDTO> listarPontuacoesParticipantesDoGrupo(Long grupoId, Long usuarioId, String codigoAcesso);
+    PontuacaoParticipanteResponseDTO calcularPontuacaoGlobalDoParticipante(Long usuarioId);
+    List<PontuacaoParticipanteResponseDTO> listarPontuacoesGlobais();
 }
