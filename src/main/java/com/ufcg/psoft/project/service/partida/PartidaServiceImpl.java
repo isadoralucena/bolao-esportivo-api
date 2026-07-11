@@ -10,6 +10,7 @@ import com.ufcg.psoft.project.model.PartidaStatus;
 import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.PartidaRepository;
 import com.ufcg.psoft.project.service.pontuacao.PontuacaoService;
+import com.ufcg.psoft.project.service.notificacao.NotificacaoService;
 
 import jakarta.transaction.Transactional;
 
@@ -29,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+
 @Service
 public class PartidaServiceImpl implements PartidaService {
     @Autowired
@@ -39,6 +41,9 @@ public class PartidaServiceImpl implements PartidaService {
 
     @Autowired
     private PontuacaoService pontuacaoService;
+
+    @Autowired
+    private NotificacaoService notificacaoService;
 
     @Value("${project.football-data.api-token:}")
     private String apiToken;
@@ -121,6 +126,8 @@ public class PartidaServiceImpl implements PartidaService {
                         .codigoExterno(codigoExterno)
                         .build());
 
+        PartidaStatus statusAnterior = partida.getId() != null ? partida.getStatus() : null;
+
         partida.setMandante((String) homeTeam.get("name"));
         partida.setVisitante((String) awayTeam.get("name"));
 
@@ -138,14 +145,28 @@ public class PartidaServiceImpl implements PartidaService {
             partida.setData(LocalDateTime.parse(utcDate, DateTimeFormatter.ISO_DATE_TIME));
         }
 
-        partida.setStatus(PartidaServiceImpl.converterStatus((String) match.get("status")));
-        
+        PartidaStatus novoStatus = PartidaServiceImpl.converterStatus((String) match.get("status"));
+        partida.setStatus(novoStatus);
+
         boolean mataMata = ehMataMata((String) match.get("stage"));
         partida.setMataMata(mataMata);
 
         partidaRepository.save(partida);
 
-        if (partida.getStatus() == PartidaStatus.FINALIZADO) {
+        if (statusAnterior != novoStatus) {
+            if (novoStatus == PartidaStatus.ABERTO && statusAnterior == null) {
+                notificacaoService.notificarAberturaPalpites(partida);
+            } else if (novoStatus == PartidaStatus.EM_ANDAMENTO) {
+                if (statusAnterior == PartidaStatus.ABERTO) {
+                    notificacaoService.notificarFechamentoPalpites(partida);
+                }
+                notificacaoService.notificarInicioPartida(partida);
+            } else if (novoStatus == PartidaStatus.FINALIZADO) {
+                notificacaoService.notificarPartidaFinalizada(partida);
+            }
+        }
+
+        if (novoStatus == PartidaStatus.FINALIZADO) {
             pontuacaoService.calcularPontuacoesAssociadasAPartida(partida.getId());
         }
 
