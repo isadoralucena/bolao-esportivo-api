@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.ufcg.psoft.project.comparator.ComparadorCriterioDesempateBuilder;
 import com.ufcg.psoft.project.dto.pontuacao.PontuacaoParticipanteResponseDTO;
@@ -21,6 +22,7 @@ import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
 import com.ufcg.psoft.project.service.pontuacao.PontuacaoService;
 
+@Service
 public class RankingServiceImpl implements RankingService {
 
     @Autowired
