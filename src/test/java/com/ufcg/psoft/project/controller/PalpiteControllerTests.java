@@ -62,6 +62,7 @@ public class PalpiteControllerTests {
     private Grupo grupo;
     private Partida partida;
     private Partida partidaAbertaForaJanela;
+    private Partida partidaAbertaJanelaFechada;
     private Partida partidaEmAndamento;
     private Partida partidaFinalizada;
     private Partida partidaCancelada;
@@ -122,7 +123,15 @@ public class PalpiteControllerTests {
                 .visitante("Time D")
                 .data(LocalDateTime.now().plusMinutes(180))
                 .status(PartidaStatus.ABERTO)
-                .rodada(2)
+                .build());
+
+        partidaAbertaJanelaFechada = partidaRepository.save(Partida.builder()
+                .campeonato(campeonato)
+                .codigoExterno(6L)
+                .mandante("Time K")
+                .visitante("Time L")
+                .data(LocalDateTime.now().minusMinutes(5))
+                .status(PartidaStatus.ABERTO)
                 .build());
 
         partidaEmAndamento = partidaRepository.save(Partida.builder()
@@ -132,7 +141,6 @@ public class PalpiteControllerTests {
                 .visitante("Time F")
                 .data(LocalDateTime.now())
                 .status(PartidaStatus.EM_ANDAMENTO)
-                .rodada(3)
                 .build());
 
         partidaFinalizada = partidaRepository.save(Partida.builder()
@@ -144,7 +152,6 @@ public class PalpiteControllerTests {
                 .status(PartidaStatus.FINALIZADO)
                 .golsMandante(2)
                 .golsVisitante(0)
-                .rodada(4)
                 .build());
 
         partidaCancelada = partidaRepository.save(Partida.builder()
@@ -154,7 +161,6 @@ public class PalpiteControllerTests {
                 .visitante("Time J")
                 .data(LocalDateTime.now().plusDays(1))
                 .status(PartidaStatus.CANCELADO)
-                .rodada(5)
                 .build());
 
         dto = PalpitePostPutRequestDTO.builder()
@@ -461,6 +467,17 @@ public class PalpiteControllerTests {
         @DisplayName("Criar palpite em partida cancelada retorna 400")
         void criarPalpitePartidaCancelada() throws Exception {
             mockMvc.perform(post("/grupos/{grupoId}/partidas/{partidaId}/palpites", grupo.getId(), partidaCancelada.getId())
+                    .param("usuarioId", usuario.getId().toString())
+                    .param("codigo", usuario.getCodigo())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(dto)))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("Criar palpite em partida aberta mas janela ja fechada retorna 400")
+        void criarPalpitePartidaAbertaJanelaFechada() throws Exception {
+            mockMvc.perform(post("/grupos/{grupoId}/partidas/{partidaId}/palpites", grupo.getId(), partidaAbertaJanelaFechada.getId())
                     .param("usuarioId", usuario.getId().toString())
                     .param("codigo", usuario.getCodigo())
                     .contentType(MediaType.APPLICATION_JSON)
