@@ -921,5 +921,141 @@ public class GrupoPontuacaoControllerTest {
                     () -> assertEquals(15, dto.getPontuacao())
             );
         }
+
+        @Test
+        @DisplayName("atualizarAcertos: vitoria mandante com palpite empate nao acerta")
+        void quandoVitoriaMandanteEPalpiteEmpate() throws Exception {
+            Partida partidaVE = partidaRepository.save(Partida.builder()
+                    .campeonato(campeonato)
+                    .codigoExterno(305L)
+                    .mandante("Time V-M")
+                    .visitante("Time V-V")
+                    .golsMandante(2)
+                    .golsVisitante(1)
+                    .data(LocalDateTime.now().minusHours(1))
+                    .status(PartidaStatus.FINALIZADO)
+                    .build());
+
+            palpiteRepository.delete(palpite);
+            palpiteRepository.save(Palpite.builder()
+                    .partida(partidaVE)
+                    .usuario(participante)
+                    .grupo(grupo)
+                    .golsMandante(1)
+                    .golsVisitante(1)
+                    .build());
+
+            inserirRegra(TipoRegraPontuacao.ACERTO_VENCEDOR, 10);
+
+            List<PontuacaoPalpiteResponseDTO> resultado = pontuacaoService.calcularPontuacoesAssociadasAPartida(partidaVE.getId());
+
+            assertAll(
+                    () -> assertFalse(resultado.get(0).isAcertouVencedor()),
+                    () -> assertFalse(resultado.get(0).isAcertouEmpate()),
+                    () -> assertFalse(resultado.get(0).isAcertouPlacarExato()),
+                    () -> assertEquals(0, resultado.get(0).getPontuacao())
+            );
+        }
+
+        @Test
+        @DisplayName("atualizarAcertos: empate real com palpite vencedor nao acerta")
+        void quandoEmpateRealEPalpiteVencedor() throws Exception {
+            Partida partidaEE = partidaRepository.save(Partida.builder()
+                    .campeonato(campeonato)
+                    .codigoExterno(306L)
+                    .mandante("Time E-M")
+                    .visitante("Time E-V")
+                    .golsMandante(1)
+                    .golsVisitante(1)
+                    .data(LocalDateTime.now().minusHours(1))
+                    .status(PartidaStatus.FINALIZADO)
+                    .build());
+
+            palpiteRepository.delete(palpite);
+            palpiteRepository.save(Palpite.builder()
+                    .partida(partidaEE)
+                    .usuario(participante)
+                    .grupo(grupo)
+                    .golsMandante(2)
+                    .golsVisitante(0)
+                    .build());
+
+            List<PontuacaoPalpiteResponseDTO> resultado = pontuacaoService.calcularPontuacoesAssociadasAPartida(partidaEE.getId());
+
+            assertAll(
+                    () -> assertFalse(resultado.get(0).isAcertouVencedor()),
+                    () -> assertFalse(resultado.get(0).isAcertouEmpate()),
+                    () -> assertFalse(resultado.get(0).isAcertouPlacarExato()),
+                    () -> assertEquals(0, resultado.get(0).getPontuacao())
+            );
+        }
+
+        @Test
+        @DisplayName("atualizarAcertos: vitoria visitante com palpite exato acerta vencedor e placar")
+        void quandoVitoriaVisitanteEPalpiteExato() throws Exception {
+            Partida partidaVV = partidaRepository.save(Partida.builder()
+                    .campeonato(campeonato)
+                    .codigoExterno(307L)
+                    .mandante("Time VV-M")
+                    .visitante("Time VV-V")
+                    .golsMandante(0)
+                    .golsVisitante(2)
+                    .data(LocalDateTime.now().minusHours(1))
+                    .status(PartidaStatus.FINALIZADO)
+                    .build());
+
+            palpiteRepository.delete(palpite);
+            palpiteRepository.save(Palpite.builder()
+                    .partida(partidaVV)
+                    .usuario(participante)
+                    .grupo(grupo)
+                    .golsMandante(0)
+                    .golsVisitante(2)
+                    .build());
+
+            inserirRegra(TipoRegraPontuacao.PLACAR_EXATO, 15);
+
+            List<PontuacaoPalpiteResponseDTO> resultado = pontuacaoService.calcularPontuacoesAssociadasAPartida(partidaVV.getId());
+
+            assertAll(
+                    () -> assertTrue(resultado.get(0).isAcertouVencedor()),
+                    () -> assertFalse(resultado.get(0).isAcertouEmpate()),
+                    () -> assertTrue(resultado.get(0).isAcertouPlacarExato()),
+                    () -> assertEquals(15, resultado.get(0).getPontuacao())
+            );
+        }
+
+        @Test
+        @DisplayName("atualizarAcertos: vitoria visitante com palpite errado nao acerta")
+        void quandoVitoriaVisitanteEPalpiteErrado() throws Exception {
+            Partida partidaVE2 = partidaRepository.save(Partida.builder()
+                    .campeonato(campeonato)
+                    .codigoExterno(308L)
+                    .mandante("Time WE-M")
+                    .visitante("Time WE-V")
+                    .golsMandante(0)
+                    .golsVisitante(2)
+                    .data(LocalDateTime.now().minusHours(1))
+                    .status(PartidaStatus.FINALIZADO)
+                    .build());
+
+            palpiteRepository.delete(palpite);
+            palpiteRepository.save(Palpite.builder()
+                    .partida(partidaVE2)
+                    .usuario(participante)
+                    .grupo(grupo)
+                    .golsMandante(2)
+                    .golsVisitante(0)
+                    .build());
+
+            List<PontuacaoPalpiteResponseDTO> resultado = pontuacaoService.calcularPontuacoesAssociadasAPartida(partidaVE2.getId());
+
+            assertAll(
+                    () -> assertFalse(resultado.get(0).isAcertouVencedor()),
+                    () -> assertFalse(resultado.get(0).isAcertouEmpate()),
+                    () -> assertFalse(resultado.get(0).isAcertouPlacarExato()),
+                    () -> assertEquals(0, resultado.get(0).getPontuacao())
+            );
+        }
     }
 }
