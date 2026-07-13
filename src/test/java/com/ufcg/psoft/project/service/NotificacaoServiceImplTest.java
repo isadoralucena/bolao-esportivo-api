@@ -31,7 +31,7 @@ public class NotificacaoServiceImplTest {
         System.setOut(new PrintStream(outputStream));
     }
 
-    @BeforeEach
+    @AfterEach
     void teardown() {
         System.setOut(originalOut);
     }
