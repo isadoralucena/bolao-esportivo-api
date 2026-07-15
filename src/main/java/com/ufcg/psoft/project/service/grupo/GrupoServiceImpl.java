@@ -1,10 +1,6 @@
 package com.ufcg.psoft.project.service.grupo;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
@@ -15,7 +11,6 @@ import com.ufcg.psoft.project.dto.grupo.GrupoPostRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.GrupoPutRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.GrupoResponseDTO;
 import com.ufcg.psoft.project.dto.grupo.CriterioDesempateResponseDTO;
-import com.ufcg.psoft.project.dto.grupo.ParticipantePostRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.CriteriosDesempatePutRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.RegraPontuacaoPostPutRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.RegraPontuacaoResponseDTO;
@@ -141,15 +136,27 @@ public class GrupoServiceImpl implements GrupoService {
 
         List<TipoCriterioDesempate> criterios = criteriosDesempatePutRequestDTO.getCriteriosDesempate();
         validarCriteriosDesempate(criterios);
+        Map<TipoCriterioDesempate, CriterioDesempate> existentesPorTipo = grupo.getCriteriosDesempate().stream()
+            .collect(Collectors.toMap(CriterioDesempate::getCriterio, c -> c));
+
         List<CriterioDesempate> novosCriterios = new ArrayList<>();
         for (int i = 0; i < criterios.size(); i++) {
-            novosCriterios.add(
-                CriterioDesempate.builder()
+            TipoCriterioDesempate tipo = criterios.get(i);
+            int novaPrioridade = i + 1;
+
+            CriterioDesempate existente = existentesPorTipo.remove(tipo);
+            if (existente != null) {
+                existente.setPrioridade(novaPrioridade);
+                novosCriterios.add(existente);
+            } else {
+                novosCriterios.add(
+                    CriterioDesempate.builder()
                         .grupo(grupo)
-                        .criterio(criterios.get(i))
-                        .prioridade(i + 1)
+                        .criterio(tipo)
+                        .prioridade(novaPrioridade)
                         .build()
-            );
+                );
+            }
         }
 
         grupo.getCriteriosDesempate().clear();
@@ -167,21 +174,6 @@ public class GrupoServiceImpl implements GrupoService {
         return grupo.getCriteriosDesempate().stream()
             .map(CriterioDesempateResponseDTO::new)
             .toList();
-    }
-
-    public GrupoResponseDTO adicionarParticipante(Long usuarioId, String codigoAcesso, Long grupoId, ParticipantePostRequestDTO participantePostRequestDto) {
-        Grupo grupo = grupoRepository.findById(grupoId).orElseThrow(GrupoNaoExisteException::new);
-        Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
-        garantirOrganizador(grupo, usuarioLogado);
-
-        Usuario participanteParaAdicionar = usuarioRepository.findById(participantePostRequestDto.getUsuarioId())
-                .orElseThrow(UsuarioNaoExisteException::new);
-
-        validarEntradaGrupo(grupo, participanteParaAdicionar);
-
-        grupo.getParticipantes().add(participanteParaAdicionar);
-        grupoRepository.save(grupo);
-        return modelMapper.map(grupo, GrupoResponseDTO.class);
     }
 
     public void removerParticipante(Long usuarioId, String codigoAcesso, Long grupoId, Long participanteId) {

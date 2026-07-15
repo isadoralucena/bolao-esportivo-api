@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ufcg.psoft.project.dto.grupo.CriteriosDesempatePutRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.GrupoPostRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.GrupoPutRequestDTO;
-import com.ufcg.psoft.project.dto.grupo.ParticipantePostRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.RegraPontuacaoPostPutRequestDTO;
 import com.ufcg.psoft.project.dto.palpite.RegrasPalpitesRequestDTO;
 import com.ufcg.psoft.project.service.grupo.GrupoService;
@@ -92,17 +91,6 @@ public class GrupoController {
         return ResponseEntity
                 .status(HttpStatus.NO_CONTENT)
                 .build();
-    }
-
-    @PostMapping("/{grupoId}/participantes")
-    public ResponseEntity<?> adicionarParticipante(
-            @RequestParam Long usuarioId,
-            @RequestParam String codigoAcesso,
-            @PathVariable Long grupoId,
-            @RequestBody @Valid ParticipantePostRequestDTO participantePostRequestDto) {
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(grupoService.adicionarParticipante(usuarioId, codigoAcesso, grupoId, participantePostRequestDto));
     }
 
     @GetMapping("/{grupoId}/participantes")

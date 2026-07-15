@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.ufcg.psoft.project.dto.grupo.GrupoPostRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.GrupoPutRequestDTO;
-import com.ufcg.psoft.project.dto.grupo.ParticipantePostRequestDTO;
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.model.Grupo;
 import com.ufcg.psoft.project.model.PerfilUsuario;
@@ -58,7 +57,6 @@ public class GrupoCrudControllerTest {
 
     GrupoPostRequestDTO grupoPostRequestDTO;
     GrupoPutRequestDTO grupoPutRequestDTO;
-    ParticipantePostRequestDTO participantePostRequestDTO;
 
     @BeforeEach
     void setup() {
@@ -113,10 +111,6 @@ public class GrupoCrudControllerTest {
                 .descricao("Descrição modificada")
                 .privacidade(PrivacidadeGrupo.PUBLICA)
                 .limiteParticipantes(12)
-                .build();
-
-        participantePostRequestDTO = ParticipantePostRequestDTO.builder()
-                .usuarioId(participante.getId())
                 .build();
     }
 

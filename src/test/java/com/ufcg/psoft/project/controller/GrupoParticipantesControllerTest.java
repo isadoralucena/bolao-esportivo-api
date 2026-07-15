@@ -2,7 +2,6 @@ package com.ufcg.psoft.project.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -15,11 +14,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ufcg.psoft.project.dto.grupo.ParticipantePostRequestDTO;
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.model.Grupo;
 import com.ufcg.psoft.project.model.PrivacidadeGrupo;
@@ -54,8 +51,6 @@ public class GrupoParticipantesControllerTest {
     Usuario participante;
     Campeonato campeonato;
     Grupo grupo;
- 
-    ParticipantePostRequestDTO participantePostRequestDTO;
  
     @BeforeEach
     void setup() {
@@ -93,9 +88,6 @@ public class GrupoParticipantesControllerTest {
                 .build();
         grupo.getParticipantes().add(organizador);
         grupo = grupoRepository.save(grupo);
- 
-        participantePostRequestDTO = new ParticipantePostRequestDTO();
-        participantePostRequestDTO.setUsuarioId(participante.getId());
     }
  
     @AfterEach
@@ -160,19 +152,6 @@ public class GrupoParticipantesControllerTest {
     }
 
     @Test
-    @DisplayName("Deve permitir que o organizador adicione um participante ao grupo")
-    void quandoAdicionarParticipanteComSucesso() throws Exception {
-
-        driver.perform(post(URI_GRUPOS + "/" + grupo.getId() + "/participantes")
-                .param("usuarioId", organizador.getId().toString())
-                .param("codigoAcesso", organizador.getCodigo())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(participantePostRequestDTO)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(grupo.getId()));
-    }
-
-    @Test
     @DisplayName("Deve listar todos os participantes pertencentes ao grupo")
     void quandoListarParticipantesDoGrupo() throws Exception {
 
@@ -214,20 +193,5 @@ public class GrupoParticipantesControllerTest {
         Grupo grupoAtualizado = grupoRepository.findById(grupo.getId()).orElseThrow();
         org.junit.jupiter.api.Assertions.assertTrue(
                 grupoAtualizado.getParticipantes().contains(organizador));
-    }
-
-    @Test
-    @DisplayName("Não deve permitir adicionar participante inexistente")
-    void quandoAdicionarParticipanteInexistente() throws Exception {
-
-        participantePostRequestDTO.setUsuarioId(99999L);
-
-
-        driver.perform(post(URI_GRUPOS + "/" + grupo.getId() + "/participantes")
-                .param("usuarioId", organizador.getId().toString())
-                .param("codigoAcesso", organizador.getCodigo())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(participantePostRequestDTO)))
-                .andExpect(status().isBadRequest());
     }
 }
