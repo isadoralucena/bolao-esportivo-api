@@ -289,11 +289,9 @@ class PontuacaoServiceImplTest {
     void quandoCalcularPontuacoesDoGrupoSemPalpites() {
         when(grupoRepository.findById(1L)).thenReturn(Optional.of(grupo));
         when(palpiteRepository.findByGrupoId(1L)).thenReturn(List.of());
-
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario));
         var resultado = pontuacaoService.calcularPontuacoesDoGrupo(1L);
-
         assertNotNull(resultado);
         assertTrue(resultado.isEmpty());
-    }
-
+        }
 }
