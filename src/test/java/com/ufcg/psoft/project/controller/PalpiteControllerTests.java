@@ -21,6 +21,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.when;
@@ -112,7 +113,7 @@ public class PalpiteControllerTests {
                 .codigoExterno(1L)
                 .mandante("Time A")
                 .visitante("Time B")
-                .data(LocalDateTime.now().plusMinutes(60))
+                .data(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(60))
                 .status(PartidaStatus.ABERTO)
                 .build());
 
@@ -121,7 +122,7 @@ public class PalpiteControllerTests {
                 .codigoExterno(2L)
                 .mandante("Time C")
                 .visitante("Time D")
-                .data(LocalDateTime.now().plusMinutes(180))
+                .data(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(180))
                 .status(PartidaStatus.ABERTO)
                 .build());
 
@@ -130,7 +131,7 @@ public class PalpiteControllerTests {
                 .codigoExterno(6L)
                 .mandante("Time K")
                 .visitante("Time L")
-                .data(LocalDateTime.now().minusMinutes(5))
+                .data(LocalDateTime.now(ZoneOffset.UTC).minusMinutes(5))
                 .status(PartidaStatus.ABERTO)
                 .build());
 
@@ -139,7 +140,7 @@ public class PalpiteControllerTests {
                 .codigoExterno(3L)
                 .mandante("Time E")
                 .visitante("Time F")
-                .data(LocalDateTime.now())
+                .data(LocalDateTime.now(ZoneOffset.UTC))
                 .status(PartidaStatus.EM_ANDAMENTO)
                 .build());
 
@@ -148,7 +149,7 @@ public class PalpiteControllerTests {
                 .codigoExterno(4L)
                 .mandante("Time G")
                 .visitante("Time H")
-                .data(LocalDateTime.now().minusHours(2))
+                .data(LocalDateTime.now(ZoneOffset.UTC).minusHours(2))
                 .status(PartidaStatus.FINALIZADO)
                 .golsMandante(2)
                 .golsVisitante(0)
@@ -159,7 +160,7 @@ public class PalpiteControllerTests {
                 .codigoExterno(5L)
                 .mandante("Time I")
                 .visitante("Time J")
-                .data(LocalDateTime.now().plusDays(1))
+                .data(LocalDateTime.now(ZoneOffset.UTC).plusDays(1))
                 .status(PartidaStatus.CANCELADO)
                 .build());
 
@@ -241,7 +242,7 @@ public class PalpiteControllerTests {
                 .codigoExterno(2L)
                 .mandante("Time X")
                 .visitante("Time Y")
-                .data(LocalDateTime.now().plusMinutes(60))
+                .data(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(60))
                 .status(PartidaStatus.ABERTO)
                 .build());
 
@@ -349,7 +350,7 @@ public class PalpiteControllerTests {
                 .codigoExterno(2L)
                 .mandante("Time C")
                 .visitante("Time D")
-                .data(LocalDateTime.now().plusMinutes(60))
+                .data(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(60))
                 .status(PartidaStatus.ABERTO)
                 .build());
 
@@ -499,7 +500,7 @@ public class PalpiteControllerTests {
                     .grupo(grupo)
                     .golsMandante(1)
                     .golsVisitante(1)
-                    .data(LocalDateTime.now())
+                    .data(LocalDateTime.now(ZoneOffset.UTC))
                     .build());
 
             mockMvc.perform(put("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
@@ -522,7 +523,7 @@ public class PalpiteControllerTests {
                     .grupo(grupo)
                     .golsMandante(1)
                     .golsVisitante(1)
-                    .data(LocalDateTime.now())
+                    .data(LocalDateTime.now(ZoneOffset.UTC))
                     .build());
 
             mockMvc.perform(put("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
@@ -543,7 +544,7 @@ public class PalpiteControllerTests {
                     .grupo(grupo)
                     .golsMandante(1)
                     .golsVisitante(1)
-                    .data(LocalDateTime.now())
+                    .data(LocalDateTime.now(ZoneOffset.UTC))
                     .build());
 
             mockMvc.perform(put("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
@@ -564,7 +565,7 @@ public class PalpiteControllerTests {
                     .grupo(grupo)
                     .golsMandante(1)
                     .golsVisitante(1)
-                    .data(LocalDateTime.now())
+                    .data(LocalDateTime.now(ZoneOffset.UTC))
                     .build());
 
             mockMvc.perform(put("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
@@ -585,7 +586,7 @@ public class PalpiteControllerTests {
                     .grupo(grupo)
                     .golsMandante(1)
                     .golsVisitante(1)
-                    .data(LocalDateTime.now())
+                    .data(LocalDateTime.now(ZoneOffset.UTC))
                     .build());
 
             mockMvc.perform(put("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
@@ -611,7 +612,7 @@ public class PalpiteControllerTests {
                     .grupo(grupo)
                     .golsMandante(1)
                     .golsVisitante(1)
-                    .data(LocalDateTime.now())
+                    .data(LocalDateTime.now(ZoneOffset.UTC))
                     .build());
 
             mockMvc.perform(delete("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
@@ -630,7 +631,7 @@ public class PalpiteControllerTests {
                     .grupo(grupo)
                     .golsMandante(1)
                     .golsVisitante(1)
-                    .data(LocalDateTime.now())
+                    .data(LocalDateTime.now(ZoneOffset.UTC))
                     .build());
 
             mockMvc.perform(delete("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
@@ -649,7 +650,7 @@ public class PalpiteControllerTests {
                     .grupo(grupo)
                     .golsMandante(1)
                     .golsVisitante(1)
-                    .data(LocalDateTime.now())
+                    .data(LocalDateTime.now(ZoneOffset.UTC))
                     .build());
 
             mockMvc.perform(delete("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
@@ -668,7 +669,7 @@ public class PalpiteControllerTests {
                     .grupo(grupo)
                     .golsMandante(1)
                     .golsVisitante(1)
-                    .data(LocalDateTime.now())
+                    .data(LocalDateTime.now(ZoneOffset.UTC))
                     .build());
 
             mockMvc.perform(delete("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
@@ -687,7 +688,7 @@ public class PalpiteControllerTests {
                     .grupo(grupo)
                     .golsMandante(1)
                     .golsVisitante(1)
-                    .data(LocalDateTime.now())
+                    .data(LocalDateTime.now(ZoneOffset.UTC))
                     .build());
 
             mockMvc.perform(delete("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",

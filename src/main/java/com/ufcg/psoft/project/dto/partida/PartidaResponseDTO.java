@@ -1,6 +1,7 @@
 package com.ufcg.psoft.project.dto.partida;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.ufcg.psoft.project.model.Grupo;
 import com.ufcg.psoft.project.model.Partida;
 import com.ufcg.psoft.project.model.PartidaStatus;
 import lombok.AllArgsConstructor;
@@ -49,5 +50,10 @@ public class PartidaResponseDTO {
         this.data = partida.getData();
         this.status = partida.getStatus();
         this.mataMata = partida.isMataMata();
+    }
+
+    public PartidaResponseDTO(Partida partida, Grupo grupo, LocalDateTime agora) {
+        this(partida);
+        this.status = partida.statusEfetivoParaGrupo(grupo, agora);
     }
 }

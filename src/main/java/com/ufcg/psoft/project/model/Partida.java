@@ -67,4 +67,14 @@ public class Partida {
 
         return !horaAtual.isBefore(horarioAbertura) && horaAtual.isBefore(horarioFechamento);
     }
+
+    public PartidaStatus statusEfetivoParaGrupo(Grupo grupo, LocalDateTime agora) {
+        if (this.status != PartidaStatus.ABERTO) {
+            return this.status;
+        }
+        if (!estaAbertaParaPalpite(grupo.getJanelaDePalpites(), agora)) {
+            return PartidaStatus.EM_ANDAMENTO;
+        }
+        return PartidaStatus.ABERTO;
+    }
 }

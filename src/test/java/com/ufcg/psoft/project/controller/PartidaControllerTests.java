@@ -17,6 +17,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -325,5 +326,61 @@ public class PartidaControllerTests {
         int segundoTamanho = JsonPath.parse(segundoResponse).read("$", List.class).size();
 
         assertEquals(primeiroTamanho, segundoTamanho);
+    }
+
+    @Test
+    @DisplayName("Partida ABERTO com janela fechada retorna EM_ANDAMENTO")
+    void partidaAbertoJanelaFechadaRetornaEmAndamento() throws Exception {
+        partidaRepository.save(Partida.builder()
+                .campeonato(campeonato)
+                .codigoExterno(10L)
+                .mandante("X")
+                .visitante("Y")
+                .data(LocalDateTime.now(ZoneOffset.UTC).minusMinutes(5))
+                .status(PartidaStatus.ABERTO)
+                .build());
+
+        mockMvc.perform(get("/grupos/{grupoId}/partidas", grupo.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].status")
+                        .value(hasItem("EM_ANDAMENTO")));
+    }
+
+    @Test
+    @DisplayName("Partida ABERTO dentro da janela retorna ABERTO")
+    void partidaAbertoDentroDaJanelaRetornaAberto() throws Exception {
+        partidaRepository.save(Partida.builder()
+                .campeonato(campeonato)
+                .codigoExterno(11L)
+                .mandante("W")
+                .visitante("Z")
+                .data(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(60))
+                .status(PartidaStatus.ABERTO)
+                .build());
+
+        mockMvc.perform(get("/grupos/{grupoId}/partidas", grupo.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].status")
+                        .value(hasItem("ABERTO")));
+    }
+
+    @Test
+    @DisplayName("Partida FINALIZADO retorna FINALIZADO independente da janela")
+    void partidaFinalizadoIgnoraJanela() throws Exception {
+        partidaRepository.save(Partida.builder()
+                .campeonato(campeonato)
+                .codigoExterno(12L)
+                .mandante("M")
+                .visitante("N")
+                .data(LocalDateTime.now(ZoneOffset.UTC).minusDays(1))
+                .status(PartidaStatus.FINALIZADO)
+                .golsMandante(2)
+                .golsVisitante(1)
+                .build());
+
+        mockMvc.perform(get("/grupos/{grupoId}/partidas", grupo.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].status")
+                        .value(hasItem("FINALIZADO")));
     }
 }
