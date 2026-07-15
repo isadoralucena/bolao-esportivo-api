@@ -160,19 +160,6 @@ public class GrupoParticipantesControllerTest {
     }
 
     @Test
-    @DisplayName("Deve permitir que o organizador adicione um participante ao grupo")
-    void quandoAdicionarParticipanteComSucesso() throws Exception {
-
-        driver.perform(post(URI_GRUPOS + "/" + grupo.getId() + "/participantes")
-                .param("usuarioId", organizador.getId().toString())
-                .param("codigoAcesso", organizador.getCodigo())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(participantePostRequestDTO)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(grupo.getId()));
-    }
-
-    @Test
     @DisplayName("Deve listar todos os participantes pertencentes ao grupo")
     void quandoListarParticipantesDoGrupo() throws Exception {
 
@@ -214,20 +201,5 @@ public class GrupoParticipantesControllerTest {
         Grupo grupoAtualizado = grupoRepository.findById(grupo.getId()).orElseThrow();
         org.junit.jupiter.api.Assertions.assertTrue(
                 grupoAtualizado.getParticipantes().contains(organizador));
-    }
-
-    @Test
-    @DisplayName("Não deve permitir adicionar participante inexistente")
-    void quandoAdicionarParticipanteInexistente() throws Exception {
-
-        participantePostRequestDTO.setUsuarioId(99999L);
-
-
-        driver.perform(post(URI_GRUPOS + "/" + grupo.getId() + "/participantes")
-                .param("usuarioId", organizador.getId().toString())
-                .param("codigoAcesso", organizador.getCodigo())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(participantePostRequestDTO)))
-                .andExpect(status().isBadRequest());
     }
 }

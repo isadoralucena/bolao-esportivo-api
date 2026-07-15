@@ -22,7 +22,6 @@ public interface GrupoService {
     List<GrupoResponseDTO> listar(Long usuarioId, String codigoAcesso);
     GrupoResponseDTO alterar(Long usuarioId, String codigoAcesso, Long id, GrupoPutRequestDTO grupoPutRequestDto);
     void remover(Long usuarioId, String codigoAcesso, Long id);
-    GrupoResponseDTO adicionarParticipante(Long usuarioId, String codigoAcesso, Long grupoId, ParticipantePostRequestDTO participantePostRequestDto);
     void removerParticipante(Long usuarioId, String codigoAcesso, Long grupoId, Long participanteId);
     Set<UsuarioResponseDTO> listarParticipantes(Long usuarioId, String codigoAcesso, Long grupoId);
     GrupoResponseDTO entrarEmGrupoPublico(Long grupoId, Long usuarioId, String codigoAcesso);

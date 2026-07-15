@@ -169,21 +169,6 @@ public class GrupoServiceImpl implements GrupoService {
             .toList();
     }
 
-    public GrupoResponseDTO adicionarParticipante(Long usuarioId, String codigoAcesso, Long grupoId, ParticipantePostRequestDTO participantePostRequestDto) {
-        Grupo grupo = grupoRepository.findById(grupoId).orElseThrow(GrupoNaoExisteException::new);
-        Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);
-        garantirOrganizador(grupo, usuarioLogado);
-
-        Usuario participanteParaAdicionar = usuarioRepository.findById(participantePostRequestDto.getUsuarioId())
-                .orElseThrow(UsuarioNaoExisteException::new);
-
-        validarEntradaGrupo(grupo, participanteParaAdicionar);
-
-        grupo.getParticipantes().add(participanteParaAdicionar);
-        grupoRepository.save(grupo);
-        return modelMapper.map(grupo, GrupoResponseDTO.class);
-    }
-
     public void removerParticipante(Long usuarioId, String codigoAcesso, Long grupoId, Long participanteId) {
         Grupo grupo = grupoRepository.findById(grupoId).orElseThrow(GrupoNaoExisteException::new);
         Usuario usuarioLogado = obterUsuarioValido(usuarioId, codigoAcesso);

@@ -94,17 +94,6 @@ public class GrupoController {
                 .build();
     }
 
-    @PostMapping("/{grupoId}/participantes")
-    public ResponseEntity<?> adicionarParticipante(
-            @RequestParam Long usuarioId,
-            @RequestParam String codigoAcesso,
-            @PathVariable Long grupoId,
-            @RequestBody @Valid ParticipantePostRequestDTO participantePostRequestDto) {
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(grupoService.adicionarParticipante(usuarioId, codigoAcesso, grupoId, participantePostRequestDto));
-    }
-
     @GetMapping("/{grupoId}/participantes")
     public ResponseEntity<?> listarParticipantes(
             @RequestParam Long usuarioId,
