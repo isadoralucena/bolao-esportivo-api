@@ -73,38 +73,38 @@ public class GrupoCriteriosDesempateControllerTest {
     @BeforeEach
     void setup() {
         organizador = usuarioRepository.save(Usuario.builder()
-                .nome("Organizador Teste")
-                .username("organizador")
-                .email("organizador@email.com")
-                .endereco("Rua A")
-                .codigo("111111")
-                .perfil(PerfilUsuario.PADRAO)
-                .build());
+            .nome("Organizador Teste")
+            .username("organizador")
+            .email("organizador@email.com")
+            .endereco("Rua A")
+            .codigo("111111")
+            .perfil(PerfilUsuario.PADRAO)
+            .build());
 
         outroUsuario = usuarioRepository.save(Usuario.builder()
-                .nome("Outro Usuario")
-                .username("outro")
-                .email("outro@email.com")
-                .endereco("Rua B")
-                .codigo("222222")
-                .perfil(PerfilUsuario.PADRAO)
-                .build());
+            .nome("Outro Usuario")
+            .username("outro")
+            .email("outro@email.com")
+            .endereco("Rua B")
+            .codigo("222222")
+            .perfil(PerfilUsuario.PADRAO)
+            .build());
 
         Campeonato campeonato = campeonatoRepository.save(Campeonato.builder()
-                .nome("Campeonato Teste")
-                .url("http://campeonato-teste.com")
-                .codigo("CAT001")
-                .ativo(true)
-                .build());
+            .nome("Campeonato Teste")
+            .url("http://campeonato-teste.com")
+            .codigo("CAT001")
+            .ativo(true)
+            .build());
 
         grupo = grupoRepository.save(Grupo.builder()
-                .nome("Grupo Teste")
-                .descricao("Grupo para testes")
-                .privacidade(PrivacidadeGrupo.PUBLICA)
-                .limiteParticipantes(10)
-                .campeonato(campeonato)
-                .organizador(organizador)
-                .build());
+            .nome("Grupo Teste")
+            .descricao("Grupo para testes")
+            .privacidade(PrivacidadeGrupo.PUBLICA)
+            .limiteParticipantes(10)
+            .campeonato(campeonato)
+            .organizador(organizador)
+            .build());
     }
 
     @AfterEach
@@ -123,14 +123,36 @@ public class GrupoCriteriosDesempateControllerTest {
         List<CriterioDesempate> criterios = new ArrayList<>();
         for (int i = 0; i < tipos.length; i++) {
             criterios.add(CriterioDesempate.builder()
-                    .grupo(grupo)
-                    .criterio(tipos[i])
-                    .prioridade(i + 1)
-                    .build());
+                .grupo(grupo)
+                .criterio(tipos[i])
+                .prioridade(i + 1)
+                .build());
         }
         grupo.getCriteriosDesempate().clear();
         grupo.getCriteriosDesempate().addAll(criterios);
         grupoRepository.save(grupo);
+    }
+
+    private GrupoResponseDTO reconfigurarCriterios(CriteriosDesempatePutRequestDTO dto) throws Exception {
+        String responseJsonString = driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
+                .contentType(MediaType.APPLICATION_JSON)
+                .param("usuarioId", organizador.getId().toString())
+                .param("codigoAcesso", organizador.getCodigo())
+                .content(objectMapper.writeValueAsString(dto)))
+            .andExpect(status().isOk())
+            .andDo(print())
+            .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+        return objectMapper.readValue(responseJsonString, GrupoResponseDTO.class);
+    }
+
+    private void assertOrdemEPrioridades(List<TipoCriterioDesempate> esperado,
+                                         List<CriterioDesempateResponseDTO> resultado) {
+        assertEquals(esperado.size(), resultado.size());
+        for (int i = 0; i < esperado.size(); i++) {
+            assertEquals(esperado.get(i), resultado.get(i).getCriterio());
+            assertEquals(i + 1, resultado.get(i).getPrioridade());
+        }
     }
 
     @Nested
@@ -138,59 +160,39 @@ public class GrupoCriteriosDesempateControllerTest {
     class configuracaoDeCriteriosDesempate {
 
         @Test
-        @DisplayName("Quando o organizador configura uma ordem válida de critérios")
+        @DisplayName("Configura os 4 critérios de desempate, persistindo a prioridade conforme a ordem enviada")
         void quandoOrganizadorConfiguraOrdemValida() throws Exception {
             CriteriosDesempatePutRequestDTO dto = CriteriosDesempatePutRequestDTO.builder()
-                    .criteriosDesempate(List.of(
-                            TipoCriterioDesempate.PLACAR_EXATO,
-                            TipoCriterioDesempate.ERRO,
-                            TipoCriterioDesempate.ACERTO_VENCEDOR,
-                            TipoCriterioDesempate.ACERTO_EMPATE))
-                    .build();
+                .criteriosDesempate(List.of(
+                    TipoCriterioDesempate.PLACAR_EXATO,
+                    TipoCriterioDesempate.ERRO,
+                    TipoCriterioDesempate.ACERTO_VENCEDOR,
+                    TipoCriterioDesempate.ACERTO_EMPATE))
+                .build();
 
-            String responseJsonString = driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("usuarioId", organizador.getId().toString())
-                            .param("codigoAcesso", organizador.getCodigo())
-                            .content(objectMapper.writeValueAsString(dto)))
-                    .andExpect(status().isOk())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
-
-            GrupoResponseDTO resultado = objectMapper.readValue(responseJsonString, GrupoResponseDTO.class);
+            GrupoResponseDTO resultado = reconfigurarCriterios(dto);
 
             assertNotNull(resultado.getCriteriosDesempate());
-            assertEquals(dto.getCriteriosDesempate().size(), resultado.getCriteriosDesempate().size());
-			for (int i = 0; i < dto.getCriteriosDesempate().size(); i++) {
-				assertEquals(dto.getCriteriosDesempate().get(i),
-						resultado.getCriteriosDesempate().get(i).getCriterio());
-
-				assertEquals(i + 1,
-						resultado.getCriteriosDesempate().get(i).getPrioridade());
-			}
+            assertOrdemEPrioridades(
+                dto.getCriteriosDesempate().stream().toList(),
+                resultado.getCriteriosDesempate());
         }
 
-		@Transactional
+        @Transactional
         @Test
-        @DisplayName("Quando o organizador reconfigura os critérios, a ordem antiga é totalmente substituída")
+        @DisplayName("Substitui todos os critérios por um conjunto totalmente novo, removendo os antigos")
         void quandoOrganizadorReconfiguraCriterios() throws Exception {
             configurarCriteriosDiretamente(grupo,
-                    TipoCriterioDesempate.ERRO,
-                    TipoCriterioDesempate.PLACAR_EXATO);
+                TipoCriterioDesempate.ERRO,
+                TipoCriterioDesempate.PLACAR_EXATO);
 
             CriteriosDesempatePutRequestDTO dto = CriteriosDesempatePutRequestDTO.builder()
-                    .criteriosDesempate(List.of(
-                            TipoCriterioDesempate.ACERTO_EMPATE,
-                            TipoCriterioDesempate.ACERTO_VENCEDOR))
-                    .build();
+                .criteriosDesempate(List.of(
+                    TipoCriterioDesempate.ACERTO_EMPATE,
+                    TipoCriterioDesempate.ACERTO_VENCEDOR))
+                .build();
 
-            driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("usuarioId", organizador.getId().toString())
-                            .param("codigoAcesso", organizador.getCodigo())
-                            .content(objectMapper.writeValueAsString(dto)))
-                    .andExpect(status().isOk())
-                    .andDo(print());
+            reconfigurarCriterios(dto);
 
             Grupo grupoAtualizado = grupoRepository.findById(grupo.getId()).orElseThrow();
 
@@ -198,29 +200,78 @@ public class GrupoCriteriosDesempateControllerTest {
             assertEquals(TipoCriterioDesempate.ACERTO_EMPATE, grupoAtualizado.getCriteriosDesempate().get(0).getCriterio());
             assertEquals(TipoCriterioDesempate.ACERTO_VENCEDOR, grupoAtualizado.getCriteriosDesempate().get(1).getCriterio());
             assertTrue(grupoAtualizado.getCriteriosDesempate().stream()
-                    .noneMatch(c -> c.getCriterio() == TipoCriterioDesempate.ERRO
-                            || c.getCriterio() == TipoCriterioDesempate.PLACAR_EXATO));
+                .noneMatch(c -> c.getCriterio() == TipoCriterioDesempate.ERRO
+                    || c.getCriterio() == TipoCriterioDesempate.PLACAR_EXATO));
+        }
+
+        @Transactional
+        @Test
+        @DisplayName("Troca a ordem de dois critérios já configurados, sem alterar o conjunto")
+        void quandoOrganizadorReordenaCriteriosComMesmoConjunto() throws Exception {
+            configurarCriteriosDiretamente(grupo,
+                TipoCriterioDesempate.PLACAR_EXATO,
+                TipoCriterioDesempate.ERRO);
+
+            CriteriosDesempatePutRequestDTO dto = CriteriosDesempatePutRequestDTO.builder()
+                .criteriosDesempate(List.of(
+                    TipoCriterioDesempate.ERRO,
+                    TipoCriterioDesempate.PLACAR_EXATO))
+                .build();
+
+            GrupoResponseDTO resultado = reconfigurarCriterios(dto);
+
+            assertOrdemEPrioridades(dto.getCriteriosDesempate(), resultado.getCriteriosDesempate());
+
+            Grupo grupoAtualizado = grupoRepository.findById(grupo.getId()).orElseThrow();
+            assertEquals(2, grupoAtualizado.getCriteriosDesempate().size());
+            assertEquals(TipoCriterioDesempate.ERRO, grupoAtualizado.getCriteriosDesempate().get(0).getCriterio());
+            assertEquals(1, grupoAtualizado.getCriteriosDesempate().get(0).getPrioridade());
+            assertEquals(TipoCriterioDesempate.PLACAR_EXATO, grupoAtualizado.getCriteriosDesempate().get(1).getCriterio());
+            assertEquals(2, grupoAtualizado.getCriteriosDesempate().get(1).getPrioridade());
+        }
+
+        @Transactional
+        @Test
+        @DisplayName("Reconfigura mantendo um critério existente e substituindo outro")
+        void quandoOrganizadorReconfiguraComInterseccaoParcial() throws Exception {
+            configurarCriteriosDiretamente(grupo,
+                TipoCriterioDesempate.PLACAR_EXATO,
+                TipoCriterioDesempate.ERRO);
+
+            CriteriosDesempatePutRequestDTO dto = CriteriosDesempatePutRequestDTO.builder()
+                .criteriosDesempate(List.of(
+                    TipoCriterioDesempate.ERRO,
+                    TipoCriterioDesempate.ACERTO_VENCEDOR))
+                .build();
+
+            GrupoResponseDTO resultado = reconfigurarCriterios(dto);
+
+            assertOrdemEPrioridades(dto.getCriteriosDesempate(), resultado.getCriteriosDesempate());
+
+            Grupo grupoAtualizado = grupoRepository.findById(grupo.getId()).orElseThrow();
+            assertTrue(grupoAtualizado.getCriteriosDesempate().stream()
+                .noneMatch(c -> c.getCriterio() == TipoCriterioDesempate.PLACAR_EXATO));
         }
 
         @Test
-        @DisplayName("Quando o organizador envia critérios repetidos")
+        @DisplayName("Rejeita a requisição quando o mesmo critério aparece mais de uma vez na lista")
         void quandoOrganizadorEnviaCriteriosRepetidos() throws Exception {
             CriteriosDesempatePutRequestDTO dto = CriteriosDesempatePutRequestDTO.builder()
-                    .criteriosDesempate(List.of(
-                            TipoCriterioDesempate.PLACAR_EXATO,
-                            TipoCriterioDesempate.PLACAR_EXATO,
-                            TipoCriterioDesempate.ACERTO_VENCEDOR,
-                            TipoCriterioDesempate.ACERTO_EMPATE))
-                    .build();
+                .criteriosDesempate(List.of(
+                    TipoCriterioDesempate.PLACAR_EXATO,
+                    TipoCriterioDesempate.PLACAR_EXATO,
+                    TipoCriterioDesempate.ACERTO_VENCEDOR,
+                    TipoCriterioDesempate.ACERTO_EMPATE))
+                .build();
 
             String responseJsonString = driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("usuarioId", organizador.getId().toString())
-                            .param("codigoAcesso", organizador.getCodigo())
-                            .content(objectMapper.writeValueAsString(dto)))
-                    .andExpect(status().isBadRequest())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("usuarioId", organizador.getId().toString())
+                    .param("codigoAcesso", organizador.getCodigo())
+                    .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andDo(print())
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
 
             CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
 
@@ -228,83 +279,46 @@ public class GrupoCriteriosDesempateControllerTest {
         }
 
         @Test
-        @DisplayName("Quando o organizador configura apenas um critério de desempate")
+        @DisplayName("Configura um único critério de desempate, que recebe prioridade 1")
         void quandoOrganizadorConfiguraUmCriterio() throws Exception {
             CriteriosDesempatePutRequestDTO dto = CriteriosDesempatePutRequestDTO.builder()
-                    .criteriosDesempate(List.of(TipoCriterioDesempate.PLACAR_EXATO))
-                    .build();
+                .criteriosDesempate(List.of(TipoCriterioDesempate.PLACAR_EXATO))
+                .build();
 
-            String responseJsonString = driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("usuarioId", organizador.getId().toString())
-                            .param("codigoAcesso", organizador.getCodigo())
-                            .content(objectMapper.writeValueAsString(dto)))
-                    .andExpect(status().isOk())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+            GrupoResponseDTO resultado = reconfigurarCriterios(dto);
 
-            GrupoResponseDTO resultado = objectMapper.readValue(responseJsonString, GrupoResponseDTO.class);
-
-            assertEquals(1, resultado.getCriteriosDesempate().size());
-			assertEquals(
-					TipoCriterioDesempate.PLACAR_EXATO,
-					resultado.getCriteriosDesempate().get(0).getCriterio()
-			);
-
-			assertEquals(
-					1,
-					resultado.getCriteriosDesempate().get(0).getPrioridade()
-			);
+            assertOrdemEPrioridades(dto.getCriteriosDesempate(), resultado.getCriteriosDesempate());
         }
 
         @Test
-        @DisplayName("Quando o organizador configura uma ordem parcial (2 de 4 critérios)")
+        @DisplayName("Configura apenas parte dos critérios disponíveis (2 de 4); somente os enviados são persistidos")
         void quandoOrganizadorConfiguraOrdemParcial() throws Exception {
             CriteriosDesempatePutRequestDTO dto = CriteriosDesempatePutRequestDTO.builder()
-                    .criteriosDesempate(List.of(
-                            TipoCriterioDesempate.ACERTO_EMPATE,
-                            TipoCriterioDesempate.ERRO))
-                    .build();
+                .criteriosDesempate(List.of(
+                    TipoCriterioDesempate.ACERTO_EMPATE,
+                    TipoCriterioDesempate.ERRO))
+                .build();
 
-            String responseJsonString = driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("usuarioId", organizador.getId().toString())
-                            .param("codigoAcesso", organizador.getCodigo())
-                            .content(objectMapper.writeValueAsString(dto)))
-                    .andExpect(status().isOk())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+            GrupoResponseDTO resultado = reconfigurarCriterios(dto);
 
-            GrupoResponseDTO resultado = objectMapper.readValue(responseJsonString, GrupoResponseDTO.class);
-            assertEquals(dto.getCriteriosDesempate().size(), resultado.getCriteriosDesempate().size());
-			for (int i = 0; i < dto.getCriteriosDesempate().size(); i++) {
-				assertEquals(
-						dto.getCriteriosDesempate().get(i),
-						resultado.getCriteriosDesempate().get(i).getCriterio()
-				);
-
-				assertEquals(
-						i + 1,
-						resultado.getCriteriosDesempate().get(i).getPrioridade()
-				);
-			}
+            assertOrdemEPrioridades(dto.getCriteriosDesempate(), resultado.getCriteriosDesempate());
         }
 
         @Test
-        @DisplayName("Quando o organizador envia uma lista vazia de critérios")
+        @DisplayName("Rejeita a requisição por validação quando a lista de critérios é vazia")
         void quandoOrganizadorEnviaListaVazia() throws Exception {
             CriteriosDesempatePutRequestDTO dto = CriteriosDesempatePutRequestDTO.builder()
-                    .criteriosDesempate(Collections.emptyList())
-                    .build();
+                .criteriosDesempate(Collections.emptyList())
+                .build();
 
             String responseJsonString = driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("usuarioId", organizador.getId().toString())
-                            .param("codigoAcesso", organizador.getCodigo())
-                            .content(objectMapper.writeValueAsString(dto)))
-                    .andExpect(status().isBadRequest())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("usuarioId", organizador.getId().toString())
+                    .param("codigoAcesso", organizador.getCodigo())
+                    .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andDo(print())
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
 
             CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
 
@@ -312,18 +326,18 @@ public class GrupoCriteriosDesempateControllerTest {
         }
 
         @Test
-        @DisplayName("Quando o organizador envia o campo de critérios nulo (ausente no corpo)")
+        @DisplayName("Rejeita a requisição por validação quando o campo de critérios está ausente no corpo")
         void quandoOrganizadorEnviaListaNula() throws Exception {
             String corpoSemCriterios = "{}";
 
             String responseJsonString = driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("usuarioId", organizador.getId().toString())
-                            .param("codigoAcesso", organizador.getCodigo())
-                            .content(corpoSemCriterios))
-                    .andExpect(status().isBadRequest())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("usuarioId", organizador.getId().toString())
+                    .param("codigoAcesso", organizador.getCodigo())
+                    .content(corpoSemCriterios))
+                .andExpect(status().isBadRequest())
+                .andDo(print())
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
 
             CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
 
@@ -331,25 +345,25 @@ public class GrupoCriteriosDesempateControllerTest {
         }
 
         @Transactional
-		@Test
-        @DisplayName("Quando um usuário que não é organizador tenta configurar os critérios")
+        @Test
+        @DisplayName("Nega acesso e não persiste nada quando um usuário não organizador tenta configurar os critérios")
         void quandoNaoOrganizadorTentaConfigurar() throws Exception {
             CriteriosDesempatePutRequestDTO dto = CriteriosDesempatePutRequestDTO.builder()
-                    .criteriosDesempate(List.of(
-                            TipoCriterioDesempate.PLACAR_EXATO,
-                            TipoCriterioDesempate.ERRO,
-                            TipoCriterioDesempate.ACERTO_VENCEDOR,
-                            TipoCriterioDesempate.ACERTO_EMPATE))
-                    .build();
+                .criteriosDesempate(List.of(
+                    TipoCriterioDesempate.PLACAR_EXATO,
+                    TipoCriterioDesempate.ERRO,
+                    TipoCriterioDesempate.ACERTO_VENCEDOR,
+                    TipoCriterioDesempate.ACERTO_EMPATE))
+                .build();
 
             String responseJsonString = driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("usuarioId", outroUsuario.getId().toString())
-                            .param("codigoAcesso", outroUsuario.getCodigo())
-                            .content(objectMapper.writeValueAsString(dto)))
-                    .andExpect(status().isBadRequest())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("usuarioId", outroUsuario.getId().toString())
+                    .param("codigoAcesso", outroUsuario.getCodigo())
+                    .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andDo(print())
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
 
             CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
 
@@ -359,84 +373,84 @@ public class GrupoCriteriosDesempateControllerTest {
         }
 
         @Test
-        @DisplayName("Quando o grupo informado não existe")
+        @DisplayName("Rejeita a configuração quando o grupo informado não existe")
         void quandoGrupoNaoExistePut() throws Exception {
             CriteriosDesempatePutRequestDTO dto = CriteriosDesempatePutRequestDTO.builder()
-                    .criteriosDesempate(List.of(TipoCriterioDesempate.PLACAR_EXATO))
-                    .build();
+                .criteriosDesempate(List.of(TipoCriterioDesempate.PLACAR_EXATO))
+                .build();
 
             Long idInexistente = 999999L;
 
             driver.perform(put(URI_GRUPOS + "/" + idInexistente + "/criterios-desempate")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("usuarioId", organizador.getId().toString())
-                            .param("codigoAcesso", organizador.getCodigo())
-                            .content(objectMapper.writeValueAsString(dto)))
-                    .andExpect(status().isBadRequest())
-                    .andDo(print());
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("usuarioId", organizador.getId().toString())
+                    .param("codigoAcesso", organizador.getCodigo())
+                    .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andDo(print());
         }
 
         @Test
-        @DisplayName("Quando o código de acesso informado é inválido")
+        @DisplayName("Rejeita a configuração quando o código de acesso informado é inválido")
         void quandoCodigoAcessoInvalidoPut() throws Exception {
             CriteriosDesempatePutRequestDTO dto = CriteriosDesempatePutRequestDTO.builder()
-                    .criteriosDesempate(List.of(TipoCriterioDesempate.PLACAR_EXATO))
-                    .build();
+                .criteriosDesempate(List.of(TipoCriterioDesempate.PLACAR_EXATO))
+                .build();
 
             driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("usuarioId", organizador.getId().toString())
-                            .param("codigoAcesso", "codigo-errado")
-                            .content(objectMapper.writeValueAsString(dto)))
-                    .andExpect(status().isBadRequest())
-                    .andDo(print());
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("usuarioId", organizador.getId().toString())
+                    .param("codigoAcesso", "codigo-errado")
+                    .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andDo(print());
         }
-        
-        @Test
-		@DisplayName("Quando o organizador envia um critério de desempate inválido (nulo)")
-		void quandoOrganizadorEnviaCriterioDesempateInvalido() throws Exception {
-			CriteriosDesempatePutRequestDTO dto = CriteriosDesempatePutRequestDTO.builder()
-					.criteriosDesempate(Arrays.asList(
-							TipoCriterioDesempate.PLACAR_EXATO,
-							null,
-							TipoCriterioDesempate.ACERTO_VENCEDOR))
-					.build();
-
-			String responseJsonString = driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
-							.contentType(MediaType.APPLICATION_JSON)
-							.param("usuarioId", organizador.getId().toString())
-							.param("codigoAcesso", organizador.getCodigo())
-							.content(objectMapper.writeValueAsString(dto)))
-					.andExpect(status().isBadRequest())
-					.andDo(print())
-					.andReturn()
-					.getResponse()
-					.getContentAsString(StandardCharsets.UTF_8);
-
-			CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
-
-			assertEquals(
-					"Os critérios de desempate devem conter ao menos 1 critério válido, sem repetição.",
-					resultado.getMessage()
-			);
-		}
 
         @Test
-        @DisplayName("Quando o usuário informado não existe")
+        @DisplayName("Rejeita a requisição por validação quando a lista de critérios contém um valor nulo")
+        void quandoOrganizadorEnviaCriterioDesempateInvalido() throws Exception {
+            CriteriosDesempatePutRequestDTO dto = CriteriosDesempatePutRequestDTO.builder()
+                .criteriosDesempate(Arrays.asList(
+                    TipoCriterioDesempate.PLACAR_EXATO,
+                    null,
+                    TipoCriterioDesempate.ACERTO_VENCEDOR))
+                .build();
+
+            String responseJsonString = driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("usuarioId", organizador.getId().toString())
+                    .param("codigoAcesso", organizador.getCodigo())
+                    .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andDo(print())
+                .andReturn()
+                .getResponse()
+                .getContentAsString(StandardCharsets.UTF_8);
+
+            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
+
+            assertEquals(
+                "Os critérios de desempate devem conter ao menos 1 critério válido, sem repetição.",
+                resultado.getMessage()
+            );
+        }
+
+        @Test
+        @DisplayName("Rejeita a configuração quando o usuário informado não existe")
         void quandoUsuarioNaoExistePut() throws Exception {
             CriteriosDesempatePutRequestDTO dto = CriteriosDesempatePutRequestDTO.builder()
-                    .criteriosDesempate(List.of(TipoCriterioDesempate.PLACAR_EXATO))
-                    .build();
+                .criteriosDesempate(List.of(TipoCriterioDesempate.PLACAR_EXATO))
+                .build();
 
             Long idInexistente = 999999L;
 
             driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("usuarioId", idInexistente.toString())
-                            .param("codigoAcesso", "111111")
-                            .content(objectMapper.writeValueAsString(dto)))
-                    .andExpect(status().isBadRequest())
-                    .andDo(print());
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("usuarioId", idInexistente.toString())
+                    .param("codigoAcesso", "111111")
+                    .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andDo(print());
         }
     }
 
@@ -445,68 +459,60 @@ public class GrupoCriteriosDesempateControllerTest {
     class consultaDeCriteriosDesempate {
 
         @Test
-        @DisplayName("Quando o organizador consulta os critérios já configurados")
+        @DisplayName("Retorna a ordem e as prioridades persistidas quando o organizador consulta os critérios já configurados")
         void quandoOrganizadorConsultaCriteriosConfigurados() throws Exception {
             configurarCriteriosDiretamente(grupo,
-                    TipoCriterioDesempate.ERRO,
-                    TipoCriterioDesempate.PLACAR_EXATO);
+                TipoCriterioDesempate.ERRO,
+                TipoCriterioDesempate.PLACAR_EXATO);
 
             String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
-                            .param("usuarioId", organizador.getId().toString())
-                            .param("codigoAcesso", organizador.getCodigo()))
-                    .andExpect(status().isOk())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+                    .param("usuarioId", organizador.getId().toString())
+                    .param("codigoAcesso", organizador.getCodigo()))
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
 
             List<CriterioDesempateResponseDTO> resultado = objectMapper.readValue(
-                    responseJsonString, new TypeReference<>() {});
+                responseJsonString, new TypeReference<>() {});
 
-            assertEquals(2, resultado.size());
-            assertEquals(TipoCriterioDesempate.ERRO, resultado.get(0).getCriterio());
-            assertEquals(1, resultado.get(0).getPrioridade());
-            assertEquals(TipoCriterioDesempate.PLACAR_EXATO, resultado.get(1).getCriterio());
-            assertEquals(2, resultado.get(1).getPrioridade());
+            assertOrdemEPrioridades(
+                List.of(TipoCriterioDesempate.ERRO, TipoCriterioDesempate.PLACAR_EXATO),
+                resultado);
         }
 
-		@Test
+        @Test
         @DisplayName("A prioridade retornada reflete o valor persistido, não apenas a posição na lista")
         void prioridadeRetornadaReflitoValorPersistido() throws Exception {
             configurarCriteriosDiretamente(grupo,
-                    TipoCriterioDesempate.ACERTO_VENCEDOR,
-                    TipoCriterioDesempate.ACERTO_EMPATE,
-                    TipoCriterioDesempate.ERRO);
+                TipoCriterioDesempate.ACERTO_VENCEDOR,
+                TipoCriterioDesempate.ACERTO_EMPATE,
+                TipoCriterioDesempate.ERRO);
 
             String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
-                            .param("usuarioId", organizador.getId().toString())
-                            .param("codigoAcesso", organizador.getCodigo()))
-                    .andExpect(status().isOk())
-                    .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+                    .param("usuarioId", organizador.getId().toString())
+                    .param("codigoAcesso", organizador.getCodigo()))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
 
             List<CriterioDesempateResponseDTO> resultado = objectMapper.readValue(
-                    responseJsonString, new TypeReference<>() {});
+                responseJsonString, new TypeReference<>() {});
 
-            assertEquals(3, resultado.size());
-			List<TipoCriterioDesempate> criteriosEsperados = List.of(
-					TipoCriterioDesempate.ACERTO_VENCEDOR,
-					TipoCriterioDesempate.ACERTO_EMPATE,
-					TipoCriterioDesempate.ERRO
-			);
-
-			for (int i = 0; i < criteriosEsperados.size(); i++) {
-				assertEquals(i + 1, resultado.get(i).getPrioridade());
-				assertEquals(criteriosEsperados.get(i), resultado.get(i).getCriterio());
-			}
-		}
+            assertOrdemEPrioridades(
+                List.of(TipoCriterioDesempate.ACERTO_VENCEDOR,
+                    TipoCriterioDesempate.ACERTO_EMPATE,
+                    TipoCriterioDesempate.ERRO),
+                resultado);
+        }
 
         @Test
         @DisplayName("Quando nenhum critério foi configurado ainda, a consulta retorna lista vazia")
         void quandoConsultaSemCriteriosConfigurados() throws Exception {
             String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
-                            .param("usuarioId", organizador.getId().toString())
-                            .param("codigoAcesso", organizador.getCodigo()))
-                    .andExpect(status().isOk())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+                    .param("usuarioId", organizador.getId().toString())
+                    .param("codigoAcesso", organizador.getCodigo()))
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
 
             List<CriterioDesempateResponseDTO> resultado = objectMapper.readValue(responseJsonString, new TypeReference<>() {});
 
@@ -514,37 +520,37 @@ public class GrupoCriteriosDesempateControllerTest {
         }
 
         @Test
-        @DisplayName("Quando um usuário que não é organizador consulta os critérios de um grupo público")
+        @DisplayName("Permite a consulta quando um usuário não organizador acessa os critérios de um grupo público")
         void quandoNaoOrganizadorConsultaGrupoPublico() throws Exception {
             configurarCriteriosDiretamente(grupo, TipoCriterioDesempate.PLACAR_EXATO);
 
             driver.perform(get(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
-                            .param("usuarioId", outroUsuario.getId().toString())
-                            .param("codigoAcesso", outroUsuario.getCodigo()))
-                    .andExpect(status().isOk())
-                    .andDo(print());
+                    .param("usuarioId", outroUsuario.getId().toString())
+                    .param("codigoAcesso", outroUsuario.getCodigo()))
+                .andExpect(status().isOk())
+                .andDo(print());
         }
 
         @Test
-        @DisplayName("Quando o grupo informado não existe")
+        @DisplayName("Rejeita a consulta quando o grupo informado não existe")
         void quandoGrupoNaoExisteGet() throws Exception {
             Long idInexistente = 999999L;
 
             driver.perform(get(URI_GRUPOS + "/" + idInexistente + "/criterios-desempate")
-                            .param("usuarioId", organizador.getId().toString())
-                            .param("codigoAcesso", organizador.getCodigo()))
-                    .andExpect(status().isBadRequest())
-                    .andDo(print());
+                    .param("usuarioId", organizador.getId().toString())
+                    .param("codigoAcesso", organizador.getCodigo()))
+                .andExpect(status().isBadRequest())
+                .andDo(print());
         }
 
         @Test
-        @DisplayName("Quando o código de acesso informado é inválido")
+        @DisplayName("Rejeita a consulta quando o código de acesso informado é inválido")
         void quandoCodigoAcessoInvalidoGet() throws Exception {
             driver.perform(get(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
-                            .param("usuarioId", organizador.getId().toString())
-                            .param("codigoAcesso", "codigo-errado"))
-                    .andExpect(status().isBadRequest())
-                    .andDo(print());
+                    .param("usuarioId", organizador.getId().toString())
+                    .param("codigoAcesso", "codigo-errado"))
+                .andExpect(status().isBadRequest())
+                .andDo(print());
         }
     }
 }
