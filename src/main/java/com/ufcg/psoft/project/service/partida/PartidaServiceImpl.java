@@ -114,7 +114,6 @@ public class PartidaServiceImpl implements PartidaService {
     }
 
     private PartidaResponseDTO salvarOuAtualizarPartida(Campeonato campeonato, Map<String, Object> match) {
-        // get
         Long codigoExterno = Long.valueOf(match.get("id").toString());
         Map<String, Object> homeTeam = (Map<String, Object>) match.get("homeTeam");
         Map<String, Object> awayTeam = (Map<String, Object>) match.get("awayTeam");
@@ -132,7 +131,6 @@ public class PartidaServiceImpl implements PartidaService {
         Integer golsMandanteAnterior = partida.getGolsMandante();
         Integer golsVisitanteAnterior = partida.getGolsVisitante();
 
-        // process
         if (fullTime != null) {
             if (fullTime.get("home") != null) {
                 partida.setGolsMandante((Integer) fullTime.get("home"));
@@ -146,9 +144,9 @@ public class PartidaServiceImpl implements PartidaService {
         PartidaStatus novoStatus = PartidaServiceImpl.converterStatus((String) match.get("status"));
         boolean mataMata = ehMataMata((String) match.get("stage"));
         boolean statusMudou = statusAnterior != novoStatus;
-        boolean placarMudou = !Objects.equals(golsMandanteAnterior, partida.getGolsMandante()) || !Objects.equals(golsVisitanteAnterior, partida.getGolsVisitante());
-        
-        // apply
+        boolean placarMudou = !Objects.equals(golsMandanteAnterior, partida.getGolsMandante()) ||
+                            !Objects.equals(golsVisitanteAnterior, partida.getGolsVisitante());
+
         partida.setMandante((String) homeTeam.get("name"));
         partida.setVisitante((String) awayTeam.get("name"));
 
@@ -161,13 +159,11 @@ public class PartidaServiceImpl implements PartidaService {
 
         partidaRepository.save(partida);
 
-        // placar pode mudar mesmo em partida finalizado devido o status AWARDED.
         boolean precisaAtualizarPontuacao = novoStatus == PartidaStatus.FINALIZADO && (statusMudou || placarMudou);
         if (precisaAtualizarPontuacao) {
             pontuacaoService.calcularPontuacoesAssociadasAPartida(partida.getId());
         }
 
-        // notify
         if (statusMudou) {
             if (novoStatus == PartidaStatus.ABERTO && statusAnterior == null) {
                 notificacaoService.notificarAberturaPalpites(partida);
