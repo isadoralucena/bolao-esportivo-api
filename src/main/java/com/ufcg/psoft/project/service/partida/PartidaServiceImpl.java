@@ -28,6 +28,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 
@@ -113,6 +114,7 @@ public class PartidaServiceImpl implements PartidaService {
     }
 
     private PartidaResponseDTO salvarOuAtualizarPartida(Campeonato campeonato, Map<String, Object> match) {
+        // get
         Long codigoExterno = Long.valueOf(match.get("id").toString());
         Map<String, Object> homeTeam = (Map<String, Object>) match.get("homeTeam");
         Map<String, Object> awayTeam = (Map<String, Object>) match.get("awayTeam");
@@ -126,11 +128,11 @@ public class PartidaServiceImpl implements PartidaService {
                         .codigoExterno(codigoExterno)
                         .build());
 
-        PartidaStatus statusAnterior = partida.getId() != null ? partida.getStatus() : null;
+        PartidaStatus statusAnterior = partida.getStatus();
+        Integer golsMandanteAnterior = partida.getGolsMandante();
+        Integer golsVisitanteAnterior = partida.getGolsVisitante();
 
-        partida.setMandante((String) homeTeam.get("name"));
-        partida.setVisitante((String) awayTeam.get("name"));
-
+        // process
         if (fullTime != null) {
             if (fullTime.get("home") != null) {
                 partida.setGolsMandante((Integer) fullTime.get("home"));
@@ -141,19 +143,32 @@ public class PartidaServiceImpl implements PartidaService {
         }
 
         String utcDate = (String) match.get("utcDate");
+        PartidaStatus novoStatus = PartidaServiceImpl.converterStatus((String) match.get("status"));
+        boolean mataMata = ehMataMata((String) match.get("stage"));
+        boolean statusMudou = statusAnterior != novoStatus;
+        boolean placarMudou = !Objects.equals(golsMandanteAnterior, partida.getGolsMandante()) || !Objects.equals(golsVisitanteAnterior, partida.getGolsVisitante());
+        
+        // apply
+        partida.setMandante((String) homeTeam.get("name"));
+        partida.setVisitante((String) awayTeam.get("name"));
+
         if (utcDate != null) {
             partida.setData(LocalDateTime.parse(utcDate, DateTimeFormatter.ISO_DATE_TIME));
         }
 
-        PartidaStatus novoStatus = PartidaServiceImpl.converterStatus((String) match.get("status"));
         partida.setStatus(novoStatus);
-
-        boolean mataMata = ehMataMata((String) match.get("stage"));
         partida.setMataMata(mataMata);
 
         partidaRepository.save(partida);
 
-        if (statusAnterior != novoStatus) {
+        // placar pode mudar mesmo em partida finalizado devido o status AWARDED.
+        boolean precisaAtualizarPontuacao = novoStatus == PartidaStatus.FINALIZADO && (statusMudou || placarMudou);
+        if (precisaAtualizarPontuacao) {
+            pontuacaoService.calcularPontuacoesAssociadasAPartida(partida.getId());
+        }
+
+        // notify
+        if (statusMudou) {
             if (novoStatus == PartidaStatus.ABERTO && statusAnterior == null) {
                 notificacaoService.notificarAberturaPalpites(partida);
             } else if (novoStatus == PartidaStatus.EM_ANDAMENTO) {
@@ -164,10 +179,6 @@ public class PartidaServiceImpl implements PartidaService {
             } else if (novoStatus == PartidaStatus.FINALIZADO) {
                 notificacaoService.notificarPartidaFinalizada(partida);
             }
-        }
-
-        if (novoStatus == PartidaStatus.FINALIZADO) {
-            pontuacaoService.calcularPontuacoesAssociadasAPartida(partida.getId());
         }
 
         return new PartidaResponseDTO(partida);
