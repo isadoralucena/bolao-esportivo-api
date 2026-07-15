@@ -22,6 +22,7 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -91,7 +92,7 @@ public class PartidaServiceImplTest {
                             "homeTeam": {"name": "Time A"},
                             "awayTeam": {"name": "Time B"},
                             "score": {"fullTime": {"home": 2, "away": 1}},
-                            "utcDate": "2026-07-05T18:00:00",
+                            "utcDate": "2026-07-05T18:00:00Z",
                             "status": "FINISHED",
                             "matchday": 3
                         }
@@ -292,7 +293,7 @@ public class PartidaServiceImplTest {
                 {
                     "matches": [
                         {"id": 30, "homeTeam": {"name": "A"}, "awayTeam": {"name": "B"},
-                         "status": "SCHEDULED", "utcDate": "2026-07-06T18:00:00"}
+                         "status": "SCHEDULED", "utcDate": "2026-07-06T18:00:00Z"}
                     ]
                 }
                 """;
@@ -321,7 +322,7 @@ public class PartidaServiceImplTest {
                 {
                     "matches": [
                         {"id": 40, "homeTeam": {"name": "C"}, "awayTeam": {"name": "D"},
-                         "status": "LIVE", "utcDate": "2026-07-06T18:00:00"}
+                         "status": "LIVE", "utcDate": "2026-07-06T18:00:00Z"}
                     ]
                 }
                 """;
@@ -359,7 +360,7 @@ public class PartidaServiceImplTest {
                     "matches": [
                         {"id": 50, "homeTeam": {"name": "E"}, "awayTeam": {"name": "F"},
                          "score": {"fullTime": {"home": 2, "away": 1}},
-                         "status": "FINISHED", "utcDate": "2026-07-06T18:00:00"}
+                         "status": "FINISHED", "utcDate": "2026-07-06T18:00:00Z"}
                     ]
                 }
                 """;
@@ -397,7 +398,7 @@ public class PartidaServiceImplTest {
                     "matches": [
                         {"id": 60, "homeTeam": {"name": "G"}, "awayTeam": {"name": "H"},
                          "score": {"fullTime": {"home": 1, "away": 0}},
-                         "status": "FINISHED", "utcDate": "2026-07-06T18:00:00"}
+                         "status": "FINISHED", "utcDate": "2026-07-06T18:00:00Z"}
                     ]
                 }
                 """;
@@ -487,7 +488,7 @@ public class PartidaServiceImplTest {
                     "matches": [
                         {"id": 70, "homeTeam": {"name": "X"}, "awayTeam": {"name": "Y"},
                          "score": {"fullTime": {"home": 2, "away": 1}},
-                         "status": "FINISHED", "utcDate": "2026-07-06T18:00:00",
+                         "status": "FINISHED", "utcDate": "2026-07-06T18:00:00Z",
                          "stage": "FINAL"}
                     ]
                 }
@@ -517,7 +518,7 @@ public class PartidaServiceImplTest {
                     "matches": [
                         {"id": 80, "homeTeam": {"name": "Z"}, "awayTeam": {"name": "W"},
                          "score": {"fullTime": {"home": 1, "away": 0}},
-                         "status": "FINISHED", "utcDate": "2026-07-06T18:00:00"}
+                         "status": "FINISHED", "utcDate": "2026-07-06T18:00:00Z"}
                     ]
                 }
                 """;
@@ -545,7 +546,7 @@ public class PartidaServiceImplTest {
                 {
                     "matches": [
                         {"id": 90, "homeTeam": {"name": "M"}, "awayTeam": {"name": "N"},
-                         "status": "SCHEDULED", "utcDate": "2026-07-07T18:00:00"}
+                         "status": "SCHEDULED", "utcDate": "2026-07-07T18:00:00Z"}
                     ]
                 }
                 """;
@@ -578,7 +579,7 @@ public class PartidaServiceImplTest {
                     "matches": [
                         {"id": 95, "homeTeam": {"name": "O"}, "awayTeam": {"name": "P"},
                          "score": {"fullTime": {"home": 1, "away": 0}},
-                         "status": "FINISHED", "utcDate": "2026-07-06T18:00:00",
+                         "status": "FINISHED", "utcDate": "2026-07-06T18:00:00Z",
                          "stage": "GROUP_STAGE"}
                     ]
                 }
@@ -593,5 +594,79 @@ public class PartidaServiceImplTest {
 
         List<PartidaResponseDTO> resultado = partidaService.sincronizarPartidas(campeonato);
         assertFalse(resultado.get(0).isMataMata());
+    }
+
+    @Nested
+    @DisplayName("Status efetivo por grupo")
+    class StatusEfetivoPorGrupo {
+
+        private Grupo grupo;
+        private Partida.PartidaBuilder partidaBuilder;
+        private LocalDateTime dataPartida;
+
+        @BeforeEach
+        void setup() {
+            grupo = Grupo.builder()
+                    .id(1L).nome("Grupo Teste")
+                    .minutosAberturaPalpites(120)
+                    .minutosFechamentoPalpites(30)
+                    .build();
+            dataPartida = LocalDateTime.of(2026, 7, 15, 18, 0);
+            partidaBuilder = Partida.builder()
+                    .id(100L).codigoExterno(1L)
+                    .mandante("A").visitante("B")
+                    .data(dataPartida);
+        }
+
+        @Test
+        @DisplayName("EM_ANDAMENTO retorna EM_ANDAMENTO independente da janela")
+        void quandoStatusEmAndamentoIgnoraJanela() {
+            Partida partida = partidaBuilder.status(PartidaStatus.EM_ANDAMENTO).build();
+            assertEquals(PartidaStatus.EM_ANDAMENTO,
+                    partida.statusEfetivoParaGrupo(grupo, dataPartida));
+        }
+
+        @Test
+        @DisplayName("FINALIZADO retorna FINALIZADO independente da janela")
+        void quandoStatusFinalizadoIgnoraJanela() {
+            Partida partida = partidaBuilder.status(PartidaStatus.FINALIZADO).build();
+            assertEquals(PartidaStatus.FINALIZADO,
+                    partida.statusEfetivoParaGrupo(grupo, dataPartida));
+        }
+
+        @Test
+        @DisplayName("CANCELADO retorna CANCELADO independente da janela")
+        void quandoStatusCanceladoIgnoraJanela() {
+            Partida partida = partidaBuilder.status(PartidaStatus.CANCELADO).build();
+            assertEquals(PartidaStatus.CANCELADO,
+                    partida.statusEfetivoParaGrupo(grupo, dataPartida));
+        }
+
+        @Test
+        @DisplayName("ABERTO dentro da janela retorna ABERTO")
+        void quandoAbertoDentroDaJanela() {
+            Partida partida = partidaBuilder.status(PartidaStatus.ABERTO).build();
+            LocalDateTime agora = LocalDateTime.of(2026, 7, 15, 17, 0);
+            assertEquals(PartidaStatus.ABERTO,
+                    partida.statusEfetivoParaGrupo(grupo, agora));
+        }
+
+        @Test
+        @DisplayName("ABERTO antes da abertura retorna EM_ANDAMENTO")
+        void quandoAbertoAntesDaAbertura() {
+            Partida partida = partidaBuilder.status(PartidaStatus.ABERTO).build();
+            LocalDateTime agora = LocalDateTime.of(2026, 7, 15, 15, 0);
+            assertEquals(PartidaStatus.EM_ANDAMENTO,
+                    partida.statusEfetivoParaGrupo(grupo, agora));
+        }
+
+        @Test
+        @DisplayName("ABERTO depois do fechamento retorna EM_ANDAMENTO")
+        void quandoAbertoDepoisDoFechamento() {
+            Partida partida = partidaBuilder.status(PartidaStatus.ABERTO).build();
+            LocalDateTime agora = LocalDateTime.of(2026, 7, 15, 17, 45);
+            assertEquals(PartidaStatus.EM_ANDAMENTO,
+                    partida.statusEfetivoParaGrupo(grupo, agora));
+        }
     }
 }
