@@ -23,8 +23,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -62,8 +63,9 @@ public class PartidaServiceImpl implements PartidaService {
     public List<PartidaResponseDTO> listarPorGrupo(Long grupoId) {
         Grupo grupo = grupoRepository.findById(grupoId)
                 .orElseThrow(GrupoNaoExisteException::new);
+        LocalDateTime agora = LocalDateTime.now(ZoneOffset.UTC);
         return partidaRepository.findByCampeonatoId(grupo.getCampeonato().getId()).stream()
-                .map(PartidaResponseDTO::new)
+                .map(p -> new PartidaResponseDTO(p, grupo, agora))
                 .collect(Collectors.toList());
     }
 
@@ -151,7 +153,7 @@ public class PartidaServiceImpl implements PartidaService {
         partida.setVisitante((String) awayTeam.get("name"));
 
         if (utcDate != null) {
-            partida.setData(LocalDateTime.parse(utcDate, DateTimeFormatter.ISO_DATE_TIME));
+            partida.setData(LocalDateTime.ofInstant(Instant.parse(utcDate), ZoneOffset.UTC));
         }
 
         partida.setStatus(novoStatus);
