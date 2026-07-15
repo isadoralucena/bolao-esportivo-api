@@ -139,6 +139,19 @@ public class PontuacaoServiceImpl implements PontuacaoService {
         Grupo grupo = grupoRepository.findById(grupoId)
                 .orElseThrow(GrupoNaoExisteException::new);
 
+        // captura posicoes antes do recalculo (apenas se houver participantes)
+        Map<Long, Integer> posicoesAntes = new HashMap<>();
+        if (!grupo.getParticipantes().isEmpty()) {
+            List<PontuacaoParticipanteResponseDTO> rankingAntes = new ArrayList<>();
+            for (Usuario participante : grupo.getParticipantes()) {
+                rankingAntes.add(calcularPontuacaoParticipanteNoGrupo(grupoId, participante.getId()));
+            }
+            rankingAntes.sort((a, b) -> Integer.compare(b.getPontuacao(), a.getPontuacao()));
+            for (int i = 0; i < rankingAntes.size(); i++) {
+                posicoesAntes.put(rankingAntes.get(i).getUsuarioId(), i + 1);
+            }
+        }
+
         List<Palpite> palpites = palpiteRepository.findByGrupoId(grupo.getId());
         List<PontuacaoPalpite> pontuacoes = new ArrayList<>();
 
@@ -161,6 +174,11 @@ public class PontuacaoServiceImpl implements PontuacaoService {
         }
 
         List<PontuacaoPalpite> pontuacoesSalvas = pontuacaoPalpiteRepository.saveAll(pontuacoes);
+
+        if (!grupo.getParticipantes().isEmpty()) {
+            notificacaoService.notificarAtualizacaoRanking(grupoId);
+            notificarMudancasDePosicao(grupoId, posicoesAntes);
+        }
 
         return pontuacoesSalvas.stream()
                 .map(PontuacaoPalpiteResponseDTO::new)
