@@ -18,6 +18,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -320,7 +321,7 @@ public class GrupoRegrasPalpitesControllerTest {
                     .codigoExterno(1L)
                     .mandante("Time A")
                     .visitante("Time B")
-                    .data(LocalDateTime.now().plusMinutes(60))
+                    .data(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(60))
                     .status(PartidaStatus.ABERTO)
                     .build());
 
@@ -343,7 +344,7 @@ public class GrupoRegrasPalpitesControllerTest {
                     .codigoExterno(2L)
                     .mandante("Time C")
                     .visitante("Time D")
-                    .data(LocalDateTime.now().plusMinutes(180))
+                    .data(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(180))
                     .status(PartidaStatus.ABERTO)
                     .build());
 
@@ -369,7 +370,7 @@ public class GrupoRegrasPalpitesControllerTest {
                     .codigoExterno(3L)
                     .mandante("Time E")
                     .visitante("Time F")
-                    .data(LocalDateTime.now().plusMinutes(180))
+                    .data(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(180))
                     .status(PartidaStatus.ABERTO)
                     .build());
 

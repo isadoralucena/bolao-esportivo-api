@@ -12,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -94,7 +95,7 @@ public class PalpiteEdicaoControllerTests {
                 .codigoExterno(1L)
                 .mandante("Time A")
                 .visitante("Time B")
-                .data(LocalDateTime.now().plusMinutes(60))
+                .data(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(60))
                 .status(PartidaStatus.ABERTO)
                 .build());
 
@@ -103,7 +104,7 @@ public class PalpiteEdicaoControllerTests {
                 .codigoExterno(2L)
                 .mandante("Time C")
                 .visitante("Time D")
-                .data(LocalDateTime.now().minusDays(1))
+                .data(LocalDateTime.now(ZoneOffset.UTC).minusDays(1))
                 .status(PartidaStatus.FINALIZADO)
                 .build());
 
@@ -113,7 +114,7 @@ public class PalpiteEdicaoControllerTests {
                 .grupo(grupo)
                 .golsMandante(2)
                 .golsVisitante(1)
-                .data(LocalDateTime.now())
+                .data(LocalDateTime.now(ZoneOffset.UTC))
                 .build());
 
         dto = PalpitePostPutRequestDTO.builder()
@@ -196,7 +197,7 @@ public class PalpiteEdicaoControllerTests {
                     .grupo(grupo)
                     .golsMandante(1)
                     .golsVisitante(1)
-                    .data(LocalDateTime.now())
+                    .data(LocalDateTime.now(ZoneOffset.UTC))
                     .build());
 
             mockMvc.perform(put("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
@@ -277,7 +278,7 @@ public class PalpiteEdicaoControllerTests {
                     .grupo(grupo)
                     .golsMandante(1)
                     .golsVisitante(1)
-                    .data(LocalDateTime.now())
+                    .data(LocalDateTime.now(ZoneOffset.UTC))
                     .build());
 
             mockMvc.perform(delete("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
