@@ -1,13 +1,12 @@
 package com.ufcg.psoft.project.service.ranking;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.ufcg.psoft.project.comparator.ComparadorCriterioDesempateBuilder;
 import com.ufcg.psoft.project.dto.pontuacao.PontuacaoParticipanteResponseDTO;
 import com.ufcg.psoft.project.dto.ranking.RankingEntryResponseDTO;
 import com.ufcg.psoft.project.dto.ranking.RankingResponseDTO;
@@ -33,6 +32,9 @@ public class RankingServiceImpl implements RankingService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private RankingCalculator rankingCalculator;
 
     private static final List<TipoCriterioDesempate> CRITERIOS_DESEMPATE = List.of(
         TipoCriterioDesempate.PLACAR_EXATO,
@@ -63,35 +65,17 @@ public class RankingServiceImpl implements RankingService {
     }
 
     private RankingResponseDTO construirRanking(Long grupoId, List<PontuacaoParticipanteResponseDTO> pontuacoesParticipantes, List<TipoCriterioDesempate> criteriosDesempate) {
-        Comparator<PontuacaoParticipanteResponseDTO> comparator = 
-            Comparator.comparingInt(PontuacaoParticipanteResponseDTO::getPontuacao).reversed()
-                .thenComparing(ComparadorCriterioDesempateBuilder.builder()
-                    .comCriterios(criteriosDesempate)
-                    .build());
+        List<PontuacaoParticipanteResponseDTO> pontuacoesOrdenadas = rankingCalculator.ordenar(pontuacoesParticipantes, criteriosDesempate);
+        Map<Long, Integer> posicoes = rankingCalculator.calcularPosicoes(pontuacoesParticipantes, criteriosDesempate);
+        List<RankingEntryResponseDTO> rankingEntries = new ArrayList<>();
 
-        List<PontuacaoParticipanteResponseDTO> pontuacoesOrdenadas = pontuacoesParticipantes.stream()
-            .sorted(comparator)
-            .toList();
-
-        List<RankingEntryResponseDTO> rankingEntrys = new ArrayList<>();
-
-        int posicao = 0;
-        PontuacaoParticipanteResponseDTO participanteAnterior = null;
-
-        for (int i = 0; i < pontuacoesOrdenadas.size(); i++) {
-            PontuacaoParticipanteResponseDTO participanteAtual = pontuacoesOrdenadas.get(i);
-            
-            if (participanteAnterior == null || comparator.compare(participanteAnterior, participanteAtual) != 0) {
-                posicao = i + 1;
-            }
-
-            rankingEntrys.add(new RankingEntryResponseDTO(posicao, participanteAtual));
-            participanteAnterior = participanteAtual;
+        for (PontuacaoParticipanteResponseDTO participante : pontuacoesOrdenadas) {
+            Integer posicao = posicoes.get(participante.getUsuarioId());
+            rankingEntries.add(new RankingEntryResponseDTO(posicao, participante));
         }
 
-        return new RankingResponseDTO(grupoId, rankingEntrys);
+        return new RankingResponseDTO(grupoId, rankingEntries);
     }
-
     private Usuario obterUsuario(Long usuarioId, String codigoAcesso) {
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(UsuarioNaoExisteException::new);

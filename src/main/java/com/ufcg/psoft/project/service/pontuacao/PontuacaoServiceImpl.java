@@ -17,11 +17,13 @@ import com.ufcg.psoft.project.exception.PartidaNaoExisteException;
 import com.ufcg.psoft.project.exception.UsuarioNaoExisteException;
 import com.ufcg.psoft.project.exception.UsuarioNaoParticipanteException;
 import com.ufcg.psoft.project.model.PontuacaoPalpite;
+import com.ufcg.psoft.project.model.CriterioDesempate;
 import com.ufcg.psoft.project.model.Grupo;
 import com.ufcg.psoft.project.model.Palpite;
 import com.ufcg.psoft.project.model.Partida;
 import com.ufcg.psoft.project.model.PartidaStatus;
 import com.ufcg.psoft.project.model.RegraPontuacao;
+import com.ufcg.psoft.project.model.TipoCriterioDesempate;
 import com.ufcg.psoft.project.model.TipoRegraPontuacao;
 import com.ufcg.psoft.project.model.Usuario;
 import com.ufcg.psoft.project.repository.PontuacaoPalpiteRepository;
@@ -31,6 +33,7 @@ import com.ufcg.psoft.project.repository.PartidaRepository;
 import com.ufcg.psoft.project.repository.RegraPontuacaoRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
 import com.ufcg.psoft.project.service.notificacao.NotificacaoService;
+import com.ufcg.psoft.project.service.ranking.RankingCalculator;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
@@ -60,6 +63,9 @@ public class PontuacaoServiceImpl implements PontuacaoService {
 
     @Autowired
     private List<Pontuador> pontuadoresDisponiveis;
+
+    @Autowired
+    private RankingCalculator rankingCalculator;
 
     private Map<TipoRegraPontuacao, Pontuador> pontuadores;
 
@@ -95,24 +101,14 @@ public class PontuacaoServiceImpl implements PontuacaoService {
                 .distinct()
                 .forEach(grupoId -> {
                     Grupo grupo = grupoRepository.findById(grupoId).orElseThrow(GrupoNaoExisteException::new);
-                    List<PontuacaoParticipanteResponseDTO> rankingAntes = new ArrayList<>();
-                    for (Usuario participante : grupo.getParticipantes()) {
-                        rankingAntes.add(calcularPontuacaoParticipanteNoGrupo(grupoId, participante.getId()));
-                    }
-                    rankingAntes.sort((a, b) -> Integer.compare(b.getPontuacao(), a.getPontuacao()));
-                    Map<Long, Integer> posicoes = new HashMap<>();
-                    for (int i = 0; i < rankingAntes.size(); i++) {
-                        posicoes.put(rankingAntes.get(i).getUsuarioId(), i + 1);
-                    }
-                    posicoesAntesPorGrupo.put(grupoId, posicoes);
+                    posicoesAntesPorGrupo.put(grupoId, calcularPosicoesDoGrupo(grupo));
                 });
 
         List<PontuacaoPalpite> pontuacoes = new ArrayList<>();
         for (Palpite palpite : palpites) {
             PontuacaoPalpite pontuacaoPalpite = buscarOuCriarPontuacaoPalpite(palpite);
             atualizarAcertos(pontuacaoPalpite);
-            int pontuacao = calcularPontuacaoPalpite(pontuacaoPalpite);
-            pontuacaoPalpite.setPontuacao(pontuacao);
+            calcularPontuacaoPalpite(pontuacaoPalpite);
             pontuacoes.add(pontuacaoPalpite);
         }
 
@@ -139,18 +135,8 @@ public class PontuacaoServiceImpl implements PontuacaoService {
         Grupo grupo = grupoRepository.findById(grupoId)
                 .orElseThrow(GrupoNaoExisteException::new);
 
-        // captura posicoes antes do recalculo (apenas se houver participantes)
-        Map<Long, Integer> posicoesAntes = new HashMap<>();
-        if (!grupo.getParticipantes().isEmpty()) {
-            List<PontuacaoParticipanteResponseDTO> rankingAntes = new ArrayList<>();
-            for (Usuario participante : grupo.getParticipantes()) {
-                rankingAntes.add(calcularPontuacaoParticipanteNoGrupo(grupoId, participante.getId()));
-            }
-            rankingAntes.sort((a, b) -> Integer.compare(b.getPontuacao(), a.getPontuacao()));
-            for (int i = 0; i < rankingAntes.size(); i++) {
-                posicoesAntes.put(rankingAntes.get(i).getUsuarioId(), i + 1);
-            }
-        }
+        // captura posicoes antes do recalculo
+        Map<Long, Integer> posicoesAntes = calcularPosicoesDoGrupo(grupo);
 
         List<Palpite> palpites = palpiteRepository.findByGrupoId(grupo.getId());
         List<PontuacaoPalpite> pontuacoes = new ArrayList<>();
@@ -164,11 +150,8 @@ public class PontuacaoServiceImpl implements PontuacaoService {
                 }
 
                 PontuacaoPalpite pontuacaoPalpite = buscarOuCriarPontuacaoPalpite(palpite);
-
                 atualizarAcertos(pontuacaoPalpite);
-                int pontuacao = calcularPontuacaoPalpite(pontuacaoPalpite);
-                pontuacaoPalpite.setPontuacao(pontuacao);
-
+                calcularPontuacaoPalpite(pontuacaoPalpite);
                 pontuacoes.add(pontuacaoPalpite);
             }
         }
@@ -328,6 +311,8 @@ public class PontuacaoServiceImpl implements PontuacaoService {
             total += calcularPontuacaoDaRegra(pontuacaoPalpite, regra);
         }
 
+        pontuacaoPalpite.setPontuacao(total);
+
         return total;
     }
 
@@ -352,25 +337,33 @@ public class PontuacaoServiceImpl implements PontuacaoService {
 
         Grupo grupo = grupoRepository.findById(grupoId).orElseThrow(GrupoNaoExisteException::new);
 
-        List<PontuacaoParticipanteResponseDTO> rankingAtual = new ArrayList<>();
+        Map<Long, Integer> posicoesAtuais = calcularPosicoesDoGrupo(grupo);
+
         for (Usuario participante : grupo.getParticipantes()) {
-            rankingAtual.add(calcularPontuacaoParticipanteNoGrupo(grupoId, participante.getId()));
-        }
-        rankingAtual.sort((a, b) -> Integer.compare(b.getPontuacao(), a.getPontuacao()));
+            Integer posicaoAnterior = posicoesAntes.get(participante.getId());
+            Integer posicaoAtual = posicoesAtuais.get(participante.getId());
 
-        for (int i = 0; i < rankingAtual.size(); i++) {
-            PontuacaoParticipanteResponseDTO participante = rankingAtual.get(i);
-            int posicaoAtual = i + 1;
-            Integer posicaoAnterior = posicoesAntes.get(participante.getUsuarioId());
+            if (posicaoAnterior != null && posicaoAtual != null && !posicaoAnterior.equals(posicaoAtual)) {
 
-            if (posicaoAnterior != null && posicaoAnterior != posicaoAtual) {
                 notificacaoService.notificarMudancaDePosicao(
-                        participante.getUsuarioNome(),
+                        participante.getNome(),
                         posicaoAnterior,
                         posicaoAtual,
                         grupoId
                 );
             }
         }
+    }
+
+    private Map<Long, Integer> calcularPosicoesDoGrupo(Grupo grupo) {
+        List<PontuacaoParticipanteResponseDTO> pontuacoes = grupo.getParticipantes().stream()
+                .map(participante -> calcularPontuacaoParticipanteNoGrupo(grupo.getId(), participante.getId()))
+                .toList();
+
+        List<TipoCriterioDesempate> criteriosDesempate = grupo.getCriteriosDesempate().stream()
+                .map(CriterioDesempate::getCriterio)
+                .toList();
+
+        return rankingCalculator.calcularPosicoes(pontuacoes, criteriosDesempate);
     }
 }

@@ -2,7 +2,6 @@ package com.ufcg.psoft.project.service;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -24,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -48,6 +48,7 @@ import com.ufcg.psoft.project.repository.UsuarioRepository;
 import com.ufcg.psoft.project.service.notificacao.NotificacaoService;
 import com.ufcg.psoft.project.service.pontuacao.PontuacaoServiceImpl;
 import com.ufcg.psoft.project.service.pontuacao.Pontuador;
+import com.ufcg.psoft.project.service.ranking.RankingCalculator;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -74,6 +75,9 @@ class PontuacaoServiceImplTest {
 
     @Mock
     private NotificacaoService notificacaoService;
+
+    @Spy
+    private RankingCalculator rankingCalculator = new RankingCalculator();
 
     @InjectMocks
     private PontuacaoServiceImpl pontuacaoService;
