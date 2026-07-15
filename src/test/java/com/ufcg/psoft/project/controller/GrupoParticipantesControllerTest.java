@@ -2,7 +2,6 @@ package com.ufcg.psoft.project.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -15,11 +14,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ufcg.psoft.project.dto.grupo.ParticipantePostRequestDTO;
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.model.Grupo;
 import com.ufcg.psoft.project.model.PrivacidadeGrupo;
@@ -54,8 +51,6 @@ public class GrupoParticipantesControllerTest {
     Usuario participante;
     Campeonato campeonato;
     Grupo grupo;
- 
-    ParticipantePostRequestDTO participantePostRequestDTO;
  
     @BeforeEach
     void setup() {
@@ -93,9 +88,6 @@ public class GrupoParticipantesControllerTest {
                 .build();
         grupo.getParticipantes().add(organizador);
         grupo = grupoRepository.save(grupo);
- 
-        participantePostRequestDTO = new ParticipantePostRequestDTO();
-        participantePostRequestDTO.setUsuarioId(participante.getId());
     }
  
     @AfterEach
