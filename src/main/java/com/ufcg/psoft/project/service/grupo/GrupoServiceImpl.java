@@ -1,10 +1,6 @@
 package com.ufcg.psoft.project.service.grupo;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
@@ -140,15 +136,27 @@ public class GrupoServiceImpl implements GrupoService {
 
         List<TipoCriterioDesempate> criterios = criteriosDesempatePutRequestDTO.getCriteriosDesempate();
         validarCriteriosDesempate(criterios);
+        Map<TipoCriterioDesempate, CriterioDesempate> existentesPorTipo = grupo.getCriteriosDesempate().stream()
+            .collect(Collectors.toMap(CriterioDesempate::getCriterio, c -> c));
+
         List<CriterioDesempate> novosCriterios = new ArrayList<>();
         for (int i = 0; i < criterios.size(); i++) {
-            novosCriterios.add(
-                CriterioDesempate.builder()
+            TipoCriterioDesempate tipo = criterios.get(i);
+            int novaPrioridade = i + 1;
+
+            CriterioDesempate existente = existentesPorTipo.remove(tipo);
+            if (existente != null) {
+                existente.setPrioridade(novaPrioridade);
+                novosCriterios.add(existente);
+            } else {
+                novosCriterios.add(
+                    CriterioDesempate.builder()
                         .grupo(grupo)
-                        .criterio(criterios.get(i))
-                        .prioridade(i + 1)
+                        .criterio(tipo)
+                        .prioridade(novaPrioridade)
                         .build()
-            );
+                );
+            }
         }
 
         grupo.getCriteriosDesempate().clear();
