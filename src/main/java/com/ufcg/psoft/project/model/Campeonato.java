@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Data
 @Builder
@@ -33,4 +35,7 @@ public class Campeonato {
 	@JsonProperty("ativo")
 	@Builder.Default
 	private Boolean ativo = false;
+
+    @JsonProperty("ultimaSincronizacao")
+    private LocalDateTime ultimaSincronizacao;
 }

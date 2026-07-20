@@ -13,4 +13,5 @@ public interface CampeonatoRepository extends JpaRepository<Campeonato, Long> {
 	Optional<Campeonato> findByCodigoIgnoreCase(String codigo);
 	Optional<Campeonato> findByCodigo(String codigo);
 	List<Campeonato> findByNomeContaining(String nome);
+    List<Campeonato> findByAtivoTrue();
 }

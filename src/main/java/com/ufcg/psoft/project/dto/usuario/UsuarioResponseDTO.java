@@ -19,28 +19,21 @@ import lombok.NoArgsConstructor;
 public class UsuarioResponseDTO {
 
     @JsonProperty("id")
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     @JsonProperty("nome")
-    @NotBlank(message = "Nome obrigatorio")
     private String nome;
 
     @JsonProperty("email")
-    @NotBlank(message = "Email obrigatorio")
     private String email;
 
     @JsonProperty("username")
-    @NotBlank(message = "Username obrigatorio")
     private String username;
 
     @JsonProperty("endereco")
-    @NotBlank(message = "Endereco obrigatorio")
     private String endereco;
 
     @JsonProperty("perfil")
-    @NotBlank(message = "Perfil obrigatorio")
     private PerfilUsuario perfil;
 
     public UsuarioResponseDTO(Usuario usuario) {
