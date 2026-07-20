@@ -1,9 +1,7 @@
 package com.ufcg.psoft.project.dto.convite;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.ufcg.psoft.project.model.Grupo;
 import com.ufcg.psoft.project.model.StatusConvite;
-import com.ufcg.psoft.project.model.Usuario;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
