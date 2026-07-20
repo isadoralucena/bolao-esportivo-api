@@ -1,9 +1,8 @@
-package com.ufcg.psoft.project.dto;
+package com.ufcg.psoft.project.dto.campeonato;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,18 +12,20 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UsuarioPostPutRequestDTO {
+public class CampeonatoPostPutRequestDTO {
 
     @JsonProperty("nome")
     @NotBlank(message = "Nome obrigatorio")
     private String nome;
 
-    @JsonProperty("endereco")
-    @NotBlank(message = "Endereco obrigatorio")
-    private String endereco;
+    @JsonProperty("url")
+    @NotBlank(message = "url obrigatoria")
+    private String url;
 
     @JsonProperty("codigo")
-    @NotNull(message = "Codigo de acesso obrigatorio")
-    @Pattern(regexp = "^\\d{6}$", message = "Codigo de acesso deve ter exatamente 6 digitos numericos")
+    @NotNull(message = "Codigo de time obrigatorio")
     private String codigo;
+
+    @JsonProperty("ativo")
+    private Boolean ativo;
 }

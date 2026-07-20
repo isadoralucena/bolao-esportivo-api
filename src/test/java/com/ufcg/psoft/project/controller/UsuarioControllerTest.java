@@ -3,8 +3,8 @@ package com.ufcg.psoft.project.controller;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.ufcg.psoft.project.dto.UsuarioPostPutRequestDTO;
-import com.ufcg.psoft.project.dto.UsuarioResponseDTO;
+import com.ufcg.psoft.project.dto.usuario.UsuarioPostPutRequestDTO;
+import com.ufcg.psoft.project.dto.usuario.UsuarioResponseDTO;
 import com.ufcg.psoft.project.exception.CustomErrorType;
 import com.ufcg.psoft.project.model.Usuario;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
@@ -22,19 +22,25 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import java.nio.charset.StandardCharsets;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("Testes do controlador de Usuários")
-public class UsuarioControllerTests {
+public class UsuarioControllerTest {
 
-    final String URI_USUARIOS = "/usuario";
+    final String URI_USUARIOS = "/usuarios";
 
     @Autowired
     MockMvc driver;
 
     @Autowired
     UsuarioRepository usuarioRepository;
+    
+    @Autowired
+    WebApplicationContext webApplicationContext;
 
     ObjectMapper objectMapper = new ObjectMapper();
 
@@ -43,21 +49,29 @@ public class UsuarioControllerTests {
     UsuarioPostPutRequestDTO usuarioPostPutRequestDTO;
 
     @BeforeEach
-    void setup() {
-        // Object Mapper suporte para LocalDateTime
+        void setup() {
+        driver = MockMvcBuilders
+                .webAppContextSetup(webApplicationContext)
+                .defaultResponseCharacterEncoding(StandardCharsets.UTF_8)
+                .build();
+
         objectMapper.registerModule(new JavaTimeModule());
         usuario = usuarioRepository.save(Usuario.builder()
                 .nome("usuario Um da Silva")
                 .endereco("Rua dos Testes, 123")
+                .username("usuarioUmDaSilva")
+                .email("usuario.um.da.silva@email.com")
                 .codigo("123456")
                 .build()
         );
         usuarioPostPutRequestDTO = UsuarioPostPutRequestDTO.builder()
                 .nome(usuario.getNome())
                 .endereco(usuario.getEndereco())
+                .username(usuario.getUsername())
+                .email(usuario.getEmail())
                 .codigo(usuario.getCodigo())
                 .build();
-    }
+        }
 
     @AfterEach
     void tearDown() {
@@ -330,6 +344,193 @@ public class UsuarioControllerTests {
     }
 
     @Nested
+    @DisplayName("Conjunto de casos de verificação do email")
+    class usuarioVerificacaoEmail {
+        @Test
+        @DisplayName("Quando criamos usuario com email nulo")
+        void quandoCriamosUsuarioComEmailNulo() throws Exception {
+            // Arrange
+            usuarioPostPutRequestDTO.setEmail(null);
+
+            // Act
+            String responseJsonString = driver.perform(post(URI_USUARIOS)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
+                    .andExpect(status().isBadRequest())
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString();
+
+            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
+
+            // Assert
+            assertAll(
+                    () -> assertEquals("Erros de validacao encontrados", resultado.getMessage()),
+                    () -> assertTrue(resultado.getErrors().contains("Email obrigatorio"))
+            );
+        }
+
+        @Test
+        @DisplayName("Quando criamos usuario com email vazio")
+        void quandoCriamosUsuarioComEmailVazio() throws Exception {
+            // Arrange
+            usuarioPostPutRequestDTO.setEmail("");
+
+            // Act
+            String responseJsonString = driver.perform(post(URI_USUARIOS)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
+                    .andExpect(status().isBadRequest())
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString();
+
+            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
+
+            // Assert
+            assertAll(
+                    () -> assertEquals("Erros de validacao encontrados", resultado.getMessage()),
+                    () -> assertTrue(resultado.getErrors().contains("Email obrigatorio"))
+            );
+        }
+
+        @Test
+        @DisplayName("Quando criamos usuario com email invalido")
+        void quandoCriamosUsuarioComEmailInvalido() throws Exception {
+            // Arrange
+            usuarioPostPutRequestDTO.setEmail("email-invalido");
+
+            // Act
+            String responseJsonString = driver.perform(post(URI_USUARIOS)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
+                    .andExpect(status().isBadRequest())
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString();
+
+            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
+
+            // Assert
+            assertAll(
+                    () -> assertEquals("Erros de validacao encontrados", resultado.getMessage()),
+                    () -> assertTrue(resultado.getErrors().contains("Email invalido"))
+            );
+        }
+
+        @Test
+        @DisplayName("Quando alteramos usuario usando email de outro usuario")
+        void quandoAlteramosUsuarioComEmailDuplicado() throws Exception {
+            // Arrange
+            Usuario outroUsuario = usuarioRepository.save(Usuario.builder()
+                    .nome("usuario Dois Almeida")
+                    .endereco("Rua dos Testes, 456")
+                    .username("usuarioDoisAlmeida")
+                    .email("usuario.dois.almeida@email.com")
+                    .codigo("654321")
+                    .build());
+
+            usuarioPostPutRequestDTO.setEmail(outroUsuario.getEmail());
+
+            // Act
+            String responseJsonString = driver.perform(put(URI_USUARIOS + "/" + usuario.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("codigo", usuario.getCodigo())
+                        .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
+                    .andExpect(status().isBadRequest())
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString();
+
+            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
+
+            // Assert
+            assertAll(
+                    () -> assertEquals("Já existe outro usuário com esse email cadastrado!", resultado.getMessage())
+            );
+        }
+    }
+
+    @Nested
+    @DisplayName("Conjunto de casos de verificação do perfil")
+    class usuarioVerificacaoPerfil {
+        @Test
+        @DisplayName("Quando criamos um usuário, ele deve ter o perfil padrão")
+        void quandoCriamosUsuarioEleTemPerfilPadrao() throws Exception {
+            // Arrange
+            UsuarioPostPutRequestDTO novoUsuarioDTO = UsuarioPostPutRequestDTO.builder()
+                    .nome("usuario Dois Almeida")
+                    .endereco("Rua dos Testes, 456")
+                    .username("usuarioDoisAlmeida")
+                    .email("usuario.dois.almeida@email.com")
+                    .codigo("654321")
+                    .build();
+
+            // Act
+            String responseJsonString = driver.perform(post(URI_USUARIOS)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(novoUsuarioDTO)))
+                    .andExpect(status().isCreated())
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString();
+
+            UsuarioResponseDTO resultado = objectMapper.readValue(responseJsonString, UsuarioResponseDTO.class);
+
+            // Assert
+            assertAll(
+                    () -> assertNotNull(resultado.getId()),
+                    () -> assertEquals("PADRAO", resultado.getPerfil().toString())
+            );
+        }
+    }
+
+    @Nested
+    @DisplayName("Conjunto de casos de verificação do username")
+    class usuarioVerificacaoUsername {
+        @Test
+        @DisplayName("Quando criamos usuario com username nulo")
+        void quandoCriamosUsuarioComUsernameNulo() throws Exception {
+            // Arrange
+            usuarioPostPutRequestDTO.setUsername(null);
+
+            // Act
+            String responseJsonString = driver.perform(post(URI_USUARIOS)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
+                    .andExpect(status().isBadRequest())
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString();
+
+            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
+
+            // Assert
+            assertAll(
+                    () -> assertEquals("Erros de validacao encontrados", resultado.getMessage()),
+                    () -> assertTrue(resultado.getErrors().contains("Username obrigatorio"))
+            );
+        }
+
+        @Test
+        @DisplayName("Quando criamos usuario com username vazio")
+        void quandoCriamosUsuarioComUsernameVazio() throws Exception {
+            // Arrange
+            usuarioPostPutRequestDTO.setUsername("");
+
+            // Act
+            String responseJsonString = driver.perform(post(URI_USUARIOS)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
+                    .andExpect(status().isBadRequest())
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString();
+
+            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
+
+            // Assert
+            assertAll(
+                    () -> assertEquals("Erros de validacao encontrados", resultado.getMessage()),
+                    () -> assertTrue(resultado.getErrors().contains("Username obrigatorio"))
+            );
+        }
+    }
+
+    @Nested
     @DisplayName("Conjunto de casos de verificação dos fluxos básicos API Rest")
     class usuarioVerificacaoFluxosBasicosApiRest {
 
@@ -340,11 +541,15 @@ public class UsuarioControllerTests {
             // Vamos ter 3 usuarios no banco
             Usuario usuario1 = usuario.builder()
                     .nome("usuario Dois Almeida")
+                    .username("user2")
+                    .email("user2@email.com")
                     .endereco("Av. da Pits A, 100")
                     .codigo("246810")
                     .build();
             Usuario usuario2 = usuario.builder()
                     .nome("usuario Três Lima")
+                    .username("user3")
+                    .email("user3@email.com")
                     .endereco("Distrito dos Testadores, 200")
                     .codigo("135790")
                     .build();
@@ -408,7 +613,7 @@ public class UsuarioControllerTests {
 
             // Assert
             assertAll(
-                    () -> assertEquals("O Usuario consultado nao existe!", resultado.getMessage())
+                    () -> assertEquals("O usuário consultado não existe!", resultado.getMessage())
             );
         }
 
@@ -416,12 +621,18 @@ public class UsuarioControllerTests {
         @DisplayName("Quando criamos um novo usuario com dados válidos")
         void quandoCriarusuarioValido() throws Exception {
             // Arrange
-            // nenhuma necessidade além do setup()
+            UsuarioPostPutRequestDTO novoUsuarioDTO = UsuarioPostPutRequestDTO.builder()
+                            .nome("usuario Dois Almeida")
+                            .endereco("Rua Nova, 456")
+                            .username("usuarioDoisAlmeida")
+                            .email("usuario.dois.almeida@email.com")
+                            .codigo("654321")
+                            .build();
 
             // Act
             String responseJsonString = driver.perform(post(URI_USUARIOS)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
+                            .content(objectMapper.writeValueAsString(novoUsuarioDTO)))
                     .andExpect(status().isCreated()) // Codigo 201
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -431,7 +642,7 @@ public class UsuarioControllerTests {
             // Assert
             assertAll(
                     () -> assertNotNull(resultado.getId()),
-                    () -> assertEquals(usuarioPostPutRequestDTO.getNome(), resultado.getNome())
+                    () -> assertEquals(novoUsuarioDTO.getNome(), resultado.getNome())
             );
 
         }
@@ -479,7 +690,7 @@ public class UsuarioControllerTests {
 
             // Assert
             assertAll(
-                    () -> assertEquals("O Usuario consultado nao existe!", resultado.getMessage())
+                    () -> assertEquals("O usuário consultado não existe!", resultado.getMessage())
             );
         }
 
@@ -502,7 +713,7 @@ public class UsuarioControllerTests {
 
             // Assert
             assertAll(
-                    () -> assertEquals("Codigo de acesso invalido!", resultado.getMessage())
+                    () -> assertEquals("Código de acesso inválido!", resultado.getMessage())
             );
         }
 
@@ -542,7 +753,7 @@ public class UsuarioControllerTests {
 
             // Assert
             assertAll(
-                    () -> assertEquals("O Usuario consultado nao existe!", resultado.getMessage())
+                    () -> assertEquals("O usuário consultado não existe!", resultado.getMessage())
             );
         }
 
@@ -564,7 +775,7 @@ public class UsuarioControllerTests {
 
             // Assert
             assertAll(
-                    () -> assertEquals("Codigo de acesso invalido!", resultado.getMessage())
+                    () -> assertEquals("Código de acesso inválido!", resultado.getMessage())
             );
         }
     }

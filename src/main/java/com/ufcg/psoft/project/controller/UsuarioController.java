@@ -1,6 +1,6 @@
 package com.ufcg.psoft.project.controller;
 
-import com.ufcg.psoft.project.dto.UsuarioPostPutRequestDTO;
+import com.ufcg.psoft.project.dto.usuario.UsuarioPostPutRequestDTO;
 import com.ufcg.psoft.project.service.usuario.UsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(
-        value = "/usuario",
+        value = "/usuarios",
         produces = MediaType.APPLICATION_JSON_VALUE
 )
 public class UsuarioController {
