@@ -29,9 +29,9 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import com.ufcg.psoft.project.exception.GrupoNaoExisteException;
-import com.ufcg.psoft.project.exception.UsuarioNaoExisteException;
-import com.ufcg.psoft.project.exception.UsuarioNaoParticipanteException;
+import com.ufcg.psoft.project.exception.grupo.GrupoNaoExisteException;
+import com.ufcg.psoft.project.exception.usuario.UsuarioNaoExisteException;
+import com.ufcg.psoft.project.exception.usuario.UsuarioNaoParticipanteException;
 import com.ufcg.psoft.project.model.Grupo;
 import com.ufcg.psoft.project.model.Palpite;
 import com.ufcg.psoft.project.model.Partida;

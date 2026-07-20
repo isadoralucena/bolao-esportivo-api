@@ -25,7 +25,7 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
 import com.ufcg.psoft.project.dto.campeonato.ClassificacaoCampeonatoResponseDTO;
-import com.ufcg.psoft.project.exception.ClassificacaoCampeonatoSyncException;
+import com.ufcg.psoft.project.exception.campeonato.ClassificacaoCampeonatoSyncException;
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.repository.ClassificacaoCampeonatoRepository;

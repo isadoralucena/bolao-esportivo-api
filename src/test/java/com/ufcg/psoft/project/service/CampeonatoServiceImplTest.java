@@ -26,8 +26,8 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
 import com.ufcg.psoft.project.dto.campeonato.CampeonatoResponseDTO;
-import com.ufcg.psoft.project.exception.CampeonatoSyncException;
 import com.ufcg.psoft.project.exception.CodigoDeAcessoInvalidoException;
+import com.ufcg.psoft.project.exception.campeonato.CampeonatoSyncException;
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.model.Usuario;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
