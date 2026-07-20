@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ufcg.psoft.project.dto.grupo.GrupoPostRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.GrupoPutRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.ParticipantePostRequestDTO;
+import com.ufcg.psoft.project.dto.grupo.RegraPontuacaoPostPutRequestDTO;
+import com.ufcg.psoft.project.dto.palpite.RegrasPalpitesRequestDTO;
 import com.ufcg.psoft.project.service.grupo.GrupoService;
 
 import jakarta.validation.Valid;
@@ -117,12 +119,57 @@ public class GrupoController {
     }
 
     @PostMapping("/{grupoId}/entrar")
-        public ResponseEntity<?> entrarEmGrupoPublico(
+    public ResponseEntity<?> entrarEmGrupoPublico(
                 @RequestParam Long usuarioId,
                 @RequestParam String codigoAcesso,
                 @PathVariable Long grupoId) {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(grupoService.entrarEmGrupoPublico(grupoId, usuarioId, codigoAcesso));
+    
+	}
+
+	@PostMapping("/{grupoId}/regras-pontuacao")
+	public ResponseEntity<?> inserirRegraPontuacao(
+			@RequestParam Long usuarioId,
+			@RequestParam String codigoAcesso,
+			@PathVariable Long grupoId,
+			@RequestBody @Valid RegraPontuacaoPostPutRequestDTO regraPontuacaoPostPutRequestDto) {
+		return ResponseEntity
+				.status(HttpStatus.CREATED)
+				.body(grupoService.inserirRegraPontuacao(usuarioId, codigoAcesso, grupoId, regraPontuacaoPostPutRequestDto));
+	}
+
+	@GetMapping("/{grupoId}/regras-pontuacao")
+	public ResponseEntity<?> listarRegrasPontuacao(
+			@RequestParam Long usuarioId,
+			@RequestParam String codigoAcesso,
+			@PathVariable Long grupoId) {
+		return ResponseEntity
+				.status(HttpStatus.OK)
+				.body(grupoService.listarRegrasPontuacao(usuarioId, codigoAcesso, grupoId));
+	}
+
+	@DeleteMapping("/{grupoId}/regras-pontuacao/{regraId}")
+	public ResponseEntity<?> removerRegraPontuacao(
+			@RequestParam Long usuarioId,
+			@RequestParam String codigoAcesso,
+			@PathVariable Long grupoId,
+			@PathVariable Long regraId) {
+		grupoService.removerRegraPontuacao(usuarioId, codigoAcesso, grupoId, regraId);
+		return ResponseEntity
+				.status(HttpStatus.NO_CONTENT)
+				.build();
+	}
+
+        @PutMapping("/{grupoId}/regras-palpites")
+        public ResponseEntity<?> configurarRegrasPalpites(
+                @PathVariable Long grupoId,
+                @RequestParam Long usuarioId,
+                @RequestParam String codigo,
+                @RequestBody @Valid RegrasPalpitesRequestDTO regrasPalpitesRequestDTO) {
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(grupoService.configurarRegrasPalpites(grupoId, usuarioId, codigo, regrasPalpitesRequestDTO));
         }
 }

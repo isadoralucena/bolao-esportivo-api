@@ -4,9 +4,11 @@ import java.util.*;
 
 import com.ufcg.psoft.project.dto.campeonato.CampeonatoPostPutRequestDTO;
 import com.ufcg.psoft.project.dto.campeonato.CampeonatoResponseDTO;
+import com.ufcg.psoft.project.model.Campeonato;
 
 public interface CampeonatoService {
-	List<CampeonatoResponseDTO> sincronizar(Long userId, String codigo);
+    CampeonatoResponseDTO sincronizarCampeonato(Long campeonatoId, Long usuarioId, String codigo);
+    CampeonatoResponseDTO sincronizarCampeonato(Campeonato campeonato);
 
 	CampeonatoResponseDTO criar(Long userId, String codigo, CampeonatoPostPutRequestDTO campeonatoPostPutRequestDTO);
 	void remover(Long userId, String codigo, Long id);

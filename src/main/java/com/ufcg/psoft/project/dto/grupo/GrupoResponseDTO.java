@@ -1,6 +1,5 @@
 package com.ufcg.psoft.project.dto.grupo;
 
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -44,6 +43,12 @@ public class GrupoResponseDTO {
     @JsonProperty("participantes")
     private Set<UsuarioResponseDTO> participantes;
 
+    @JsonProperty("minutosAberturaPalpite")
+    private Integer minutosAberturaPalpite;
+
+    @JsonProperty("minutosFechamentoPalpite")
+    private Integer minutosFechamentoPalpite;
+
     public GrupoResponseDTO(Grupo grupo) {
         this.id = grupo.getId();
         this.nome = grupo.getNome();
@@ -55,5 +60,7 @@ public class GrupoResponseDTO {
                 .collect(Collectors.toSet());
         this.privacidade = grupo.getPrivacidade();
         this.limiteParticipantes = grupo.getLimiteParticipantes();
+        this.minutosAberturaPalpite = grupo.getMinutosAberturaPalpites();
+        this.minutosFechamentoPalpite = grupo.getMinutosFechamentoPalpites();
     }
 }

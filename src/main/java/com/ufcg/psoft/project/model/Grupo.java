@@ -54,4 +54,22 @@ public class Grupo {
     )
 	@Builder.Default
     private Set<Usuario> participantes = new HashSet<>();
+
+	@OneToMany(mappedBy = "grupo", cascade = CascadeType.ALL, orphanRemoval = true)
+	@Builder.Default
+	private Set<RegraPontuacao> regrasPontuacao = new HashSet<>();
+
+	@JsonProperty("minutosAberturaPalpite")
+	@Column(nullable = false)
+	@Builder.Default
+	private Integer minutosAberturaPalpites = 120;
+
+	@JsonProperty("minutosFechamentoPalpite")
+	@Column(nullable = false)
+	@Builder.Default
+	private Integer minutosFechamentoPalpites = 0;
+
+	public JanelaDePalpites getJanelaDePalpites() {
+    	return new JanelaDePalpites(this.minutosAberturaPalpites, this.minutosFechamentoPalpites);
+	}
 }
