@@ -26,6 +26,7 @@ import com.ufcg.psoft.project.repository.ConviteRepository;
 import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
 import com.ufcg.psoft.project.service.grupo.GrupoService;
+import com.ufcg.psoft.project.service.grupo.participante.GrupoParticipanteService;
 
 @Service
 public class ConviteServicelmpl implements ConviteService {
@@ -40,7 +41,7 @@ public class ConviteServicelmpl implements ConviteService {
     private UsuarioRepository usuarioRepository;
 
     @Autowired
-    private GrupoService grupoService;
+    private GrupoParticipanteService grupoParticipanteService;
 
     @Override
     public ConviteResponseDTO criar(String codigoAcessoOrganizador, ConvitePostPutRequestDTO convitePostPutRequestDTO) {
@@ -106,7 +107,7 @@ public class ConviteServicelmpl implements ConviteService {
         validarUsuário(convidado, codigoAcesso);
 
         Grupo grupo = convite.getGrupo();
-        grupoService.validarEntradaGrupo(grupo, convidado);
+        grupoParticipanteService.validarEntradaGrupo(grupo, convidado);
 
         grupo.getParticipantes().add(convidado);
         convite.setStatus(StatusConvite.ACEITO);

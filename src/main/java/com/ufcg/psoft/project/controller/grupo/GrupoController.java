@@ -1,4 +1,4 @@
-package com.ufcg.psoft.project.controller;
+package com.ufcg.psoft.project.controller.grupo;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +16,9 @@ import com.ufcg.psoft.project.dto.grupo.GrupoPutRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.RegraPontuacaoPostPutRequestDTO;
 import com.ufcg.psoft.project.dto.palpite.RegrasPalpitesRequestDTO;
 import com.ufcg.psoft.project.service.grupo.GrupoService;
+import com.ufcg.psoft.project.service.grupo.desempate.CriterioDesempateService;
+import com.ufcg.psoft.project.service.grupo.participante.GrupoParticipanteService;
+import com.ufcg.psoft.project.service.grupo.pontuacao.RegraPontuacaoService;
 import com.ufcg.psoft.project.service.pontuacao.PontuacaoService;
 import com.ufcg.psoft.project.service.ranking.RankingService;
 
@@ -34,10 +37,8 @@ import org.springframework.http.ResponseEntity;
 public class GrupoController {
     @Autowired
     GrupoService grupoService;
-
     @Autowired
     private PontuacaoService pontuacaoService;
-
     @Autowired
     private RankingService rankingService;
 
@@ -93,94 +94,7 @@ public class GrupoController {
                 .build();
     }
 
-    @GetMapping("/{grupoId}/participantes")
-    public ResponseEntity<?> listarParticipantes(
-            @RequestParam Long usuarioId,
-            @RequestParam String codigoAcesso,
-            @PathVariable Long grupoId) {
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(grupoService.listarParticipantes(usuarioId, codigoAcesso, grupoId));
-    }
-
-    @DeleteMapping("/{grupoId}/participantes/{participanteId}")
-    public ResponseEntity<?> removerParticipante(
-            @RequestParam Long usuarioId,
-            @RequestParam String codigoAcesso,
-            @PathVariable Long grupoId,
-            @PathVariable Long participanteId) {
-        grupoService.removerParticipante(usuarioId, codigoAcesso, grupoId, participanteId);
-        return ResponseEntity
-                .status(HttpStatus.NO_CONTENT)
-                .build();
-    }
-
-    @PostMapping("/{grupoId}/entrar")
-    public ResponseEntity<?> entrarEmGrupoPublico(
-                @RequestParam Long usuarioId,
-                @RequestParam String codigoAcesso,
-                @PathVariable Long grupoId) {
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(grupoService.entrarEmGrupoPublico(grupoId, usuarioId, codigoAcesso));
-    
-	}
-
-	@PostMapping("/{grupoId}/regras-pontuacao")
-	public ResponseEntity<?> inserirRegraPontuacao(
-			@RequestParam Long usuarioId,
-			@RequestParam String codigoAcesso,
-			@PathVariable Long grupoId,
-			@RequestBody @Valid RegraPontuacaoPostPutRequestDTO regraPontuacaoPostPutRequestDto) {
-		return ResponseEntity
-				.status(HttpStatus.CREATED)
-				.body(grupoService.inserirRegraPontuacao(usuarioId, codigoAcesso, grupoId, regraPontuacaoPostPutRequestDto));
-	}
-
-	@GetMapping("/{grupoId}/regras-pontuacao")
-	public ResponseEntity<?> listarRegrasPontuacao(
-			@RequestParam Long usuarioId,
-			@RequestParam String codigoAcesso,
-			@PathVariable Long grupoId) {
-		return ResponseEntity
-				.status(HttpStatus.OK)
-				.body(grupoService.listarRegrasPontuacao(usuarioId, codigoAcesso, grupoId));
-	}
-
-	@DeleteMapping("/{grupoId}/regras-pontuacao/{regraId}")
-	public ResponseEntity<?> removerRegraPontuacao(
-			@RequestParam Long usuarioId,
-			@RequestParam String codigoAcesso,
-			@PathVariable Long grupoId,
-			@PathVariable Long regraId) {
-		grupoService.removerRegraPontuacao(usuarioId, codigoAcesso, grupoId, regraId);
-		return ResponseEntity
-				.status(HttpStatus.NO_CONTENT)
-				.build();
-	}
-
-	@PutMapping("/{grupoId}/criterios-desempate")
-	public ResponseEntity<?> configurarCriteriosDesempate(
-					@RequestParam Long usuarioId,
-					@RequestParam String codigoAcesso,
-					@PathVariable Long grupoId,
-					@RequestBody @Valid CriteriosDesempatePutRequestDTO criteriosDesempatePutRequestDTO) {
-			return ResponseEntity
-							.status(HttpStatus.OK)
-							.body(grupoService.configurarCriteriosDesempate(grupoId, usuarioId, codigoAcesso, criteriosDesempatePutRequestDTO));
-	}
-
-	@GetMapping("/{grupoId}/criterios-desempate")
-	public ResponseEntity<?> listarCriteriosDesempate(
-					@RequestParam Long usuarioId,
-					@RequestParam String codigoAcesso,
-					@PathVariable Long grupoId) {
-			return ResponseEntity
-							.status(HttpStatus.OK)
-							.body(grupoService.listarCriteriosDesempate(usuarioId, codigoAcesso, grupoId));
-	}
-
-    @PutMapping("/{grupoId}/regras-palpites")
+	@PutMapping("/{grupoId}/regras-palpites")
     public ResponseEntity<?> configurarRegrasPalpites(
             @PathVariable Long grupoId,
             @RequestParam Long usuarioId,
