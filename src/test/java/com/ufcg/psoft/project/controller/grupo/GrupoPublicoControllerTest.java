@@ -1,4 +1,4 @@
-package com.ufcg.psoft.project.controller;
+package com.ufcg.psoft.project.controller.grupo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;

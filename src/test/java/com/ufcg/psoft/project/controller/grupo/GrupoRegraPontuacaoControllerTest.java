@@ -1,4 +1,4 @@
-package com.ufcg.psoft.project.controller;
+package com.ufcg.psoft.project.controller.grupo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ufcg.psoft.project.dto.grupo.RegraPontuacaoPostPutRequestDTO;

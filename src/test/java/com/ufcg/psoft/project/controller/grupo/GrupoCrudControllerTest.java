@@ -1,4 +1,4 @@
-package com.ufcg.psoft.project.controller;
+package com.ufcg.psoft.project.controller.grupo;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
