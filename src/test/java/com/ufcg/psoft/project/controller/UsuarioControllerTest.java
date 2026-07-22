@@ -5,8 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.ufcg.psoft.project.dto.usuario.UsuarioPostPutRequestDTO;
 import com.ufcg.psoft.project.dto.usuario.UsuarioResponseDTO;
+import com.ufcg.psoft.project.dto.usuario.PromocaoPremiumResponseDTO;
 import com.ufcg.psoft.project.exception.CustomErrorType;
+import com.ufcg.psoft.project.model.PromocaoPremium;
 import com.ufcg.psoft.project.model.Usuario;
+import com.ufcg.psoft.project.repository.PromocaoPremiumRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +41,10 @@ public class UsuarioControllerTest {
 
     @Autowired
     UsuarioRepository usuarioRepository;
-    
+
+    @Autowired
+    PromocaoPremiumRepository promocaoPremiumRepository;
+
     @Autowired
     WebApplicationContext webApplicationContext;
 
@@ -862,6 +868,80 @@ public class UsuarioControllerTest {
             assertAll(
                     () -> assertEquals("Código de acesso inválido!", resultado.getMessage())
             );
+        }
+    }
+
+    @Nested
+    @DisplayName("Conjunto de casos de verificação da promoção Premium")
+    class usuarioVerificacaoPromocaoPremium {
+
+        @AfterEach
+        void tearDownPromocao() {
+            promocaoPremiumRepository.deleteAll();
+        }
+
+        @Test
+        @DisplayName("Quando consultamos promocao de usuario que foi promovido")
+        void quandoConsultamosPromocaoDeUsuarioPromovido() throws Exception {
+            // Arrange
+            PromocaoPremium promocao = PromocaoPremium.builder()
+                    .usuario(usuario)
+                    .motivo("Promovido por atingir os criterios")
+                    .palpites(50)
+                    .gruposParticipa(3)
+                    .requisicoes(100)
+                    .acertos(10)
+                    .build();
+            promocaoPremiumRepository.save(promocao);
+
+            // Act
+            String responseJsonString = driver.perform(get(URI_USUARIOS + "/" + usuario.getId() + "/promocao-premium"))
+                    .andExpect(status().isOk())
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString();
+
+            PromocaoPremiumResponseDTO resultado = objectMapper.readValue(responseJsonString, PromocaoPremiumResponseDTO.class);
+
+            // Assert
+            assertAll(
+                    () -> assertNotNull(resultado.getId()),
+                    () -> assertEquals(usuario.getId(), resultado.getUsuarioId()),
+                    () -> assertEquals(50, resultado.getPalpites()),
+                    () -> assertEquals(3, resultado.getGruposParticipa()),
+                    () -> assertEquals(100, resultado.getRequisicoes()),
+                    () -> assertEquals(10, resultado.getAcertos()),
+                    () -> assertEquals("Promovido por atingir os criterios", resultado.getMotivo())
+            );
+        }
+
+        @Test
+        @DisplayName("Quando consultamos promocao de usuario que nao foi promovido")
+        void quandoConsultamosPromocaoDeUsuarioNaoPromovido() throws Exception {
+            // Act
+            String responseJsonString = driver.perform(get(URI_USUARIOS + "/" + usuario.getId() + "/promocao-premium"))
+                    .andExpect(status().isBadRequest())
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString();
+
+            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
+
+            // Assert
+            assertEquals("O usuário não foi promovido ao plano Premium!", resultado.getMessage());
+        }
+
+        @Test
+        @DisplayName("Quando consultamos promocao de usuario inexistente")
+        void quandoConsultamosPromocaoDeUsuarioInexistente() throws Exception {
+            // Act
+            String responseJsonString = driver.perform(get(URI_USUARIOS + "/" + 999999 + "/promocao-premium"))
+                    .andExpect(status().isBadRequest())
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString();
+
+            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
+
+            // Assert
+            assertEquals("O usuário consultado não existe!", resultado.getMessage());
         }
     }
 }
