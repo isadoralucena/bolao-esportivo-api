@@ -59,6 +59,14 @@ public class UsuarioController {
                 .body(usuarioService.alterar(id, codigo, usuarioPostPutRequestDto));
     }
 
+    @GetMapping("/{id}/promocao-premium")
+    public ResponseEntity<?> obterPromocaoPremium(
+            @PathVariable Long id) {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(usuarioService.obterPromocao(id));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> excluirUsuario(
             @PathVariable Long id,

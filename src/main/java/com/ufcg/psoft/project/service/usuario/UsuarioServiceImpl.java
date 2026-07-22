@@ -1,5 +1,6 @@
 package com.ufcg.psoft.project.service.usuario;
 
+import com.ufcg.psoft.project.dto.usuario.PromocaoPremiumResponseDTO;
 import com.ufcg.psoft.project.exception.UsuarioNaoExisteException;
 import com.ufcg.psoft.project.dto.usuario.UsuarioPostPutRequestDTO;
 import com.ufcg.psoft.project.dto.usuario.UsuarioResponseDTO;
@@ -7,6 +8,7 @@ import com.ufcg.psoft.project.exception.CodigoDeAcessoInvalidoException;
 import com.ufcg.psoft.project.exception.EmailJaCadastradoException;
 import com.ufcg.psoft.project.model.Usuario;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
+import com.ufcg.psoft.project.service.premium.PromocaoPremiumService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,8 @@ public class UsuarioServiceImpl implements UsuarioService {
     UsuarioRepository usuarioRepository;
     @Autowired
     ModelMapper modelMapper;
+    @Autowired
+    PromocaoPremiumService promocaoPremiumService;
 
     @Override
     public UsuarioResponseDTO alterar(Long id, String codigoAcesso, UsuarioPostPutRequestDTO usuarioPostPutRequestDTO) {
@@ -83,5 +87,10 @@ public class UsuarioServiceImpl implements UsuarioService {
     public UsuarioResponseDTO recuperar(Long id) {
         Usuario usuario = usuarioRepository.findById(id).orElseThrow(UsuarioNaoExisteException::new);
         return new UsuarioResponseDTO(usuario);
+    }
+
+    @Override
+    public PromocaoPremiumResponseDTO obterPromocao(Long usuarioId) {
+        return promocaoPremiumService.obterPromocao(usuarioId);
     }
 }
