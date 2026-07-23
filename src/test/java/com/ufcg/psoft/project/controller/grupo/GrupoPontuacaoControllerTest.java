@@ -224,7 +224,6 @@ public class GrupoPontuacaoControllerTest {
                     .orElseThrow();
 
             assertAll(
-                    () -> assertEquals(grupo.getId(), pontuacaoParticipante.getGrupoId()),
                     () -> assertEquals(participante.getId(), pontuacaoParticipante.getUsuarioId()),
                     () -> assertEquals(participante.getNome(), pontuacaoParticipante.getUsuarioNome()),
                     () -> assertEquals(10, pontuacaoParticipante.getPontuacao()),
@@ -342,7 +341,6 @@ public class GrupoPontuacaoControllerTest {
 
             assertAll(
                     () -> assertNotNull(resultado),
-                    () -> assertEquals(grupo.getId(), resultado.getGrupoId()),
                     () -> assertEquals(participante.getId(), resultado.getUsuarioId()),
                     () -> assertEquals(0, resultado.getPontuacao()),
                     () -> assertEquals(0, resultado.getErros()),

@@ -162,7 +162,6 @@ class PontuacaoServiceImplTest {
         var resultado = pontuacaoService.calcularPontuacaoGlobalDoParticipante(1L);
 
         assertAll(
-                () -> assertNull(resultado.getGrupoId()),
                 () -> assertEquals(1L, resultado.getUsuarioId()),
                 () -> assertEquals("Teste", resultado.getUsuarioNome()),
                 () -> assertEquals(10, resultado.getPontuacao()),
@@ -231,7 +230,6 @@ class PontuacaoServiceImplTest {
         var resultado = pontuacaoService.calcularPontuacaoParticipanteNoGrupo(1L, 1L);
 
         assertAll(
-                () -> assertEquals(1L, resultado.getGrupoId()),
                 () -> assertEquals(1L, resultado.getUsuarioId()),
                 () -> assertEquals(10, resultado.getPontuacao()),
                 () -> assertEquals(1, resultado.getAcertosVencedor())

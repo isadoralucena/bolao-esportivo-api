@@ -186,7 +186,7 @@ private ApplicationEventPublisher eventPublisher;
 
         List<PontuacaoPalpite> pontuacoes = pontuacaoPalpiteRepository.findByPalpite_Grupo_IdAndPalpite_Usuario_Id(grupoId, participanteId);
 
-        return calcularPontuacaoParticipante(grupoId, participante, pontuacoes);
+        return calcularPontuacaoParticipante(participante, pontuacoes);
     }
 
     @Override
@@ -213,7 +213,7 @@ private ApplicationEventPublisher eventPublisher;
     public PontuacaoParticipanteResponseDTO calcularPontuacaoGlobalDoParticipante(Long usuarioId) {
         Usuario usuario = usuarioRepository.findById(usuarioId).orElseThrow(UsuarioNaoExisteException::new);
         List<PontuacaoPalpite> pontuacoes = pontuacaoPalpiteRepository.findByPalpite_Usuario_Id(usuarioId);
-        return calcularPontuacaoParticipante(null, usuario, pontuacoes);
+        return calcularPontuacaoParticipante(usuario, pontuacoes);
     }
 
     @Override
@@ -223,7 +223,7 @@ private ApplicationEventPublisher eventPublisher;
             .toList();
     }
 
-    private PontuacaoParticipanteResponseDTO calcularPontuacaoParticipante(Long grupoId, Usuario participante, List<PontuacaoPalpite> pontuacoes) {
+    private PontuacaoParticipanteResponseDTO calcularPontuacaoParticipante(Usuario participante, List<PontuacaoPalpite> pontuacoes) {
         int pontuacaoTotal = 0;
         int erros = 0;
         int acertosVencedor = 0;
@@ -255,7 +255,6 @@ private ApplicationEventPublisher eventPublisher;
         }
 
         return new PontuacaoParticipanteResponseDTO(
-            grupoId,
             participante,
             pontuacaoTotal,
             erros,
