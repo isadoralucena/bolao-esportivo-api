@@ -163,6 +163,7 @@ class PontuacaoServiceImplTest {
         assertAll(
                 () -> assertEquals(1L, resultado.getUsuarioId()),
                 () -> assertEquals("Teste", resultado.getUsuarioNome()),
+                () -> assertEquals(1, resultado.getTotalPalpitesAvaliados()),
                 () -> assertEquals(10, resultado.getPontuacao()),
                 () -> assertEquals(0, resultado.getErros()),
                 () -> assertEquals(1, resultado.getAcertosVencedor()),
@@ -194,6 +195,7 @@ class PontuacaoServiceImplTest {
 
         assertEquals(1, resultado.size());
         assertEquals(10, resultado.get(0).getPontuacao());
+        assertEquals(1, resultado.get(0).getTotalPalpitesAvaliados());
     }
 
     @Test
@@ -230,6 +232,7 @@ class PontuacaoServiceImplTest {
 
         assertAll(
                 () -> assertEquals(1L, resultado.getUsuarioId()),
+                () -> assertEquals(1, resultado.getTotalPalpitesAvaliados()),
                 () -> assertEquals(10, resultado.getPontuacao()),
                 () -> assertEquals(1, resultado.getAcertosVencedor())
         );

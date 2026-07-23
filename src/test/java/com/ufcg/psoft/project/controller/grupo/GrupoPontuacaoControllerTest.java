@@ -198,7 +198,8 @@ public class GrupoPontuacaoControllerTest {
             assertAll(
                     () -> assertFalse(resultado.isEmpty()),
                     () -> resultado.forEach(r -> assertEquals(0, r.getPontuacao())),
-                    () -> resultado.forEach(r -> assertEquals(0, r.getErros()))
+                    () -> resultado.forEach(r -> assertEquals(0, r.getErros())),
+                    () -> resultado.forEach(r -> assertEquals(0, r.getTotalPalpitesAvaliados()))
             );
         }
 
@@ -230,7 +231,8 @@ public class GrupoPontuacaoControllerTest {
                     () -> assertEquals(0, pontuacaoParticipante.getErros()),
                     () -> assertEquals(1, pontuacaoParticipante.getAcertosVencedor()),
                     () -> assertEquals(0, pontuacaoParticipante.getAcertosEmpate()),
-                    () -> assertEquals(0, pontuacaoParticipante.getPlacaresExatos())
+                    () -> assertEquals(0, pontuacaoParticipante.getPlacaresExatos()),
+                    () -> assertEquals(1, pontuacaoParticipante.getTotalPalpitesAvaliados())
             );
         }
 
@@ -346,7 +348,8 @@ public class GrupoPontuacaoControllerTest {
                     () -> assertEquals(0, resultado.getErros()),
                     () -> assertEquals(0, resultado.getAcertosVencedor()),
                     () -> assertEquals(0, resultado.getAcertosEmpate()),
-                    () -> assertEquals(0, resultado.getPlacaresExatos())
+                    () -> assertEquals(0, resultado.getPlacaresExatos()),
+                    () -> assertEquals(0, resultado.getTotalPalpitesAvaliados())
             );
         }
 
@@ -371,7 +374,8 @@ public class GrupoPontuacaoControllerTest {
                     () -> assertEquals(1, resultado.getErros()),
                     () -> assertEquals(0, resultado.getAcertosVencedor()),
                     () -> assertEquals(0, resultado.getAcertosEmpate()),
-                    () -> assertEquals(0, resultado.getPlacaresExatos())
+                    () -> assertEquals(0, resultado.getPlacaresExatos()),
+                    () -> assertEquals(1, resultado.getTotalPalpitesAvaliados())
             );
         }
 
@@ -409,7 +413,8 @@ public class GrupoPontuacaoControllerTest {
                     () -> assertEquals(1, resultado.getAcertosEmpate()),   
                     () -> assertEquals(1, resultado.getPlacaresExatos()),
                     () -> assertEquals(0, resultado.getErros()),
-                    () -> assertEquals(18, resultado.getPontuacao())       
+                    () -> assertEquals(18, resultado.getPontuacao()),
+                    () -> assertEquals(2, resultado.getTotalPalpitesAvaliados())
             );
         }
     }
