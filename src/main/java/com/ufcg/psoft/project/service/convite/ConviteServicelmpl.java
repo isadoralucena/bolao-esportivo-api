@@ -7,16 +7,16 @@ import org.springframework.stereotype.Service;
 
 import com.ufcg.psoft.project.dto.convite.ConvitePostPutRequestDTO;
 import com.ufcg.psoft.project.dto.convite.ConviteResponseDTO;
-import com.ufcg.psoft.project.exception.CampeonatoInativoException;
-import com.ufcg.psoft.project.exception.ConviteDuplicadoException;
-import com.ufcg.psoft.project.exception.ConviteNaoExisteException;
-import com.ufcg.psoft.project.exception.ConviteJaProcessadoException;
-import com.ufcg.psoft.project.exception.GrupoNaoExisteException;
-import com.ufcg.psoft.project.exception.OrganizadorInvalidoException;
-import com.ufcg.psoft.project.exception.PrivacidadeInvalidaException;
-import com.ufcg.psoft.project.exception.UsuarioInvalidoException;
-import com.ufcg.psoft.project.exception.UsuarioJaParticipanteException;
-import com.ufcg.psoft.project.exception.UsuarioNaoExisteException;
+import com.ufcg.psoft.project.exception.campeonato.CampeonatoInativoException;
+import com.ufcg.psoft.project.exception.convite.ConviteDuplicadoException;
+import com.ufcg.psoft.project.exception.convite.ConviteJaProcessadoException;
+import com.ufcg.psoft.project.exception.convite.ConviteNaoExisteException;
+import com.ufcg.psoft.project.exception.convite.OrganizadorInvalidoException;
+import com.ufcg.psoft.project.exception.convite.PrivacidadeInvalidaException;
+import com.ufcg.psoft.project.exception.grupo.GrupoNaoExisteException;
+import com.ufcg.psoft.project.exception.usuario.UsuarioInvalidoException;
+import com.ufcg.psoft.project.exception.usuario.UsuarioJaParticipanteException;
+import com.ufcg.psoft.project.exception.usuario.UsuarioNaoExisteException;
 import com.ufcg.psoft.project.model.Convite;
 import com.ufcg.psoft.project.model.Grupo;
 import com.ufcg.psoft.project.model.PrivacidadeGrupo;
@@ -26,6 +26,7 @@ import com.ufcg.psoft.project.repository.ConviteRepository;
 import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
 import com.ufcg.psoft.project.service.grupo.GrupoService;
+import com.ufcg.psoft.project.service.grupo.participante.GrupoParticipanteService;
 
 @Service
 public class ConviteServicelmpl implements ConviteService {
@@ -40,7 +41,7 @@ public class ConviteServicelmpl implements ConviteService {
     private UsuarioRepository usuarioRepository;
 
     @Autowired
-    private GrupoService grupoService;
+    private GrupoParticipanteService grupoParticipanteService;
 
     @Override
     public ConviteResponseDTO criar(String codigoAcessoOrganizador, ConvitePostPutRequestDTO convitePostPutRequestDTO) {
@@ -106,7 +107,7 @@ public class ConviteServicelmpl implements ConviteService {
         validarUsuário(convidado, codigoAcesso);
 
         Grupo grupo = convite.getGrupo();
-        grupoService.validarEntradaGrupo(grupo, convidado);
+        grupoParticipanteService.validarEntradaGrupo(grupo, convidado);
 
         grupo.getParticipantes().add(convidado);
         convite.setStatus(StatusConvite.ACEITO);

@@ -14,8 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.ufcg.psoft.project.dto.campeonato.ClassificacaoCampeonatoResponseDTO;
-import com.ufcg.psoft.project.exception.CampeonatoNaoExisteException;
-import com.ufcg.psoft.project.exception.ClassificacaoCampeonatoSyncException;
+import com.ufcg.psoft.project.exception.campeonato.CampeonatoNaoExisteException;
+import com.ufcg.psoft.project.exception.campeonato.ClassificacaoCampeonatoSyncException;
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.model.ClassificacaoCampeonato;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;

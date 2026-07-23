@@ -43,6 +43,10 @@ public class Partida {
     @JsonProperty("golsVisitante")
     private Integer golsVisitante;
 
+    @JsonProperty("consolidada")
+    @Builder.Default
+    private boolean consolidada = false;
+
     @JsonProperty("data")
     @Column(nullable = false)
     private LocalDateTime data;

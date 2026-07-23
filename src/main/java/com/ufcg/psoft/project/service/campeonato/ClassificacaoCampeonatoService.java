@@ -3,7 +3,6 @@ package com.ufcg.psoft.project.service.campeonato;
 import java.util.List;
 
 import com.ufcg.psoft.project.dto.campeonato.ClassificacaoCampeonatoResponseDTO;
-import com.ufcg.psoft.project.model.ClassificacaoCampeonato;
 
 public interface ClassificacaoCampeonatoService {
     List<ClassificacaoCampeonatoResponseDTO> sincronizarClassificacao(Long campeonatoId);

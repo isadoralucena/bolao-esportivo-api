@@ -1,11 +1,11 @@
 package com.ufcg.psoft.project.service.usuario;
 
 import com.ufcg.psoft.project.dto.usuario.PromocaoPremiumResponseDTO;
-import com.ufcg.psoft.project.exception.UsuarioNaoExisteException;
 import com.ufcg.psoft.project.dto.usuario.UsuarioPostPutRequestDTO;
 import com.ufcg.psoft.project.dto.usuario.UsuarioResponseDTO;
 import com.ufcg.psoft.project.exception.CodigoDeAcessoInvalidoException;
-import com.ufcg.psoft.project.exception.EmailJaCadastradoException;
+import com.ufcg.psoft.project.exception.usuario.EmailJaCadastradoException;
+import com.ufcg.psoft.project.exception.usuario.UsuarioNaoExisteException;
 import com.ufcg.psoft.project.model.Usuario;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
 import com.ufcg.psoft.project.service.premium.PromocaoPremiumService;
