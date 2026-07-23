@@ -61,7 +61,7 @@ public class PontuacaoServiceImpl implements PontuacaoService {
     private UsuarioRepository usuarioRepository;
 
     @Autowired
-private ApplicationEventPublisher eventPublisher;
+    private ApplicationEventPublisher eventPublisher;
 
     @Autowired
     private List<Pontuador> pontuadoresDisponiveis;
@@ -224,6 +224,7 @@ private ApplicationEventPublisher eventPublisher;
     }
 
     private PontuacaoParticipanteResponseDTO calcularPontuacaoParticipante(Usuario participante, List<PontuacaoPalpite> pontuacoes) {
+        int totalPalpitesAvaliados = 0;
         int pontuacaoTotal = 0;
         int erros = 0;
         int acertosVencedor = 0;
@@ -252,10 +253,13 @@ private ApplicationEventPublisher eventPublisher;
             if (!acertouAlgo) {
                 erros += 1;
             }
+
+            totalPalpitesAvaliados += 1;
         }
 
         return new PontuacaoParticipanteResponseDTO(
             participante,
+            totalPalpitesAvaliados,
             pontuacaoTotal,
             erros,
             acertosVencedor,
