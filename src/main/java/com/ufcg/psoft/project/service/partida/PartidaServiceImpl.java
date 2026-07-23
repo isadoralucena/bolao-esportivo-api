@@ -1,6 +1,10 @@
 package com.ufcg.psoft.project.service.partida;
 
 import com.ufcg.psoft.project.dto.partida.PartidaResponseDTO;
+import com.ufcg.psoft.project.event.PalpitesAbertosEvent;
+import com.ufcg.psoft.project.event.PalpitesFechadosEvent;
+import com.ufcg.psoft.project.event.PartidaFinalizadaEvent;
+import com.ufcg.psoft.project.event.PartidaIniciadaEvent;
 import com.ufcg.psoft.project.exception.grupo.GrupoNaoExisteException;
 import com.ufcg.psoft.project.exception.partida.PartidaSyncException;
 import com.ufcg.psoft.project.model.Campeonato;
@@ -10,12 +14,12 @@ import com.ufcg.psoft.project.model.PartidaStatus;
 import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.PartidaRepository;
 import com.ufcg.psoft.project.service.pontuacao.PontuacaoService;
-import com.ufcg.psoft.project.service.notificacao.NotificacaoService;
 
 import jakarta.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -39,13 +43,13 @@ public class PartidaServiceImpl implements PartidaService {
     private PartidaRepository partidaRepository;
 
     @Autowired
-    private GrupoRepository grupoRepository;
-
-    @Autowired
     private PontuacaoService pontuacaoService;
 
     @Autowired
-    private NotificacaoService notificacaoService;
+    private GrupoRepository grupoRepository;
+
+    @Autowired 
+    private ApplicationEventPublisher eventPublisher;
 
     @Value("${project.football-data.api-token:}")
     private String apiToken;
@@ -159,27 +163,33 @@ public class PartidaServiceImpl implements PartidaService {
         partida.setStatus(novoStatus);
         partida.setMataMata(mataMata);
 
-        partidaRepository.save(partida);
-
-        boolean precisaAtualizarPontuacao = novoStatus == PartidaStatus.FINALIZADO && (statusMudou || placarMudou);
-        if (precisaAtualizarPontuacao) {
-            pontuacaoService.calcularPontuacoesAssociadasAPartida(partida.getId());
+        if (placarMudou) {
+            partida.setConsolidada(false);
         }
 
+        partida = partidaRepository.save(partida);
+        boolean precisaAtualizarPontuacao = novoStatus == PartidaStatus.FINALIZADO && (statusMudou || placarMudou);
+
         if (statusMudou) {
-            if (novoStatus == PartidaStatus.ABERTO && statusAnterior == null) {
-                notificacaoService.notificarAberturaPalpites(partida);
-            } else if (novoStatus == PartidaStatus.EM_ANDAMENTO) {
-                if (statusAnterior == PartidaStatus.ABERTO) {
-                    notificacaoService.notificarFechamentoPalpites(partida);
-                }
-                notificacaoService.notificarInicioPartida(partida);
-            } else if (novoStatus == PartidaStatus.FINALIZADO) {
-                notificacaoService.notificarPartidaFinalizada(partida);
-            }
+            publicarEventosMudancaStatus(statusAnterior, novoStatus, partida);
+        } else if (precisaAtualizarPontuacao) {
+            eventPublisher.publishEvent(new PartidaFinalizadaEvent(this, partida));
         }
 
         return new PartidaResponseDTO(partida);
+    }
+
+    private void publicarEventosMudancaStatus(PartidaStatus statusAnterior, PartidaStatus novoStatus, Partida partida) {
+        if (novoStatus == PartidaStatus.ABERTO && statusAnterior == null) {
+            eventPublisher.publishEvent(new PalpitesAbertosEvent(this, partida));
+        } else if (novoStatus == PartidaStatus.EM_ANDAMENTO) {
+            if (statusAnterior == PartidaStatus.ABERTO) {
+                eventPublisher.publishEvent(new PalpitesFechadosEvent(this, partida));
+            }
+            eventPublisher.publishEvent(new PartidaIniciadaEvent(this, partida));
+        } else if (novoStatus == PartidaStatus.FINALIZADO) {
+            eventPublisher.publishEvent(new PartidaFinalizadaEvent(this, partida));
+        }
     }
 
     private static PartidaStatus converterStatus(String statusApi) {

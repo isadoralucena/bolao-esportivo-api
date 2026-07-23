@@ -7,10 +7,13 @@ import java.util.Map;
 import java.util.HashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import com.ufcg.psoft.project.dto.pontuacao.PontuacaoPalpiteResponseDTO;
 import com.ufcg.psoft.project.dto.pontuacao.PontuacaoParticipanteResponseDTO;
+import com.ufcg.psoft.project.event.MudancaGrupoPosicaoEvent;
+import com.ufcg.psoft.project.event.RankingAtualizadoEvent;
 import com.ufcg.psoft.project.exception.CodigoDeAcessoInvalidoException;
 import com.ufcg.psoft.project.exception.grupo.GrupoNaoExisteException;
 import com.ufcg.psoft.project.exception.partida.PartidaNaoExisteException;
@@ -32,7 +35,6 @@ import com.ufcg.psoft.project.repository.PalpiteRepository;
 import com.ufcg.psoft.project.repository.PartidaRepository;
 import com.ufcg.psoft.project.repository.RegraPontuacaoRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
-import com.ufcg.psoft.project.service.notificacao.NotificacaoService;
 import com.ufcg.psoft.project.service.ranking.RankingCalculator;
 
 import jakarta.annotation.PostConstruct;
@@ -59,7 +61,7 @@ public class PontuacaoServiceImpl implements PontuacaoService {
     private UsuarioRepository usuarioRepository;
 
     @Autowired
-    private NotificacaoService notificacaoService;
+private ApplicationEventPublisher eventPublisher;
 
     @Autowired
     private List<Pontuador> pontuadoresDisponiveis;
@@ -118,7 +120,7 @@ public class PontuacaoServiceImpl implements PontuacaoService {
                 .map(p -> p.getPalpite().getGrupo().getId())
                 .distinct()
                 .forEach(grupoId -> {
-                    notificacaoService.notificarAtualizacaoRanking(grupoId);
+                    eventPublisher.publishEvent(new RankingAtualizadoEvent(this, grupoId));
                     notificarMudancasDePosicao(grupoId, posicoesAntesPorGrupo.get(grupoId));
                 });
 
@@ -159,7 +161,7 @@ public class PontuacaoServiceImpl implements PontuacaoService {
         List<PontuacaoPalpite> pontuacoesSalvas = pontuacaoPalpiteRepository.saveAll(pontuacoes);
 
         if (!grupo.getParticipantes().isEmpty()) {
-            notificacaoService.notificarAtualizacaoRanking(grupoId);
+            eventPublisher.publishEvent(new RankingAtualizadoEvent(this, grupoId));
             notificarMudancasDePosicao(grupoId, posicoesAntes);
         }
 
@@ -345,11 +347,14 @@ public class PontuacaoServiceImpl implements PontuacaoService {
 
             if (posicaoAnterior != null && posicaoAtual != null && !posicaoAnterior.equals(posicaoAtual)) {
 
-                notificacaoService.notificarMudancaDePosicao(
+                eventPublisher.publishEvent(
+                    new MudancaGrupoPosicaoEvent(
+                        this,
                         participante.getNome(),
                         posicaoAnterior,
                         posicaoAtual,
                         grupoId
+                    )
                 );
             }
         }

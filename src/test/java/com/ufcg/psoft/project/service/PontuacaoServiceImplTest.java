@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -21,14 +22,18 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import com.ufcg.psoft.project.event.MudancaGrupoPosicaoEvent;
+import com.ufcg.psoft.project.event.RankingAtualizadoEvent;
 import com.ufcg.psoft.project.exception.grupo.GrupoNaoExisteException;
 import com.ufcg.psoft.project.exception.usuario.UsuarioNaoExisteException;
 import com.ufcg.psoft.project.exception.usuario.UsuarioNaoParticipanteException;
@@ -45,7 +50,6 @@ import com.ufcg.psoft.project.repository.PartidaRepository;
 import com.ufcg.psoft.project.repository.PontuacaoPalpiteRepository;
 import com.ufcg.psoft.project.repository.RegraPontuacaoRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
-import com.ufcg.psoft.project.service.notificacao.NotificacaoService;
 import com.ufcg.psoft.project.service.pontuacao.PontuacaoServiceImpl;
 import com.ufcg.psoft.project.service.pontuacao.Pontuador;
 import com.ufcg.psoft.project.service.ranking.RankingCalculator;
@@ -74,7 +78,7 @@ class PontuacaoServiceImplTest {
     private UsuarioRepository usuarioRepository;
 
     @Mock
-    private NotificacaoService notificacaoService;
+    private ApplicationEventPublisher eventPublisher;
 
     @Spy
     private RankingCalculator rankingCalculator = new RankingCalculator();
@@ -235,8 +239,8 @@ class PontuacaoServiceImplTest {
     }
 
     @Test
-    @DisplayName("notificarMudancasDePosicao quando posicoesAntes null nao notifica")
-    void quandoPosicoesAntesNull() {
+    @DisplayName("calcular pontuações publica evento de atualização do ranking")
+    void quandoCalculaPontuacoesPublicaEventoDeRanking() {
         Grupo grupoComDois = Grupo.builder().id(1L).nome("Grupo").build();
         Usuario u1 = Usuario.builder().id(1L).nome("Um").build();
         Usuario u2 = Usuario.builder().id(2L).nome("Dois").build();
@@ -276,7 +280,13 @@ class PontuacaoServiceImplTest {
 
         assertNotNull(resultado);
         assertEquals(2, resultado.size());
-        verify(notificacaoService).notificarAtualizacaoRanking(1L);
+        ArgumentCaptor<RankingAtualizadoEvent> eventoCaptor =
+                ArgumentCaptor.forClass(RankingAtualizadoEvent.class);
+
+        verify(eventPublisher).publishEvent(eventoCaptor.capture());
+        assertEquals(1L, eventoCaptor.getValue().getGrupoId());
+        verify(eventPublisher, never())
+                .publishEvent(any(MudancaGrupoPosicaoEvent.class));
     }
 
     @Test
@@ -297,5 +307,5 @@ class PontuacaoServiceImplTest {
         var resultado = pontuacaoService.calcularPontuacoesDoGrupo(1L);
         assertNotNull(resultado);
         assertTrue(resultado.isEmpty());
-        }
+    }
 }
