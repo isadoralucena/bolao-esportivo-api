@@ -21,7 +21,11 @@ public class ContadorRequisicoesFilter implements Filter {
             throws IOException, ServletException {
 
         HttpServletRequest httpRequest = (HttpServletRequest) request;
+        
         String codigo = httpRequest.getParameter("codigo");
+        if (codigo == null || codigo.isEmpty()) {
+            codigo = httpRequest.getParameter("codigoAcesso");
+        }
 
         if (codigo != null && !codigo.isEmpty()) {
             Optional<Usuario> usuario = usuarioRepository.findByCodigoIgnoreCase(codigo);
