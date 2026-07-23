@@ -15,7 +15,7 @@ public class EstatisticasController {
     @Autowired
     private EstatisticasService estatisticasService;
 
-    @GetMapping("/{id}/estatisticas")
+    @GetMapping("/{usuarioId}/estatisticas")
     public ResponseEntity<?> obterEstatisticas(@PathVariable Long usuarioId, @RequestParam String codigoAcesso) {
 
         return ResponseEntity
@@ -24,12 +24,12 @@ public class EstatisticasController {
         );
     }
 
-    @GetMapping("/{id}/estatisticas/evolucao")
+    @GetMapping("/{usuarioId}/estatisticas/evolucao")
     public ResponseEntity<?> obterEvolucao(@PathVariable Long usuarioId, @RequestParam String codigoAcesso) {
 
         return ResponseEntity
             .status(HttpStatus.OK)
-            .body(estatisticasService.obterEvolucaoEstatisticas(usuarioId, codigo)
+            .body(estatisticasService.obterEvolucaoEstatisticas(usuarioId, codigoAcesso)
         );
     }
 }

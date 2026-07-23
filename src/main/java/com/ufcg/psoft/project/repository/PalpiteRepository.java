@@ -1,7 +1,6 @@
 package com.ufcg.psoft.project.repository;
 
 import com.ufcg.psoft.project.model.Palpite;
-import com.ufcg.psoft.project.model.Usuario;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -16,8 +15,6 @@ public interface PalpiteRepository extends JpaRepository<Palpite, Long> {
     List<Palpite> findByPartidaId(Long partidaId);
     
     List<Palpite> findByUsuarioId(Long usuarioId);
-
-    List<Usuario> findDistinctUsuarioByPartidaId(Long partidaId);
 
     boolean existsByUsuarioIdAndPartidaIdAndGrupoId(Long usuarioId, Long partidaId, Long grupoId);
 }

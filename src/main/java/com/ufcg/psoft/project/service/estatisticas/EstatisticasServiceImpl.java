@@ -1,13 +1,18 @@
 package com.ufcg.psoft.project.service.estatisticas;
 
+import com.ufcg.psoft.project.controller.CampeonatoController;
 import com.ufcg.psoft.project.repository.GrupoRepository;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -15,8 +20,10 @@ import com.ufcg.psoft.project.dto.estatisticas.EstatisticasResponseDTO;
 import com.ufcg.psoft.project.dto.pontuacao.PontuacaoParticipanteResponseDTO;
 import com.ufcg.psoft.project.dto.ranking.RankingResponseDTO;
 import com.ufcg.psoft.project.event.PartidaConsolidadaEvent;
+import com.ufcg.psoft.project.exception.estatistica.EstatisticaNaoExisteExpcetion;
 import com.ufcg.psoft.project.model.Estatisticas;
 import com.ufcg.psoft.project.model.Grupo;
+import com.ufcg.psoft.project.model.Palpite;
 import com.ufcg.psoft.project.model.Partida;
 import com.ufcg.psoft.project.model.PontuacaoPalpite;
 import com.ufcg.psoft.project.model.Usuario;
@@ -31,6 +38,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class EstatisticasServiceImpl implements EstatisticasService {
+    @Autowired
+    CampeonatoController campeonatoController;
 
     @Autowired
     private GrupoRepository grupoRepository;
@@ -53,20 +62,31 @@ public class EstatisticasServiceImpl implements EstatisticasService {
     @Autowired
     private PontuacaoPalpiteRepository pontuacaoPalpiteRepository;
 
-    EstatisticasServiceImpl(GrupoRepository grupoRepository) {
-        this.grupoRepository = grupoRepository;
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void aoConsolidarPartida(PartidaConsolidadaEvent event) {
+        this.calcularEstatisticasAssociadasAPartida(event.getPartida());
     }
 
     @Override
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public List<EstatisticasResponseDTO> calcularEstatisticasAssociadasAConsolidacaoDePartida(PartidaConsolidadaEvent event) {
-        Partida p = event.getPartida();
+    public List<EstatisticasResponseDTO> calcularEstatisticasAssociadasAPartida(Partida p) {
+        // obter o conjunto de usuarios afetados pela partida.
+        // são considerados afetados usuários que estão em grupos nos quais alguem fez um palpite àquela partida.
+        // pois basta um usuario do grupo ter feito o palpite e acertado para afetar o ranking do grupo, que é levado em consideração no calculo da estatística.
+        List<Palpite> palpitesDaPartida = palpiteRepository.findByPartidaId(p.getId());
+        List<Grupo> gruposAfetados = palpitesDaPartida.stream()
+                .map(Palpite::getGrupo)
+                .distinct()
+                .toList();
+        
+        Set<Usuario> usuariosAfetados = new HashSet<>();
+        for (Grupo g : gruposAfetados) {
+            usuariosAfetados.addAll(g.getParticipantes());
+        }
 
-        // obtem o conjunto de usuarios que criaram palpites para a partida em questão
-        List<Usuario> usuarios = palpiteRepository.findDistinctUsuarioByPartidaId(p.getId());
 
         List<Estatisticas> estatisticas = new ArrayList<>();
-        for (Usuario u : usuarios) {
+        for (Usuario u : usuariosAfetados) {
             Estatisticas e = calcularEstatisticasUsuario(u);
             estatisticas.add(e);
             estatisticasRepository.save(e);
@@ -80,7 +100,8 @@ public class EstatisticasServiceImpl implements EstatisticasService {
     @Override
     public EstatisticasResponseDTO obterEstatisticaMaisRecente(Long usuarioId, String codigoAcesso) {
         Usuario usuario = grupoAutorizacaoService.obterUsuarioValido(usuarioId, codigoAcesso);
-        Estatisticas estatisticaAtual = estatisticasRepository.findFirstByUsuarioIdOrderByDataRegistroDesc(usuario.getId());
+        Estatisticas estatisticaAtual = estatisticasRepository.findFirstByUsuarioIdOrderByDataRegistroDesc(usuario.getId())
+            .orElseThrow(EstatisticaNaoExisteExpcetion::new);
         return new EstatisticasResponseDTO(estatisticaAtual);
     }
 
@@ -88,7 +109,7 @@ public class EstatisticasServiceImpl implements EstatisticasService {
     public List<EstatisticasResponseDTO> obterEvolucaoEstatisticas(Long usuarioId, String codigoAcesso) {
         Usuario usuario = grupoAutorizacaoService.obterUsuarioValido(usuarioId, codigoAcesso);
 
-        return estatisticasRepository.findByUsuarioId(usuario.getId()).stream()
+        return estatisticasRepository.findByUsuarioIdOrderByDataRegistroAsc(usuario.getId()).stream()
             .map(EstatisticasResponseDTO::new)
             .collect(Collectors.toList());
     }
@@ -99,8 +120,8 @@ public class EstatisticasServiceImpl implements EstatisticasService {
         int totalPalpites = pontuacaoParticipante.getTotalPalpitesAvaliados();
         int totalErros = pontuacaoParticipante.getErros();
 
-        float taxaAcerto = 1 - (totalErros / totalPalpites);
         int palpitesCorretos = totalPalpites - totalErros;
+        float taxaAcerto = totalPalpites == 0 ? 0 : (float) palpitesCorretos / totalPalpites;
 
         Estatisticas e = Estatisticas.builder()
             .usuario(u)
@@ -122,8 +143,14 @@ public class EstatisticasServiceImpl implements EstatisticasService {
         int vitorias = 0;
         for (Grupo g : grupos) {
             RankingResponseDTO r = rankingService.rankingDoGrupo(g.getId(), u.getId(), u.getCodigo());
-            if (r.getRankingEntrys().get(0).getPontuacaoParticipante().getUsuarioId() == u.getId()) {
-                vitorias += 1;
+
+            // checa se venceu. necessário stream porque pode haver empate na primeira posição.
+            boolean venceu = r.getRankingEntrys()
+                .stream()
+                .anyMatch(entry -> entry.getPosicao() == 1 && entry.getPontuacaoParticipante().getUsuarioId().equals(u.getId()));
+
+            if (venceu) {
+                vitorias++;
             }
         }
 
