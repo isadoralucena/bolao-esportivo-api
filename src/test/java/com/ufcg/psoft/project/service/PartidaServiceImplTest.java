@@ -467,6 +467,82 @@ public class PartidaServiceImplTest {
     }
 
     @Test
+	@DisplayName("Partida com status AWARDED é finalizada e publica evento")
+	void quandoStatusAwardedFinalizaPartidaEPublicaEvento() {
+		Campeonato campeonato = Campeonato.builder()
+				.id(1L)
+				.nome("Teste")
+				.url("http://api.test/competitions/1")
+				.codigo("TST")
+				.ativo(true)
+				.build();
+
+		String resposta = """
+				{
+						"matches": [
+						{
+								"id": 100,
+								"homeTeam": {"name": "Time A"},
+								"awayTeam": {"name": "Time B"},
+								"score": {
+								"fullTime": {
+										"home": 3,
+										"away": 0
+								}
+								},
+								"status": "AWARDED",
+								"utcDate": "2026-07-06T18:00:00Z"
+						}
+						]
+				}
+				""";
+
+		Partida existente = Partida.builder()
+				.id(200L)
+				.campeonato(campeonato)
+				.codigoExterno(100L)
+				.mandante("Time A")
+				.visitante("Time B")
+				.status(PartidaStatus.EM_ANDAMENTO)
+				.consolidada(false)
+				.data(LocalDateTime.of(2026, 7, 6, 18, 0))
+				.build();
+
+		when(partidaRepository.findByCampeonatoIdAndCodigoExterno(1L, 100L))
+				.thenReturn(Optional.of(existente));
+
+		when(partidaRepository.save(any(Partida.class)))
+				.thenAnswer(invocation -> invocation.getArgument(0));
+
+		server.expect(requestTo("http://api.test/competitions/1/matches"))
+				.andExpect(method(GET))
+				.andRespond(withSuccess(resposta, MediaType.APPLICATION_JSON));
+
+		List<PartidaResponseDTO> resultado =
+				partidaService.sincronizarPartidas(campeonato);
+
+		ArgumentCaptor<PartidaFinalizadaEvent> eventoCaptor =
+                ArgumentCaptor.forClass(PartidaFinalizadaEvent.class);
+
+		verify(eventPublisher).publishEvent(eventoCaptor.capture());
+
+		Partida partidaPublicada = eventoCaptor.getValue().getPartida();
+
+		assertEquals(1, resultado.size());
+		assertEquals(PartidaStatus.FINALIZADO, resultado.get(0).getStatus());
+		assertEquals(3, resultado.get(0).getGolsMandante());
+		assertEquals(0, resultado.get(0).getGolsVisitante());
+
+		assertEquals(200L, partidaPublicada.getId());
+		assertEquals(PartidaStatus.FINALIZADO, partidaPublicada.getStatus());
+		assertEquals(3, partidaPublicada.getGolsMandante());
+		assertEquals(0, partidaPublicada.getGolsVisitante());
+		assertFalse(partidaPublicada.isConsolidada());
+
+		verify(partidaRepository).save(existente);
+	}
+
+    @Test
     @DisplayName("Placar alterado em partida finalizada publica novo evento de finalização")
     void quandoPlacarDePartidaFinalizadaMudaPublicaNovoEvento() {
         Campeonato campeonato = Campeonato.builder()
