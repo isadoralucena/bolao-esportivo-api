@@ -17,7 +17,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import com.ufcg.psoft.project.exception.UsuarioNaoExisteException;
+import com.ufcg.psoft.project.exception.usuario.UsuarioNaoExisteException;
 import com.ufcg.psoft.project.exception.UsuarioNaoPromovidoException;
 import com.ufcg.psoft.project.model.*;
 import com.ufcg.psoft.project.repository.*;
