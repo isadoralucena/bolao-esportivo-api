@@ -100,9 +100,14 @@ public class EstatisticasServiceImpl implements EstatisticasService {
     @Override
     public EstatisticasResponseDTO obterEstatisticaMaisRecente(Long usuarioId, String codigoAcesso) {
         Usuario usuario = grupoAutorizacaoService.obterUsuarioValido(usuarioId, codigoAcesso);
-        Estatisticas estatisticaAtual = estatisticasRepository.findFirstByUsuarioIdOrderByDataRegistroDesc(usuario.getId())
-            .orElseThrow(EstatisticaNaoExisteExpcetion::new);
-        return new EstatisticasResponseDTO(estatisticaAtual);
+
+        List<Estatisticas> estatisticas = estatisticasRepository.findByUsuarioIdOrderByDataRegistroDesc(usuario.getId());
+
+        if (estatisticas.isEmpty()) {
+            throw new EstatisticaNaoExisteExpcetion();
+        }
+
+        return new EstatisticasResponseDTO(estatisticas.get(0));
     }
 
     @Override
