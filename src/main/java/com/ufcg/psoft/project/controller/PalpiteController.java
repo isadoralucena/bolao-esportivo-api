@@ -2,8 +2,10 @@ package com.ufcg.psoft.project.controller;
 
 import com.ufcg.psoft.project.dto.palpite.PalpitePostPutRequestDTO;
 import com.ufcg.psoft.project.service.palpite.PalpiteService;
+import com.ufcg.psoft.project.service.premium.RequisicaoAutenticadaEvent;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +18,9 @@ public class PalpiteController {
     @Autowired
     private PalpiteService palpiteService;
 
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+
     @PostMapping("/grupos/{grupoId}/partidas/{partidaId}/palpites")
     public ResponseEntity<?> criarPalpite(
             @PathVariable Long grupoId,
@@ -23,9 +28,11 @@ public class PalpiteController {
             @RequestParam Long usuarioId,
             @RequestParam String codigo,
             @RequestBody @Valid PalpitePostPutRequestDTO dto) {
+        var resultado = palpiteService.criar(usuarioId, codigo, grupoId, partidaId, dto);
+        eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(palpiteService.criar(usuarioId, codigo, grupoId, partidaId, dto));
+                .body(resultado);
     }
 
     @GetMapping("/grupos/{grupoId}/partidas/{partidaId}/palpites")
@@ -59,9 +66,11 @@ public class PalpiteController {
             @RequestParam Long usuarioId,
             @RequestParam String codigo,
             @RequestBody @Valid PalpitePostPutRequestDTO dto) {
+        var resultado = palpiteService.editar(palpiteId, usuarioId, codigo, dto);
+        eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(palpiteService.editar(palpiteId, usuarioId, codigo, dto));
+                .body(resultado);
     }
 
     @DeleteMapping("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}")
@@ -72,6 +81,7 @@ public class PalpiteController {
             @RequestParam Long usuarioId,
             @RequestParam String codigo) {
         palpiteService.deletar(palpiteId, usuarioId, codigo);
+        eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.NO_CONTENT)
                 .build();

@@ -1,6 +1,7 @@
 package com.ufcg.psoft.project.controller.grupo;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +15,7 @@ import org.springframework.http.MediaType;
 
 import com.ufcg.psoft.project.dto.grupo.CriteriosDesempatePutRequestDTO;
 import com.ufcg.psoft.project.service.grupo.desempate.CriterioDesempateService;
+import com.ufcg.psoft.project.service.premium.RequisicaoAutenticadaEvent;
 
 import jakarta.validation.Valid;
 
@@ -25,6 +27,9 @@ import jakarta.validation.Valid;
 public class CriterioDesempateController {
     @Autowired
     CriterioDesempateService criterioDesempateService;
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
     
     @PutMapping("/{grupoId}/criterios-desempate")
 	public ResponseEntity<?> configurarCriteriosDesempate(
@@ -32,9 +37,11 @@ public class CriterioDesempateController {
 					@RequestParam String codigoAcesso,
 					@PathVariable Long grupoId,
 					@RequestBody @Valid CriteriosDesempatePutRequestDTO criteriosDesempatePutRequestDTO) {
+			var resultado = criterioDesempateService.configurarCriteriosDesempate(grupoId, usuarioId, codigoAcesso, criteriosDesempatePutRequestDTO);
+			eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
 			return ResponseEntity
 							.status(HttpStatus.OK)
-							.body(criterioDesempateService.configurarCriteriosDesempate(grupoId, usuarioId, codigoAcesso, criteriosDesempatePutRequestDTO));
+							.body(resultado);
 	}
 
 	@GetMapping("/{grupoId}/criterios-desempate")
@@ -42,8 +49,10 @@ public class CriterioDesempateController {
 					@RequestParam Long usuarioId,
 					@RequestParam String codigoAcesso,
 					@PathVariable Long grupoId) {
+			var resultado = criterioDesempateService.listarCriteriosDesempate(usuarioId, codigoAcesso, grupoId);
+			eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
 			return ResponseEntity
 							.status(HttpStatus.OK)
-							.body(criterioDesempateService.listarCriteriosDesempate(usuarioId, codigoAcesso, grupoId));
+							.body(resultado);
 	}
 }

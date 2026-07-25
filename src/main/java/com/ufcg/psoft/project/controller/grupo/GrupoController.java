@@ -20,11 +20,13 @@ import com.ufcg.psoft.project.service.grupo.desempate.CriterioDesempateService;
 import com.ufcg.psoft.project.service.grupo.participante.GrupoParticipanteService;
 import com.ufcg.psoft.project.service.grupo.pontuacao.RegraPontuacaoService;
 import com.ufcg.psoft.project.service.pontuacao.PontuacaoService;
+import com.ufcg.psoft.project.service.premium.RequisicaoAutenticadaEvent;
 import com.ufcg.psoft.project.service.ranking.RankingService;
 
 import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -41,15 +43,19 @@ public class GrupoController {
     private PontuacaoService pontuacaoService;
     @Autowired
     private RankingService rankingService;
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
     @PostMapping("")
     public ResponseEntity<?> criarGrupo(
             @RequestParam Long usuarioId,
             @RequestParam String codigoAcesso,
             @RequestBody @Valid GrupoPostRequestDTO grupoPostRequestDto) {
+        var resultado = grupoService.criar(usuarioId, codigoAcesso, grupoPostRequestDto);
+        eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(grupoService.criar(usuarioId, codigoAcesso, grupoPostRequestDto));
+                .body(resultado);
     }
 
     @GetMapping("/{id}")
@@ -57,9 +63,11 @@ public class GrupoController {
             @RequestParam Long usuarioId,
             @RequestParam String codigoAcesso,
             @PathVariable Long id) {
+        var resultado = grupoService.recuperar(usuarioId, codigoAcesso, id);
+        eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(grupoService.recuperar(usuarioId, codigoAcesso, id));
+                .body(resultado);
     }
 
     @GetMapping("")
@@ -67,9 +75,11 @@ public class GrupoController {
             @RequestParam Long usuarioId,
             @RequestParam String codigoAcesso
         ) {
+        var resultado = grupoService.listar(usuarioId, codigoAcesso);
+        eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(grupoService.listar(usuarioId, codigoAcesso));
+                .body(resultado);
     }
 
     @PutMapping("/{id}")
@@ -78,9 +88,11 @@ public class GrupoController {
             @RequestParam String codigoAcesso,
             @PathVariable Long id,
             @RequestBody @Valid GrupoPutRequestDTO grupoPutRequestDto) {
+        var resultado = grupoService.alterar(usuarioId, codigoAcesso, id, grupoPutRequestDto);
+        eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(grupoService.alterar(usuarioId, codigoAcesso, id, grupoPutRequestDto));
+                .body(resultado);
     }
 
     @DeleteMapping("/{id}")
@@ -89,6 +101,7 @@ public class GrupoController {
             @RequestParam String codigoAcesso,
             @PathVariable Long id) {
         grupoService.remover(usuarioId, codigoAcesso, id);
+        eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.NO_CONTENT)
                 .build();
@@ -100,9 +113,11 @@ public class GrupoController {
             @RequestParam Long usuarioId,
             @RequestParam String codigo,
             @RequestBody @Valid RegrasPalpitesRequestDTO regrasPalpitesRequestDTO) {
+        var resultado = grupoService.configurarRegrasPalpites(grupoId, usuarioId, codigo, regrasPalpitesRequestDTO);
+        eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(grupoService.configurarRegrasPalpites(grupoId, usuarioId, codigo, regrasPalpitesRequestDTO));
+                .body(resultado);
     }
 
     @GetMapping("/{grupoId}/pontuacoes")
@@ -110,9 +125,11 @@ public class GrupoController {
             @RequestParam Long usuarioId,
             @RequestParam String codigoAcesso,
             @PathVariable Long grupoId) {
+        var resultado = pontuacaoService.listarPontuacoesParticipantesDoGrupo(grupoId, usuarioId, codigoAcesso);
+        eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(pontuacaoService.listarPontuacoesParticipantesDoGrupo(grupoId, usuarioId, codigoAcesso));
+                .body(resultado);
     }
 
     @GetMapping("{grupoId}/ranking")
@@ -120,8 +137,10 @@ public class GrupoController {
             @RequestParam Long usuarioId,
             @RequestParam String codigoAcesso,
             @PathVariable Long grupoId) {
+        var resultado = rankingService.rankingDoGrupo(grupoId, usuarioId, codigoAcesso);
+        eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(rankingService.rankingDoGrupo(grupoId, usuarioId, codigoAcesso));
+                .body(resultado);
     }
 }

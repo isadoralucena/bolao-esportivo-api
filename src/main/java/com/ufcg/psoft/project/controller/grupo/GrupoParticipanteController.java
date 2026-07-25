@@ -1,6 +1,7 @@
 package com.ufcg.psoft.project.controller.grupo;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.MediaType;
 
 import com.ufcg.psoft.project.service.grupo.participante.GrupoParticipanteService;
+import com.ufcg.psoft.project.service.premium.RequisicaoAutenticadaEvent;
 
 @RestController
 @RequestMapping(
@@ -23,14 +25,19 @@ public class GrupoParticipanteController {
     @Autowired
     GrupoParticipanteService grupoParticipanteService;
 
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+
     @GetMapping("/{grupoId}/participantes")
     public ResponseEntity<?> listarParticipantes(
             @RequestParam Long usuarioId,
             @RequestParam String codigoAcesso,
             @PathVariable Long grupoId) {
+        var resultado = grupoParticipanteService.listarParticipantes(usuarioId, codigoAcesso, grupoId);
+        eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(grupoParticipanteService.listarParticipantes(usuarioId, codigoAcesso, grupoId));
+                .body(resultado);
     }
 
     @DeleteMapping("/{grupoId}/participantes/{participanteId}")
@@ -40,6 +47,7 @@ public class GrupoParticipanteController {
             @PathVariable Long grupoId,
             @PathVariable Long participanteId) {
         grupoParticipanteService.removerParticipante(usuarioId, codigoAcesso, grupoId, participanteId);
+        eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.NO_CONTENT)
                 .build();
@@ -50,9 +58,11 @@ public class GrupoParticipanteController {
                 @RequestParam Long usuarioId,
                 @RequestParam String codigoAcesso,
                 @PathVariable Long grupoId) {
+        var resultado = grupoParticipanteService.entrarEmGrupoPublico(grupoId, usuarioId, codigoAcesso);
+        eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(grupoParticipanteService.entrarEmGrupoPublico(grupoId, usuarioId, codigoAcesso));
+                .body(resultado);
     
 	}
 }

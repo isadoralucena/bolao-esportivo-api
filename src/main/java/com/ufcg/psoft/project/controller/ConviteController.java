@@ -3,6 +3,7 @@ package com.ufcg.psoft.project.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -15,7 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ufcg.psoft.project.dto.convite.ConvitePostPutRequestDTO;
 import com.ufcg.psoft.project.dto.convite.ConviteResponseDTO;
+import com.ufcg.psoft.project.repository.UsuarioRepository;
 import com.ufcg.psoft.project.service.convite.ConviteService;
+import com.ufcg.psoft.project.service.premium.RequisicaoAutenticadaEvent;
 
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.http.MediaType; 
@@ -31,14 +34,22 @@ public class ConviteController {
     @Autowired
     private ConviteService conviteService;
 
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
     @PostMapping("")
     public ResponseEntity<ConviteResponseDTO> criarConvite(
         @RequestParam String codigoAcesso,
         @RequestBody @Valid ConvitePostPutRequestDTO convitePostPutRequestDto
         ) {
+        var resultado = conviteService.criar(codigoAcesso, convitePostPutRequestDto);
+        eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(convitePostPutRequestDto.getOrganizador()));
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(conviteService.criar(codigoAcesso, convitePostPutRequestDto));
+                .body(resultado);
 
     }
 
@@ -46,27 +57,33 @@ public class ConviteController {
     public ResponseEntity<ConviteResponseDTO> aceitarConvite(
             @RequestParam String codigoAcessoConvidado,
             @PathVariable Long id) {
+        var resultado = conviteService.aceitar(id, codigoAcessoConvidado);
+        publicarEventoPorCodigo(codigoAcessoConvidado);
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(conviteService.aceitar(id, codigoAcessoConvidado));
+                .body(resultado);
     }
 
     @PostMapping("/{id}/recusar")
     public ResponseEntity<ConviteResponseDTO> recusarConvite(
             @RequestParam String codigoAcessoConvidado,
             @PathVariable Long id) {
+        var resultado = conviteService.recusar(id, codigoAcessoConvidado);
+        publicarEventoPorCodigo(codigoAcessoConvidado);
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(conviteService.recusar(id, codigoAcessoConvidado));
+                .body(resultado);
     }
 
     @PostMapping("/{id}/ignorar")
     public ResponseEntity<ConviteResponseDTO> ignorarConvite(
             @RequestParam String codigoAcessoConvidado,
             @PathVariable Long id) {
+        var resultado = conviteService.ignorar(id, codigoAcessoConvidado);
+        publicarEventoPorCodigo(codigoAcessoConvidado);
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(conviteService.ignorar(id, codigoAcessoConvidado));
+                .body(resultado);
     }
 
     @DeleteMapping("/{id}/remover")
@@ -74,6 +91,7 @@ public class ConviteController {
             @RequestParam String codigoAcessoOrganizador,
             @PathVariable Long id) {
         conviteService.remover(id, codigoAcessoOrganizador);
+        publicarEventoPorCodigo(codigoAcessoOrganizador);
         return ResponseEntity
                 .status(HttpStatus.NO_CONTENT)
                 .build();
@@ -83,9 +101,16 @@ public class ConviteController {
     public ResponseEntity<List<ConviteResponseDTO>> listarConvitesPendentes(
             @RequestParam String codigoAcessoConvidado,
             @PathVariable Long convidadoId) {
+        var resultado = conviteService.listarConvitesPendentesPorConvidado(convidadoId, codigoAcessoConvidado);
+        eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(convidadoId));
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(conviteService.listarConvitesPendentesPorConvidado(convidadoId, codigoAcessoConvidado));
+                .body(resultado);
+    }
+
+    private void publicarEventoPorCodigo(String codigo) {
+        usuarioRepository.findByCodigoIgnoreCase(codigo)
+                .ifPresent(u -> eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(u.getId())));
     }
 
 }
