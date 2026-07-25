@@ -20,7 +20,7 @@ import com.ufcg.psoft.project.dto.estatisticas.EstatisticasResponseDTO;
 import com.ufcg.psoft.project.dto.pontuacao.PontuacaoParticipanteResponseDTO;
 import com.ufcg.psoft.project.dto.ranking.RankingResponseDTO;
 import com.ufcg.psoft.project.event.PartidaConsolidadaEvent;
-import com.ufcg.psoft.project.exception.estatistica.EstatisticaNaoExisteExpcetion;
+import com.ufcg.psoft.project.exception.estatistica.EstatisticaNaoExisteException;
 import com.ufcg.psoft.project.model.Estatisticas;
 import com.ufcg.psoft.project.model.Grupo;
 import com.ufcg.psoft.project.model.Palpite;
@@ -104,7 +104,7 @@ public class EstatisticasServiceImpl implements EstatisticasService {
         List<Estatisticas> estatisticas = estatisticasRepository.findByUsuarioIdOrderByDataRegistroDesc(usuario.getId());
 
         if (estatisticas.isEmpty()) {
-            throw new EstatisticaNaoExisteExpcetion();
+            throw new EstatisticaNaoExisteException();
         }
 
         return new EstatisticasResponseDTO(estatisticas.get(0));

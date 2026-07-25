@@ -28,7 +28,7 @@ import com.ufcg.psoft.project.dto.pontuacao.PontuacaoParticipanteResponseDTO;
 import com.ufcg.psoft.project.dto.ranking.RankingEntryResponseDTO;
 import com.ufcg.psoft.project.dto.ranking.RankingResponseDTO;
 import com.ufcg.psoft.project.event.PartidaConsolidadaEvent;
-import com.ufcg.psoft.project.exception.estatistica.EstatisticaNaoExisteExpcetion;
+import com.ufcg.psoft.project.exception.estatistica.EstatisticaNaoExisteException;
 import com.ufcg.psoft.project.model.Estatisticas;
 import com.ufcg.psoft.project.model.Grupo;
 import com.ufcg.psoft.project.model.Palpite;
@@ -565,7 +565,7 @@ class EstatisticasServiceImplTest {
 
         // Act e Assert
         assertThrows(
-                EstatisticaNaoExisteExpcetion.class,
+                EstatisticaNaoExisteException.class,
                 () -> estatisticasService
                         .obterEstatisticaMaisRecente(1L, "123456")
         );
