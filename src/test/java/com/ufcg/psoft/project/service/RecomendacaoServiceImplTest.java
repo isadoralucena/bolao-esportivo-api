@@ -13,6 +13,9 @@ import com.ufcg.psoft.project.repository.PartidaRepository;
 import com.ufcg.psoft.project.service.grupo.GrupoAutorizacaoService;
 import com.ufcg.psoft.project.service.recomendacao.RecomendacaoServiceImpl;
 import com.ufcg.psoft.project.service.recomendacao.RecomendacaoStrategy;
+import com.ufcg.psoft.project.dto.partida.PartidaResponseDTO;
+import com.ufcg.psoft.project.service.partida.PartidaService;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -25,15 +28,21 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 @DisplayName("Testes unitarios do RecomendacaoServiceImpl - US20")
 class RecomendacaoServiceImplTest {
+
+
+    @Mock
+    private PartidaService partidaService;
 
     @Mock
     private GrupoAutorizacaoService grupoAutorizacaoService;
@@ -308,4 +317,81 @@ class RecomendacaoServiceImplTest {
                         () -> recomendacaoService.recomendar(99L, 1L, "111111"));
         }
         }
+
+        @Nested
+        @DisplayName("listarPartidasFuturasComRecomendacao")
+        class ListarPartidasFuturas {
+
+        @Test
+        @DisplayName("Deve retornar partidas sem recomendacao para usuario nao Premium")
+        void deveRetornarPartidasSemRecomendacaoParaNaoPremium() {
+                PartidaResponseDTO partidaDTO = new PartidaResponseDTO(partida);
+
+                when(grupoAutorizacaoService.obterUsuarioValido(2L, "222222")).thenReturn(usuarioPadrao);
+                when(partidaService.listarPartidasFuturas()).thenReturn(List.of(partidaDTO));
+
+                List<PartidaResponseDTO> resultado = recomendacaoService.listarPartidasFuturasComRecomendacao(2L, "222222");
+
+                assertAll(
+                        () -> assertEquals(1, resultado.size()),
+                        () -> assertNull(resultado.get(0).getRecomendacao())
+                );
+        }
+
+        @Test
+        @DisplayName("Deve retornar partidas com recomendacao para usuario Premium")
+        void deveRetornarPartidasComRecomendacaoParaPremium() {
+                PartidaResponseDTO partidaDTO = new PartidaResponseDTO(partida);
+                RecomendacaoResponseDTO recomendacao = RecomendacaoResponseDTO.builder()
+                        .golsMandanteRecomendado(1).golsVisitanteRecomendado(0)
+                        .estrategia("PLACAR_FREQUENTE").temRecomendacao(true)
+                        .mensagem("Recomendação baseada no placar mais frequente do campeonato: 1x0")
+                        .build();
+
+                when(grupoAutorizacaoService.obterUsuarioValido(1L, "111111")).thenReturn(usuarioPremium);
+                when(partidaService.listarPartidasFuturas()).thenReturn(List.of(partidaDTO));
+                when(placarFrequente.recomendar(partida)).thenReturn(Optional.of(recomendacao));
+                when(partidaRepository.findById(1L)).thenReturn(Optional.of(partida));
+
+                List<PartidaResponseDTO> resultado = recomendacaoService.listarPartidasFuturasComRecomendacao(1L, "111111");
+
+                assertAll(
+                        () -> assertEquals(1, resultado.size()),
+                        () -> assertNotNull(resultado.get(0).getRecomendacao()),
+                        () -> assertTrue(resultado.get(0).getRecomendacao().isTemRecomendacao())
+                );
+        }
+
+        @Test
+        @DisplayName("Deve retornar lista vazia quando nao ha partidas futuras")
+        void deveRetornarListaVaziaQuandoSemPartidasFuturas() {
+                when(grupoAutorizacaoService.obterUsuarioValido(1L, "111111")).thenReturn(usuarioPremium);
+                when(partidaService.listarPartidasFuturas()).thenReturn(List.of());
+
+                List<PartidaResponseDTO> resultado = recomendacaoService.listarPartidasFuturasComRecomendacao(1L, "111111");
+
+                assertTrue(resultado.isEmpty());
+        }
+
+        @Test
+        @DisplayName("Deve lancar excecao quando usuario nao existe")
+        void deveLancarExcecaoQuandoUsuarioNaoExiste() {
+                when(grupoAutorizacaoService.obterUsuarioValido(99L, "111111"))
+                        .thenThrow(UsuarioNaoExisteException.class);
+
+                assertThrows(UsuarioNaoExisteException.class,
+                        () -> recomendacaoService.listarPartidasFuturasComRecomendacao(99L, "111111"));
+        }
+
+        @Test
+        @DisplayName("Deve lancar excecao quando codigo invalido")
+        void deveLancarExcecaoQuandoCodigoInvalido() {
+                when(grupoAutorizacaoService.obterUsuarioValido(1L, "ERRADO"))
+                        .thenThrow(CodigoDeAcessoInvalidoException.class);
+
+                assertThrows(CodigoDeAcessoInvalidoException.class,
+                        () -> recomendacaoService.listarPartidasFuturasComRecomendacao(1L, "ERRADO"));
+        }
+        }
+        
 }
