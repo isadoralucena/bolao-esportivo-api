@@ -284,7 +284,7 @@ class RankingHistoricoServiceImplTest {
 
             com.ufcg.psoft.project.dto.pontuacao.PontuacaoParticipanteResponseDTO pontuacaoDTO =
                     com.ufcg.psoft.project.dto.pontuacao.PontuacaoParticipanteResponseDTO.builder()
-                            .grupoId(1L)
+                            
                             .usuarioId(1L)
                             .usuarioNome("Usuario Teste")
                             .pontuacao(10)
