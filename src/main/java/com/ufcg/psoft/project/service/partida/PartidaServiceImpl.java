@@ -14,6 +14,12 @@ import com.ufcg.psoft.project.model.PartidaStatus;
 import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.PartidaRepository;
 import com.ufcg.psoft.project.service.pontuacao.PontuacaoService;
+import com.ufcg.psoft.project.service.recomendacao.RecomendacaoService;
+import com.ufcg.psoft.project.service.grupo.GrupoAutorizacaoService;
+import com.ufcg.psoft.project.model.PerfilUsuario;
+import com.ufcg.psoft.project.dto.recomendacao.RecomendacaoResponseDTO;
+import com.ufcg.psoft.project.service.recomendacao.RecomendacaoService;
+import com.ufcg.psoft.project.service.grupo.GrupoAutorizacaoService;
 
 import jakarta.transaction.Transactional;
 
@@ -36,6 +42,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.springframework.context.annotation.Lazy;
+
+import com.ufcg.psoft.project.model.Usuario;
+
 
 @Service
 public class PartidaServiceImpl implements PartidaService {
@@ -50,6 +60,13 @@ public class PartidaServiceImpl implements PartidaService {
 
     @Autowired 
     private ApplicationEventPublisher eventPublisher;
+
+    @Autowired
+    @Lazy
+    private RecomendacaoService recomendacaoService;
+
+    @Autowired
+    private GrupoAutorizacaoService grupoAutorizacaoService;
 
     @Value("${project.football-data.api-token:}")
     private String apiToken;
@@ -117,6 +134,33 @@ public class PartidaServiceImpl implements PartidaService {
     @Override
     public void deleteByCampeonatoId(Long campeonatoId) {
         partidaRepository.deleteByCampeonatoId(campeonatoId);
+    }
+
+    @Override
+    public List<PartidaResponseDTO> listarPartidasFuturas(Long usuarioId, String codigo) {
+        Usuario usuario = grupoAutorizacaoService.obterUsuarioValido(usuarioId, codigo);
+        boolean isPremium = usuario.getPerfil() == PerfilUsuario.PREMIUM;
+
+        List<Partida> futuras = partidaRepository.findByDataAfterAndStatus(
+                LocalDateTime.now(), PartidaStatus.ABERTO);
+
+        return futuras.stream()
+                .map(partida -> {
+                    PartidaResponseDTO dto = new PartidaResponseDTO(partida);
+                    if (isPremium) {
+                        try {
+                            RecomendacaoResponseDTO recomendacao =
+                                    recomendacaoService.recomendar(
+                                            partida.getId(),
+                                            usuarioId,
+                                            codigo
+                                    );
+                            dto.setRecomendacao(recomendacao);
+                        } catch (Exception ignored) {}
+                    }
+                    return dto;
+                })
+                .toList();
     }
 
     private PartidaResponseDTO salvarOuAtualizarPartida(Campeonato campeonato, Map<String, Object> match) {
