@@ -1,5 +1,6 @@
 package com.ufcg.psoft.project.dto.recomendacao;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,6 +13,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class RecomendacaoResponseDTO {
 
+    @JsonProperty("partidaId")
+    private Long partidaId;
+
+    @JsonProperty("mandante")
+    private String mandante;
+
+    @JsonProperty("visitante")
+    private String visitante;
+
     @JsonProperty("golsMandanteRecomendado")
     private Integer golsMandanteRecomendado;
 
@@ -21,15 +31,9 @@ public class RecomendacaoResponseDTO {
     @JsonProperty("estrategia")
     private String estrategia;
 
-    @JsonProperty("temHistorico")
-    private boolean temHistorico;
+    @JsonProperty("temRecomendacao")
+    private boolean temRecomendacao;
 
-    @JsonProperty("partidaId")
-    private Long partidaId;
-
-    @JsonProperty("mandante")
-    private String mandante;
-
-    @JsonProperty("visitante")
-    private String visitante;
+    @JsonProperty("mensagem")
+    private String mensagem;
 }
