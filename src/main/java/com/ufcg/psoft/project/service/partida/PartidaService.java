@@ -14,5 +14,5 @@ public interface PartidaService {
     
     void deleteByCampeonatoId(Long campeonatoId);
     
-    List<PartidaResponseDTO> listarPartidasFuturas(Long usuarioId, String codigo);
+    List<PartidaResponseDTO> listarPartidasFuturas();
 }
