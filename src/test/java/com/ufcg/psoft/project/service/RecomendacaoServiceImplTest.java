@@ -242,4 +242,70 @@ class RecomendacaoServiceImplTest {
                     () -> recomendacaoService.recomendar(1L, 2L, 1L, "111111"));
         }
     }
+        @Nested
+        @DisplayName("Sobrecarga sem grupoId")
+        class SobreargaSemGrupoId {
+
+        @Test
+        @DisplayName("Deve retornar recomendacao sem validar grupo")
+        void deveRetornarRecomendacaoSemGrupo() {
+                RecomendacaoResponseDTO esperada = RecomendacaoResponseDTO.builder()
+                        .golsMandanteRecomendado(1).golsVisitanteRecomendado(0)
+                        .estrategia("PLACAR_FREQUENTE").temRecomendacao(true)
+                        .mensagem("Recomendação baseada no placar mais frequente do campeonato: 1x0")
+                        .build();
+
+                when(grupoAutorizacaoService.obterUsuarioValido(1L, "111111")).thenReturn(usuarioPremium);
+                when(partidaRepository.findById(1L)).thenReturn(Optional.of(partida));
+                when(placarFrequente.recomendar(partida)).thenReturn(Optional.of(esperada));
+
+                RecomendacaoResponseDTO resultado = recomendacaoService.recomendar(1L, 1L, "111111");
+
+                assertAll(
+                        () -> assertNotNull(resultado),
+                        () -> assertEquals(1, resultado.getGolsMandanteRecomendado()),
+                        () -> assertEquals(0, resultado.getGolsVisitanteRecomendado()),
+                        () -> assertEquals(partida.getId(), resultado.getPartidaId()),
+                        () -> assertEquals("Time A", resultado.getMandante()),
+                        () -> assertEquals("Time B", resultado.getVisitante()),
+                        () -> assertTrue(resultado.isTemRecomendacao())
+                );
+        }
+
+        @Test
+        @DisplayName("Deve retornar fallback sem grupoId quando sem historico")
+        void deveRetornarFallbackSemGrupo() {
+                when(grupoAutorizacaoService.obterUsuarioValido(1L, "111111")).thenReturn(usuarioPremium);
+                when(partidaRepository.findById(1L)).thenReturn(Optional.of(partida));
+                when(placarFrequente.recomendar(partida)).thenReturn(Optional.empty());
+                when(mediaGols.recomendar(partida)).thenReturn(Optional.empty());
+
+                RecomendacaoResponseDTO resultado = recomendacaoService.recomendar(1L, 1L, "111111");
+
+                assertAll(
+                        () -> assertFalse(resultado.isTemRecomendacao()),
+                        () -> assertNull(resultado.getGolsMandanteRecomendado()),
+                        () -> assertNull(resultado.getGolsVisitanteRecomendado())
+                );
+        }
+
+        @Test
+        @DisplayName("Deve lancar excecao quando usuario nao e Premium na sobrecarga")
+        void deveLancarExcecaoQuandoNaoPremiumSemGrupo() {
+                when(grupoAutorizacaoService.obterUsuarioValido(2L, "222222")).thenReturn(usuarioPadrao);
+
+                assertThrows(UsuarioNaoPremiumException.class,
+                        () -> recomendacaoService.recomendar(1L, 2L, "222222"));
+        }
+
+        @Test
+        @DisplayName("Deve lancar excecao quando partida nao existe na sobrecarga")
+        void deveLancarExcecaoQuandoPartidaNaoExisteSemGrupo() {
+                when(grupoAutorizacaoService.obterUsuarioValido(1L, "111111")).thenReturn(usuarioPremium);
+                when(partidaRepository.findById(99L)).thenReturn(Optional.empty());
+
+                assertThrows(PartidaNaoExisteException.class,
+                        () -> recomendacaoService.recomendar(99L, 1L, "111111"));
+        }
+        }
 }
