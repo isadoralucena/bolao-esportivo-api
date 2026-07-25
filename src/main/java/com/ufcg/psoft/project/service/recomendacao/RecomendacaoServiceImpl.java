@@ -1,7 +1,6 @@
 package com.ufcg.psoft.project.service.recomendacao;
 
 import com.ufcg.psoft.project.dto.recomendacao.RecomendacaoResponseDTO;
-import com.ufcg.psoft.project.exception.RecomendacaoEstrategiaInvalidaException;
 import com.ufcg.psoft.project.exception.grupo.GrupoNaoExisteException;
 import com.ufcg.psoft.project.exception.partida.PartidaNaoExisteException;
 import com.ufcg.psoft.project.exception.partida.PartidaNaoPertenceAoCampeonatoException;
@@ -14,9 +13,10 @@ import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.PartidaRepository;
 import com.ufcg.psoft.project.service.grupo.GrupoAutorizacaoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class RecomendacaoServiceImpl implements RecomendacaoService {
@@ -31,16 +31,52 @@ public class RecomendacaoServiceImpl implements RecomendacaoService {
     private GrupoRepository grupoRepository;
 
     @Autowired
-    private Map<String, RecomendacaoStrategy> estrategias;
+    @Qualifier("PLACAR_FREQUENTE")
+    private RecomendacaoStrategy placarFrequente;
+
+    @Autowired
+    @Qualifier("MEDIA_GOLS")
+    private RecomendacaoStrategy mediaGols;
 
     @Override
-    public RecomendacaoResponseDTO recomendar(Long grupoId, Long partidaId, Long usuarioId, String codigo, String estrategia) {
+    public RecomendacaoResponseDTO recomendar(Long grupoId, Long partidaId, Long usuarioId, String codigo) {
         Usuario usuario = grupoAutorizacaoService.obterUsuarioValido(usuarioId, codigo);
         validarPremium(usuario);
         Partida partida = obterPartida(partidaId);
         validarPartidaPertenceAoGrupo(partida, grupoId);
-        RecomendacaoStrategy strategy = obterEstrategia(estrategia);
-        RecomendacaoResponseDTO response = strategy.recomendar(partida);
+
+        RecomendacaoResponseDTO response = placarFrequente.recomendar(partida)
+                .or(() -> mediaGols.recomendar(partida))
+                .orElse(RecomendacaoResponseDTO.builder()
+                        .golsMandanteRecomendado(null)
+                        .golsVisitanteRecomendado(null)
+                        .estrategia(null)
+                        .temRecomendacao(false)
+                        .mensagem("Não há dados suficientes para gerar uma recomendação para esta partida.")
+                        .build());
+
+        response.setPartidaId(partida.getId());
+        response.setMandante(partida.getMandante());
+        response.setVisitante(partida.getVisitante());
+        return response;
+    }
+
+    @Override
+    public RecomendacaoResponseDTO recomendar(Long partidaId, Long usuarioId, String codigo) {
+        Usuario usuario = grupoAutorizacaoService.obterUsuarioValido(usuarioId, codigo);
+        validarPremium(usuario);
+        Partida partida = obterPartida(partidaId);
+
+        RecomendacaoResponseDTO response = placarFrequente.recomendar(partida)
+                .or(() -> mediaGols.recomendar(partida))
+                .orElse(RecomendacaoResponseDTO.builder()
+                        .golsMandanteRecomendado(null)
+                        .golsVisitanteRecomendado(null)
+                        .estrategia(null)
+                        .temRecomendacao(false)
+                        .mensagem("Não há dados suficientes para gerar uma recomendação para esta partida.")
+                        .build());
+
         response.setPartidaId(partida.getId());
         response.setMandante(partida.getMandante());
         response.setVisitante(partida.getVisitante());
@@ -56,14 +92,6 @@ public class RecomendacaoServiceImpl implements RecomendacaoService {
     private Partida obterPartida(Long partidaId) {
         return partidaRepository.findById(partidaId)
                 .orElseThrow(PartidaNaoExisteException::new);
-    }
-
-    private RecomendacaoStrategy obterEstrategia(String estrategia) {
-        RecomendacaoStrategy strategy = estrategias.get(estrategia);
-        if (strategy == null) {
-            throw new RecomendacaoEstrategiaInvalidaException();
-        }
-        return strategy;
     }
 
     private void validarPartidaPertenceAoGrupo(Partida partida, Long grupoId) {
