@@ -23,4 +23,13 @@ public class RecomendacaoResponseDTO {
 
     @JsonProperty("temHistorico")
     private boolean temHistorico;
+
+    @JsonProperty("partidaId")
+    private Long partidaId;
+
+    @JsonProperty("mandante")
+    private String mandante;
+
+    @JsonProperty("visitante")
+    private String visitante;
 }

@@ -40,7 +40,11 @@ public class RecomendacaoServiceImpl implements RecomendacaoService {
         Partida partida = obterPartida(partidaId);
         validarPartidaPertenceAoGrupo(partida, grupoId);
         RecomendacaoStrategy strategy = obterEstrategia(estrategia);
-        return strategy.recomendar(partida);
+        RecomendacaoResponseDTO response = strategy.recomendar(partida);
+        response.setPartidaId(partida.getId());
+        response.setMandante(partida.getMandante());
+        response.setVisitante(partida.getVisitante());
+        return response;
     }
 
     private void validarPremium(Usuario usuario) {
