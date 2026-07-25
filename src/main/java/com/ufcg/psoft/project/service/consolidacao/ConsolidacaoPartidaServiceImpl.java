@@ -1,6 +1,5 @@
 package com.ufcg.psoft.project.service.consolidacao;
 
-import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -10,6 +9,7 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ufcg.psoft.project.event.PartidaConsolidadaEvent;
 import com.ufcg.psoft.project.event.PartidaFinalizadaEvent;
 import com.ufcg.psoft.project.exception.partida.PartidaSyncException;
 import com.ufcg.psoft.project.model.Partida;
@@ -26,6 +26,9 @@ public class ConsolidacaoPartidaServiceImpl implements ConsolidacaoPartidaServic
     @Autowired
     private PartidaRepository partidaRepository;
 
+    @Autowired 
+    private ApplicationEventPublisher eventPublisher;
+
     @Override
     public void consolidar(Partida partida) {
         if (partida.getStatus() != PartidaStatus.FINALIZADO || partida.isConsolidada()) {
@@ -39,6 +42,7 @@ public class ConsolidacaoPartidaServiceImpl implements ConsolidacaoPartidaServic
         pontuacaoService.calcularPontuacoesAssociadasAPartida(partida.getId());
         partida.setConsolidada(true);
         partidaRepository.save(partida);
+        eventPublisher.publishEvent(new PartidaConsolidadaEvent(this, partida));
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)

@@ -3,7 +3,6 @@ package com.ufcg.psoft.project.service;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -162,9 +161,9 @@ class PontuacaoServiceImplTest {
         var resultado = pontuacaoService.calcularPontuacaoGlobalDoParticipante(1L);
 
         assertAll(
-                () -> assertNull(resultado.getGrupoId()),
                 () -> assertEquals(1L, resultado.getUsuarioId()),
                 () -> assertEquals("Teste", resultado.getUsuarioNome()),
+                () -> assertEquals(1, resultado.getTotalPalpitesAvaliados()),
                 () -> assertEquals(10, resultado.getPontuacao()),
                 () -> assertEquals(0, resultado.getErros()),
                 () -> assertEquals(1, resultado.getAcertosVencedor()),
@@ -196,6 +195,7 @@ class PontuacaoServiceImplTest {
 
         assertEquals(1, resultado.size());
         assertEquals(10, resultado.get(0).getPontuacao());
+        assertEquals(1, resultado.get(0).getTotalPalpitesAvaliados());
     }
 
     @Test
@@ -231,8 +231,8 @@ class PontuacaoServiceImplTest {
         var resultado = pontuacaoService.calcularPontuacaoParticipanteNoGrupo(1L, 1L);
 
         assertAll(
-                () -> assertEquals(1L, resultado.getGrupoId()),
                 () -> assertEquals(1L, resultado.getUsuarioId()),
+                () -> assertEquals(1, resultado.getTotalPalpitesAvaliados()),
                 () -> assertEquals(10, resultado.getPontuacao()),
                 () -> assertEquals(1, resultado.getAcertosVencedor())
         );
