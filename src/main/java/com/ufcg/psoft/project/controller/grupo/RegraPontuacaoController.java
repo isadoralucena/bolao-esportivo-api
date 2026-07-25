@@ -1,6 +1,7 @@
 package com.ufcg.psoft.project.controller.grupo;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -15,6 +16,7 @@ import org.springframework.http.MediaType;
 
 import com.ufcg.psoft.project.dto.grupo.RegraPontuacaoPostPutRequestDTO;
 import com.ufcg.psoft.project.service.grupo.pontuacao.RegraPontuacaoService;
+import com.ufcg.psoft.project.service.premium.RequisicaoAutenticadaEvent;
 
 import jakarta.validation.Valid;
 
@@ -26,6 +28,9 @@ import jakarta.validation.Valid;
 public class RegraPontuacaoController {
     @Autowired
     RegraPontuacaoService regraPontuacaoService;
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
     
     @PostMapping("/{grupoId}/regras-pontuacao")
 	public ResponseEntity<?> inserirRegraPontuacao(
@@ -33,9 +38,11 @@ public class RegraPontuacaoController {
 			@RequestParam String codigoAcesso,
 			@PathVariable Long grupoId,
 			@RequestBody @Valid RegraPontuacaoPostPutRequestDTO regraPontuacaoPostPutRequestDto) {
+		var resultado = regraPontuacaoService.inserirRegraPontuacao(usuarioId, codigoAcesso, grupoId, regraPontuacaoPostPutRequestDto);
+		eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
 		return ResponseEntity
 				.status(HttpStatus.CREATED)
-				.body(regraPontuacaoService.inserirRegraPontuacao(usuarioId, codigoAcesso, grupoId, regraPontuacaoPostPutRequestDto));
+				.body(resultado);
 	}
 
 	@GetMapping("/{grupoId}/regras-pontuacao")
@@ -43,9 +50,11 @@ public class RegraPontuacaoController {
 			@RequestParam Long usuarioId,
 			@RequestParam String codigoAcesso,
 			@PathVariable Long grupoId) {
+		var resultado = regraPontuacaoService.listarRegrasPontuacao(usuarioId, codigoAcesso, grupoId);
+		eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
 		return ResponseEntity
 				.status(HttpStatus.OK)
-				.body(regraPontuacaoService.listarRegrasPontuacao(usuarioId, codigoAcesso, grupoId));
+				.body(resultado);
 	}
 
 	@DeleteMapping("/{grupoId}/regras-pontuacao/{regraId}")
@@ -55,6 +64,7 @@ public class RegraPontuacaoController {
 			@PathVariable Long grupoId,
 			@PathVariable Long regraId) {
 		regraPontuacaoService.removerRegraPontuacao(usuarioId, codigoAcesso, grupoId, regraId);
+		eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
 		return ResponseEntity
 				.status(HttpStatus.NO_CONTENT)
 				.build();

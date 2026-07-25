@@ -1,9 +1,11 @@
 package com.ufcg.psoft.project.controller;
 
 import com.ufcg.psoft.project.dto.usuario.UsuarioPostPutRequestDTO;
+import com.ufcg.psoft.project.service.premium.RequisicaoAutenticadaEvent;
 import com.ufcg.psoft.project.service.usuario.UsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,9 @@ public class UsuarioController {
 
     @Autowired
     UsuarioService usuarioService;
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
     @GetMapping("/{id}")
     public ResponseEntity<?> recuperarUsuario(
@@ -54,9 +59,11 @@ public class UsuarioController {
             @PathVariable Long id,
             @RequestParam String codigo,
             @RequestBody @Valid UsuarioPostPutRequestDTO usuarioPostPutRequestDto) {
+        var resultado = usuarioService.alterar(id, codigo, usuarioPostPutRequestDto);
+        eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(id));
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(usuarioService.alterar(id, codigo, usuarioPostPutRequestDto));
+                .body(resultado);
     }
 
     @GetMapping("/{id}/promocao-premium")
@@ -72,6 +79,7 @@ public class UsuarioController {
             @PathVariable Long id,
             @RequestParam String codigo) {
         usuarioService.remover(id, codigo);
+        eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(id));
         return ResponseEntity
                 .status(HttpStatus.NO_CONTENT)
                 .body("");
