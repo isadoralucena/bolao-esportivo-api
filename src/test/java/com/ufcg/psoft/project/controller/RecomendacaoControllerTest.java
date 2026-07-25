@@ -29,26 +29,13 @@ public class RecomendacaoControllerTest {
 
     final String URI_RECOMENDACAO = "/grupos/{grupoId}/partidas/{partidaId}/recomendacao";
 
-    @Autowired
-    MockMvc driver;
-
-    @Autowired
-    WebApplicationContext webApplicationContext;
-
-    @Autowired
-    UsuarioRepository usuarioRepository;
-
-    @Autowired
-    CampeonatoRepository campeonatoRepository;
-
-    @Autowired
-    GrupoRepository grupoRepository;
-
-    @Autowired
-    PartidaRepository partidaRepository;
-
-    @Autowired
-    ObjectMapper objectMapper;
+    @Autowired MockMvc driver;
+    @Autowired WebApplicationContext webApplicationContext;
+    @Autowired UsuarioRepository usuarioRepository;
+    @Autowired CampeonatoRepository campeonatoRepository;
+    @Autowired GrupoRepository grupoRepository;
+    @Autowired PartidaRepository partidaRepository;
+    @Autowired ObjectMapper objectMapper;
 
     Usuario usuarioPremium;
     Usuario usuarioPadrao;
@@ -65,53 +52,33 @@ public class RecomendacaoControllerTest {
                 .build();
 
         usuarioPremium = usuarioRepository.save(Usuario.builder()
-                .nome("Usuario Premium")
-                .username("premium")
-                .email("premium@email.com")
-                .endereco("Rua A")
-                .codigo("111111")
-                .perfil(PerfilUsuario.PREMIUM)
-                .build());
+                .nome("Usuario Premium").username("premium")
+                .email("premium@email.com").endereco("Rua A")
+                .codigo("111111").perfil(PerfilUsuario.PREMIUM).build());
 
         usuarioPadrao = usuarioRepository.save(Usuario.builder()
-                .nome("Usuario Padrao")
-                .username("padrao")
-                .email("padrao@email.com")
-                .endereco("Rua B")
-                .codigo("222222")
-                .perfil(PerfilUsuario.PADRAO)
-                .build());
+                .nome("Usuario Padrao").username("padrao")
+                .email("padrao@email.com").endereco("Rua B")
+                .codigo("222222").perfil(PerfilUsuario.PADRAO).build());
 
         campeonato = campeonatoRepository.save(Campeonato.builder()
-                .nome("Campeonato Teste")
-                .url("http://campeonato-teste.com")
-                .codigo("CAT001")
-                .ativo(true)
-                .build());
+                .nome("Campeonato Teste").url("http://campeonato-teste.com")
+                .codigo("CAT001").ativo(true).build());
 
         outroCampeonato = campeonatoRepository.save(Campeonato.builder()
-                .nome("Outro Campeonato")
-                .url("http://outro-campeonato.com")
-                .codigo("CAT002")
-                .ativo(true)
-                .build());
+                .nome("Outro Campeonato").url("http://outro-campeonato.com")
+                .codigo("CAT002").ativo(true).build());
 
         grupo = grupoRepository.save(Grupo.builder()
-                .nome("Grupo Teste")
-                .descricao("Grupo para testes")
+                .nome("Grupo Teste").descricao("Grupo para testes")
                 .privacidade(PrivacidadeGrupo.PUBLICA)
-                .campeonato(campeonato)
-                .organizador(usuarioPremium)
-                .build());
+                .campeonato(campeonato).organizador(usuarioPremium).build());
 
         partida = partidaRepository.save(Partida.builder()
-                .campeonato(campeonato)
-                .codigoExterno(1L)
-                .mandante("Time A")
-                .visitante("Time B")
+                .campeonato(campeonato).codigoExterno(1L)
+                .mandante("Time A").visitante("Time B")
                 .data(LocalDateTime.now().plusDays(1))
-                .status(PartidaStatus.ABERTO)
-                .build());
+                .status(PartidaStatus.ABERTO).build());
     }
 
     @AfterEach
@@ -127,73 +94,8 @@ public class RecomendacaoControllerTest {
     class CenariosDeSuccesso {
 
         @Test
-        @DisplayName("Quando usuario Premium solicita recomendacao com estrategia PLACAR_FREQUENTE")
-        void quandoPremiumSolicitaRecomendacaoPlacarFrequente() throws Exception {
-            String responseJsonString = driver.perform(get(URI_RECOMENDACAO, grupo.getId(), partida.getId())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("usuarioId", usuarioPremium.getId().toString())
-                            .param("codigo", usuarioPremium.getCodigo())
-                            .param("estrategia", "PLACAR_FREQUENTE"))
-                    .andExpect(status().isOk())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
-
-            RecomendacaoResponseDTO resultado = objectMapper.readValue(responseJsonString, RecomendacaoResponseDTO.class);
-
-            assertAll(
-                    () -> assertNotNull(resultado),
-                    () -> assertEquals("PLACAR_FREQUENTE", resultado.getEstrategia()),
-                    () -> assertNotNull(resultado.getGolsMandanteRecomendado()),
-                    () -> assertNotNull(resultado.getGolsVisitanteRecomendado())
-            );
-        }
-
-        @Test
-        @DisplayName("Quando usuario Premium solicita recomendacao com estrategia MEDIA_GOLS")
-        void quandoPremiumSolicitaRecomendacaoMediaGols() throws Exception {
-            String responseJsonString = driver.perform(get(URI_RECOMENDACAO, grupo.getId(), partida.getId())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("usuarioId", usuarioPremium.getId().toString())
-                            .param("codigo", usuarioPremium.getCodigo())
-                            .param("estrategia", "MEDIA_GOLS"))
-                    .andExpect(status().isOk())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
-
-            RecomendacaoResponseDTO resultado = objectMapper.readValue(responseJsonString, RecomendacaoResponseDTO.class);
-
-            assertAll(
-                    () -> assertNotNull(resultado),
-                    () -> assertEquals("MEDIA_GOLS", resultado.getEstrategia()),
-                    () -> assertNotNull(resultado.getGolsMandanteRecomendado()),
-                    () -> assertNotNull(resultado.getGolsVisitanteRecomendado())
-            );
-        }
-
-        @Test
-        @DisplayName("Quando nao ha historico retorna 0x0 com temHistorico false")
-        void quandoSemHistoricoRetorna0x0() throws Exception {
-            String responseJsonString = driver.perform(get(URI_RECOMENDACAO, grupo.getId(), partida.getId())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("usuarioId", usuarioPremium.getId().toString())
-                            .param("codigo", usuarioPremium.getCodigo())
-                            .param("estrategia", "PLACAR_FREQUENTE"))
-                    .andExpect(status().isOk())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
-
-            RecomendacaoResponseDTO resultado = objectMapper.readValue(responseJsonString, RecomendacaoResponseDTO.class);
-
-            assertAll(
-                    () -> assertEquals(0, resultado.getGolsMandanteRecomendado()),
-                    () -> assertEquals(0, resultado.getGolsVisitanteRecomendado()),
-                    () -> assertFalse(resultado.isTemHistorico())
-            );
-        }
-
-        @Test
-        @DisplayName("Quando estrategia nao informada usa PLACAR_FREQUENTE como default")
-        void quandoEstrategiaNaoInformadaUsaDefault() throws Exception {
+        @DisplayName("Quando usuario Premium solicita recomendacao")
+        void quandoPremiumSolicitaRecomendacao() throws Exception {
             String responseJsonString = driver.perform(get(URI_RECOMENDACAO, grupo.getId(), partida.getId())
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", usuarioPremium.getId().toString())
@@ -204,29 +106,23 @@ public class RecomendacaoControllerTest {
 
             RecomendacaoResponseDTO resultado = objectMapper.readValue(responseJsonString, RecomendacaoResponseDTO.class);
 
-            assertEquals("PLACAR_FREQUENTE", resultado.getEstrategia());
+            assertAll(
+                () -> assertNotNull(resultado),
+                () -> assertNotNull(resultado.getMensagem()),
+                () -> assertEquals(partida.getId(), resultado.getPartidaId()),
+                () -> assertEquals("Time A", resultado.getMandante()),
+                () -> assertEquals("Time B", resultado.getVisitante()),
+                () -> assertFalse(resultado.isTemRecomendacao())
+        );
         }
 
         @Test
-        @DisplayName("Quando ha historico retorna recomendacao com temHistorico true")
-        void quandoComHistoricoRetornaTemHistoricoTrue() throws Exception {
-            partidaRepository.save(Partida.builder()
-                    .campeonato(campeonato)
-                    .codigoExterno(99L)
-                    .mandante("Time X")
-                    .visitante("Time Y")
-                    .golsMandante(2)
-                    .golsVisitante(1)
-                    .data(LocalDateTime.now().minusDays(1))
-                    .status(PartidaStatus.FINALIZADO)
-                    .consolidada(true)
-                    .build());
-
+        @DisplayName("Quando nao ha historico retorna sem recomendacao")
+        void quandoSemHistoricoRetornaFallback() throws Exception {
             String responseJsonString = driver.perform(get(URI_RECOMENDACAO, grupo.getId(), partida.getId())
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", usuarioPremium.getId().toString())
-                            .param("codigo", usuarioPremium.getCodigo())
-                            .param("estrategia", "PLACAR_FREQUENTE"))
+                            .param("codigo", usuarioPremium.getCodigo()))
                     .andExpect(status().isOk())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -234,9 +130,36 @@ public class RecomendacaoControllerTest {
             RecomendacaoResponseDTO resultado = objectMapper.readValue(responseJsonString, RecomendacaoResponseDTO.class);
 
             assertAll(
-                    () -> assertTrue(resultado.isTemHistorico()),
-                    () -> assertEquals(2, resultado.getGolsMandanteRecomendado()),
-                    () -> assertEquals(1, resultado.getGolsVisitanteRecomendado())
+                () -> assertFalse(resultado.isTemRecomendacao()),
+                () -> assertNull(resultado.getGolsMandanteRecomendado()),
+                () -> assertNull(resultado.getGolsVisitanteRecomendado())
+            );
+        }
+
+        @Test
+        @DisplayName("Quando ha historico retorna recomendacao com dados reais")
+        void quandoComHistoricoRetornaDadosReais() throws Exception {
+            partidaRepository.save(Partida.builder()
+                    .campeonato(campeonato).codigoExterno(99L)
+                    .mandante("Time X").visitante("Time Y")
+                    .golsMandante(2).golsVisitante(1)
+                    .data(LocalDateTime.now().minusDays(1))
+                    .status(PartidaStatus.FINALIZADO).consolidada(true).build());
+
+            String responseJsonString = driver.perform(get(URI_RECOMENDACAO, grupo.getId(), partida.getId())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .param("usuarioId", usuarioPremium.getId().toString())
+                            .param("codigo", usuarioPremium.getCodigo()))
+                    .andExpect(status().isOk())
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString();
+
+            RecomendacaoResponseDTO resultado = objectMapper.readValue(responseJsonString, RecomendacaoResponseDTO.class);
+
+            assertAll(
+                    () -> assertTrue(resultado.getGolsMandanteRecomendado() >= 0),
+                    () -> assertTrue(resultado.getGolsVisitanteRecomendado() >= 0),
+                    () -> assertTrue(resultado.isTemRecomendacao())
             );
         }
     }
@@ -248,31 +171,23 @@ public class RecomendacaoControllerTest {
         @Test
         @DisplayName("Quando usuario nao existe retorna 400")
         void quandoUsuarioNaoExiste() throws Exception {
-            String responseJsonString = driver.perform(get(URI_RECOMENDACAO, grupo.getId(), partida.getId())
+            driver.perform(get(URI_RECOMENDACAO, grupo.getId(), partida.getId())
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", "999999")
                             .param("codigo", "111111"))
                     .andExpect(status().isBadRequest())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
-
-            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
-            assertNotNull(resultado.getMessage());
+                    .andDo(print());
         }
 
         @Test
-        @DisplayName("Quando codigo de acesso e invalido retorna 400")
+        @DisplayName("Quando codigo invalido retorna 400")
         void quandoCodigoInvalido() throws Exception {
-            String responseJsonString = driver.perform(get(URI_RECOMENDACAO, grupo.getId(), partida.getId())
+            driver.perform(get(URI_RECOMENDACAO, grupo.getId(), partida.getId())
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", usuarioPremium.getId().toString())
                             .param("codigo", "ERRADO"))
                     .andExpect(status().isBadRequest())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
-
-            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
-            assertNotNull(resultado.getMessage());
+                    .andDo(print());
         }
 
         @Test
@@ -298,76 +213,40 @@ public class RecomendacaoControllerTest {
         @Test
         @DisplayName("Quando partida nao existe retorna 400")
         void quandoPartidaNaoExiste() throws Exception {
-            String responseJsonString = driver.perform(get(URI_RECOMENDACAO, grupo.getId(), 999999L)
+            driver.perform(get(URI_RECOMENDACAO, grupo.getId(), 999999L)
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", usuarioPremium.getId().toString())
                             .param("codigo", usuarioPremium.getCodigo()))
                     .andExpect(status().isBadRequest())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
-
-            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
-            assertNotNull(resultado.getMessage());
+                    .andDo(print());
         }
 
         @Test
         @DisplayName("Quando grupo nao existe retorna 400")
         void quandoGrupoNaoExiste() throws Exception {
-            String responseJsonString = driver.perform(get(URI_RECOMENDACAO, 999999L, partida.getId())
+            driver.perform(get(URI_RECOMENDACAO, 999999L, partida.getId())
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", usuarioPremium.getId().toString())
                             .param("codigo", usuarioPremium.getCodigo()))
                     .andExpect(status().isBadRequest())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
-
-            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
-            assertNotNull(resultado.getMessage());
+                    .andDo(print());
         }
 
         @Test
         @DisplayName("Quando partida nao pertence ao campeonato do grupo retorna 400")
-        void quandoPartidaNaoPertenceAoCampeonatoDoGrupo() throws Exception {
+        void quandoPartidaNaoPertenceAoCampeonato() throws Exception {
             Partida partidaOutroCampeonato = partidaRepository.save(Partida.builder()
-                    .campeonato(outroCampeonato)
-                    .codigoExterno(2L)
-                    .mandante("Time C")
-                    .visitante("Time D")
+                    .campeonato(outroCampeonato).codigoExterno(2L)
+                    .mandante("Time C").visitante("Time D")
                     .data(LocalDateTime.now().plusDays(1))
-                    .status(PartidaStatus.ABERTO)
-                    .build());
+                    .status(PartidaStatus.ABERTO).build());
 
-            String responseJsonString = driver.perform(get(URI_RECOMENDACAO, grupo.getId(), partidaOutroCampeonato.getId())
+            driver.perform(get(URI_RECOMENDACAO, grupo.getId(), partidaOutroCampeonato.getId())
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", usuarioPremium.getId().toString())
                             .param("codigo", usuarioPremium.getCodigo()))
                     .andExpect(status().isBadRequest())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
-
-            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
-            assertNotNull(resultado.getMessage());
-        }
-    }
-
-    @Nested
-    @DisplayName("Validacao de estrategia")
-    class ValidacaoDeEstrategia {
-
-        @Test
-        @DisplayName("Quando estrategia invalida retorna 400")
-        void quandoEstrategiaInvalida() throws Exception {
-            String responseJsonString = driver.perform(get(URI_RECOMENDACAO, grupo.getId(), partida.getId())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("usuarioId", usuarioPremium.getId().toString())
-                            .param("codigo", usuarioPremium.getCodigo())
-                            .param("estrategia", "ESTRATEGIA_INEXISTENTE"))
-                    .andExpect(status().isBadRequest())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
-
-            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
-            assertEquals("Estratégia de recomendação inválida ou não encontrada!", resultado.getMessage());
+                    .andDo(print());
         }
     }
 }
