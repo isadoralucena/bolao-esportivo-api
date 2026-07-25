@@ -19,10 +19,9 @@ public class RecomendacaoController {
             @PathVariable Long grupoId,
             @PathVariable Long partidaId,
             @RequestParam Long usuarioId,
-            @RequestParam String codigo,
-            @RequestParam(defaultValue = "PLACAR_FREQUENTE") String estrategia) {
+            @RequestParam String codigo) {
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(recomendacaoService.recomendar(grupoId, partidaId, usuarioId, codigo, estrategia));
+                .body(recomendacaoService.recomendar(grupoId, partidaId, usuarioId, codigo));
     }
 }

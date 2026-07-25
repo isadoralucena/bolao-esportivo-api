@@ -5,6 +5,7 @@ import com.ufcg.psoft.project.model.Partida;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 
 @Component("MEDIA_GOLS")
 public class RecomendacaoMediaGols extends RecomendacaoStrategyBase {
@@ -15,7 +16,7 @@ public class RecomendacaoMediaGols extends RecomendacaoStrategyBase {
     }
 
     @Override
-    public RecomendacaoResponseDTO recomendar(Partida partida) {
+    public Optional<RecomendacaoResponseDTO> recomendar(Partida partida) {
         List<Partida> finalizadas = buscarPartidasFinalizadas(partida.getCampeonato().getId());
 
         if (finalizadas.isEmpty()) {
@@ -36,11 +37,14 @@ public class RecomendacaoMediaGols extends RecomendacaoStrategyBase {
                         .orElse(0)
         );
 
-        return RecomendacaoResponseDTO.builder()
+        return Optional.of(RecomendacaoResponseDTO.builder()
                 .golsMandanteRecomendado(mediaMandante)
                 .golsVisitanteRecomendado(mediaVisitante)
                 .estrategia(getNome())
-                .temHistorico(true)
-                .build();
+                .temRecomendacao(true)
+                .mensagem(String.format(
+                        "Recomendação baseada na média de gols do campeonato: %dx%d",
+                        mediaMandante, mediaVisitante))
+                .build());
     }
 }

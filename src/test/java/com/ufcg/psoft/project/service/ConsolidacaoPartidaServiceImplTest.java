@@ -17,7 +17,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
+import com.ufcg.psoft.project.event.PartidaConsolidadaEvent;
 import com.ufcg.psoft.project.event.PartidaFinalizadaEvent;
 import com.ufcg.psoft.project.exception.partida.PartidaSyncException;
 import com.ufcg.psoft.project.model.Partida;
@@ -29,6 +31,8 @@ import com.ufcg.psoft.project.service.pontuacao.PontuacaoService;
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Testes do serviço de consolidação de partidas")
 class ConsolidacaoPartidaServiceImplTest {
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @Mock
     private PontuacaoService pontuacaoService;
@@ -121,6 +125,8 @@ class ConsolidacaoPartidaServiceImplTest {
                     .calcularPontuacoesAssociadasAPartida(1L);
 
             verify(partidaRepository).save(partida);
+
+            verify(eventPublisher).publishEvent(org.mockito.ArgumentMatchers.any(PartidaConsolidadaEvent.class));
         }
     }
 

@@ -2,7 +2,6 @@ package com.ufcg.psoft.project.service;
 
 import com.ufcg.psoft.project.dto.recomendacao.RecomendacaoResponseDTO;
 import com.ufcg.psoft.project.exception.CodigoDeAcessoInvalidoException;
-import com.ufcg.psoft.project.exception.RecomendacaoEstrategiaInvalidaException;
 import com.ufcg.psoft.project.exception.grupo.GrupoNaoExisteException;
 import com.ufcg.psoft.project.exception.partida.PartidaNaoExisteException;
 import com.ufcg.psoft.project.exception.partida.PartidaNaoPertenceAoCampeonatoException;
@@ -11,9 +10,12 @@ import com.ufcg.psoft.project.exception.usuario.UsuarioNaoPremiumException;
 import com.ufcg.psoft.project.model.*;
 import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.PartidaRepository;
-import com.ufcg.psoft.project.repository.UsuarioRepository;
+import com.ufcg.psoft.project.service.grupo.GrupoAutorizacaoService;
 import com.ufcg.psoft.project.service.recomendacao.RecomendacaoServiceImpl;
 import com.ufcg.psoft.project.service.recomendacao.RecomendacaoStrategy;
+import com.ufcg.psoft.project.dto.partida.PartidaResponseDTO;
+import com.ufcg.psoft.project.service.partida.PartidaService;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -26,25 +28,36 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.Map;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 @DisplayName("Testes unitarios do RecomendacaoServiceImpl - US20")
 class RecomendacaoServiceImplTest {
 
+
     @Mock
-    private UsuarioRepository usuarioRepository;
+    private PartidaService partidaService;
+
+    @Mock
+    private GrupoAutorizacaoService grupoAutorizacaoService;
 
     @Mock
     private PartidaRepository partidaRepository;
 
     @Mock
     private GrupoRepository grupoRepository;
+
+    @Mock
+    private RecomendacaoStrategy placarFrequente;
+
+    @Mock
+    private RecomendacaoStrategy mediaGols;
 
     @InjectMocks
     private RecomendacaoServiceImpl recomendacaoService;
@@ -55,69 +68,42 @@ class RecomendacaoServiceImplTest {
     private Campeonato outroCampeonato;
     private Grupo grupo;
     private Partida partida;
-    private RecomendacaoStrategy mockStrategy;
 
     @BeforeEach
     void setUp() {
         campeonato = Campeonato.builder()
-                .id(1L)
-                .nome("Campeonato Teste")
+                .id(1L).nome("Campeonato Teste")
                 .url("http://campeonato-teste.com")
-                .codigo("CAT001")
-                .ativo(true)
-                .build();
+                .codigo("CAT001").ativo(true).build();
 
         outroCampeonato = Campeonato.builder()
-                .id(2L)
-                .nome("Outro Campeonato")
+                .id(2L).nome("Outro Campeonato")
                 .url("http://outro-campeonato.com")
-                .codigo("CAT002")
-                .ativo(true)
-                .build();
+                .codigo("CAT002").ativo(true).build();
 
         usuarioPremium = Usuario.builder()
-                .id(1L)
-                .nome("Usuario Premium")
-                .email("premium@email.com")
-                .username("premium")
-                .endereco("Rua A")
-                .codigo("111111")
-                .perfil(PerfilUsuario.PREMIUM)
-                .build();
+                .id(1L).nome("Usuario Premium")
+                .email("premium@email.com").username("premium")
+                .endereco("Rua A").codigo("111111")
+                .perfil(PerfilUsuario.PREMIUM).build();
 
         usuarioPadrao = Usuario.builder()
-                .id(2L)
-                .nome("Usuario Padrao")
-                .email("padrao@email.com")
-                .username("padrao")
-                .endereco("Rua B")
-                .codigo("222222")
-                .perfil(PerfilUsuario.PADRAO)
-                .build();
+                .id(2L).nome("Usuario Padrao")
+                .email("padrao@email.com").username("padrao")
+                .endereco("Rua B").codigo("222222")
+                .perfil(PerfilUsuario.PADRAO).build();
 
         grupo = Grupo.builder()
-                .id(1L)
-                .nome("Grupo Teste")
-                .campeonato(campeonato)
-                .build();
+                .id(1L).nome("Grupo Teste")
+                .campeonato(campeonato).build();
 
         partida = Partida.builder()
-                .id(1L)
-                .campeonato(campeonato)
-                .codigoExterno(1L)
-                .mandante("Time A")
-                .visitante("Time B")
-                .status(PartidaStatus.ABERTO)
-                .build();
+                .id(1L).campeonato(campeonato)
+                .codigoExterno(1L).mandante("Time A")
+                .visitante("Time B").status(PartidaStatus.ABERTO).build();
 
-        mockStrategy = mock(RecomendacaoStrategy.class);
-        when(mockStrategy.getNome()).thenReturn("PLACAR_FREQUENTE");
-
-        ReflectionTestUtils.setField(
-                recomendacaoService,
-                "estrategias",
-                Map.of("PLACAR_FREQUENTE", mockStrategy)
-        );
+        ReflectionTestUtils.setField(recomendacaoService, "placarFrequente", placarFrequente);
+        ReflectionTestUtils.setField(recomendacaoService, "mediaGols", mediaGols);
     }
 
     @Nested
@@ -125,87 +111,67 @@ class RecomendacaoServiceImplTest {
     class CenariosDeSuccesso {
 
         @Test
-        @DisplayName("Deve retornar recomendacao com estrategia PLACAR_FREQUENTE")
+        @DisplayName("Deve retornar recomendacao quando PLACAR_FREQUENTE tem historico")
         void deveRetornarRecomendacaoComPlacarFrequente() {
-            RecomendacaoResponseDTO recomendacaoEsperada = RecomendacaoResponseDTO.builder()
-                    .golsMandanteRecomendado(1)
-                    .golsVisitanteRecomendado(0)
-                    .estrategia("PLACAR_FREQUENTE")
-                    .temHistorico(true)
-                    .build();
+            RecomendacaoResponseDTO esperada = RecomendacaoResponseDTO.builder()
+                    .golsMandanteRecomendado(1).golsVisitanteRecomendado(0)
+                    .estrategia("PLACAR_FREQUENTE").build();
 
-            when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuarioPremium));
+            when(grupoAutorizacaoService.obterUsuarioValido(1L, "111111")).thenReturn(usuarioPremium);
             when(partidaRepository.findById(1L)).thenReturn(Optional.of(partida));
             when(grupoRepository.findById(1L)).thenReturn(Optional.of(grupo));
-            when(mockStrategy.recomendar(partida)).thenReturn(recomendacaoEsperada);
+            when(placarFrequente.recomendar(partida)).thenReturn(Optional.of(esperada));
 
-            RecomendacaoResponseDTO resultado = recomendacaoService.recomendar(1L, 1L, 1L, "111111", "PLACAR_FREQUENTE");
+            RecomendacaoResponseDTO resultado = recomendacaoService.recomendar(1L, 1L, 1L, "111111");
 
             assertAll(
                     () -> assertNotNull(resultado),
                     () -> assertEquals(1, resultado.getGolsMandanteRecomendado()),
                     () -> assertEquals(0, resultado.getGolsVisitanteRecomendado()),
                     () -> assertEquals("PLACAR_FREQUENTE", resultado.getEstrategia()),
-                    () -> assertTrue(resultado.isTemHistorico())
+                    () -> assertEquals(partida.getId(), resultado.getPartidaId()),
+                    () -> assertEquals("Time A", resultado.getMandante()),
+                    () -> assertEquals("Time B", resultado.getVisitante())
             );
         }
 
         @Test
-        @DisplayName("Deve retornar recomendacao com estrategia MEDIA_GOLS")
-        void deveRetornarRecomendacaoComMediaGols() {
-            RecomendacaoStrategy mediaGolsStrategy = mock(RecomendacaoStrategy.class);
-            when(mediaGolsStrategy.getNome()).thenReturn("MEDIA_GOLS");
+        @DisplayName("Deve cair para MEDIA_GOLS quando PLACAR_FREQUENTE nao tem historico")
+        void deveCairParaMediaGolsQuandoPlacarFrequenteVazio() {
+            RecomendacaoResponseDTO esperada = RecomendacaoResponseDTO.builder()
+                    .golsMandanteRecomendado(2).golsVisitanteRecomendado(1)
+                    .estrategia("MEDIA_GOLS").build();
 
-            ReflectionTestUtils.setField(
-                    recomendacaoService,
-                    "estrategias",
-                    Map.of("PLACAR_FREQUENTE", mockStrategy, "MEDIA_GOLS", mediaGolsStrategy)
-            );
-
-            RecomendacaoResponseDTO recomendacaoEsperada = RecomendacaoResponseDTO.builder()
-                    .golsMandanteRecomendado(2)
-                    .golsVisitanteRecomendado(1)
-                    .estrategia("MEDIA_GOLS")
-                    .temHistorico(true)
-                    .build();
-
-            when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuarioPremium));
+            when(grupoAutorizacaoService.obterUsuarioValido(1L, "111111")).thenReturn(usuarioPremium);
             when(partidaRepository.findById(1L)).thenReturn(Optional.of(partida));
             when(grupoRepository.findById(1L)).thenReturn(Optional.of(grupo));
-            when(mediaGolsStrategy.recomendar(partida)).thenReturn(recomendacaoEsperada);
+            when(placarFrequente.recomendar(partida)).thenReturn(Optional.empty());
+            when(mediaGols.recomendar(partida)).thenReturn(Optional.of(esperada));
 
-            RecomendacaoResponseDTO resultado = recomendacaoService.recomendar(1L, 1L, 1L, "111111", "MEDIA_GOLS");
+            RecomendacaoResponseDTO resultado = recomendacaoService.recomendar(1L, 1L, 1L, "111111");
 
             assertAll(
-                    () -> assertNotNull(resultado),
                     () -> assertEquals(2, resultado.getGolsMandanteRecomendado()),
                     () -> assertEquals(1, resultado.getGolsVisitanteRecomendado()),
-                    () -> assertEquals("MEDIA_GOLS", resultado.getEstrategia()),
-                    () -> assertTrue(resultado.isTemHistorico())
+                    () -> assertEquals("MEDIA_GOLS", resultado.getEstrategia())
             );
         }
 
         @Test
-        @DisplayName("Deve retornar recomendacao sem historico quando estrategia nao tem dados")
-        void deveRetornarRecomendacaoSemHistorico() {
-            RecomendacaoResponseDTO semHistorico = RecomendacaoResponseDTO.builder()
-                    .golsMandanteRecomendado(0)
-                    .golsVisitanteRecomendado(0)
-                    .estrategia("PLACAR_FREQUENTE")
-                    .temHistorico(false)
-                    .build();
-
-            when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuarioPremium));
+        @DisplayName("Deve retornar sem recomendacao quando nenhuma estrategia tem historico")
+        void deveRetornarFallbackQuandoSemHistorico() {
+            when(grupoAutorizacaoService.obterUsuarioValido(1L, "111111")).thenReturn(usuarioPremium);
             when(partidaRepository.findById(1L)).thenReturn(Optional.of(partida));
             when(grupoRepository.findById(1L)).thenReturn(Optional.of(grupo));
-            when(mockStrategy.recomendar(partida)).thenReturn(semHistorico);
+            when(placarFrequente.recomendar(partida)).thenReturn(Optional.empty());
+            when(mediaGols.recomendar(partida)).thenReturn(Optional.empty());
 
-            RecomendacaoResponseDTO resultado = recomendacaoService.recomendar(1L, 1L, 1L, "111111", "PLACAR_FREQUENTE");
+            RecomendacaoResponseDTO resultado = recomendacaoService.recomendar(1L, 1L, 1L, "111111");
 
             assertAll(
-                    () -> assertEquals(0, resultado.getGolsMandanteRecomendado()),
-                    () -> assertEquals(0, resultado.getGolsVisitanteRecomendado()),
-                    () -> assertFalse(resultado.isTemHistorico())
+                () -> assertFalse(resultado.isTemRecomendacao()),
+                () -> assertNull(resultado.getGolsMandanteRecomendado()),
+                () -> assertNull(resultado.getGolsVisitanteRecomendado())
             );
         }
     }
@@ -217,28 +183,30 @@ class RecomendacaoServiceImplTest {
         @Test
         @DisplayName("Deve lancar excecao quando usuario nao existe")
         void deveLancarExcecaoQuandoUsuarioNaoExiste() {
-            when(usuarioRepository.findById(99L)).thenReturn(Optional.empty());
+            when(grupoAutorizacaoService.obterUsuarioValido(99L, "111111"))
+                    .thenThrow(UsuarioNaoExisteException.class);
 
             assertThrows(UsuarioNaoExisteException.class,
-                    () -> recomendacaoService.recomendar(1L, 1L, 99L, "111111", "PLACAR_FREQUENTE"));
+                    () -> recomendacaoService.recomendar(1L, 1L, 99L, "111111"));
         }
 
         @Test
-        @DisplayName("Deve lancar excecao quando codigo de acesso e invalido")
+        @DisplayName("Deve lancar excecao quando codigo invalido")
         void deveLancarExcecaoQuandoCodigoInvalido() {
-            when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuarioPremium));
+            when(grupoAutorizacaoService.obterUsuarioValido(1L, "ERRADO"))
+                    .thenThrow(CodigoDeAcessoInvalidoException.class);
 
             assertThrows(CodigoDeAcessoInvalidoException.class,
-                    () -> recomendacaoService.recomendar(1L, 1L, 1L, "ERRADO", "PLACAR_FREQUENTE"));
+                    () -> recomendacaoService.recomendar(1L, 1L, 1L, "ERRADO"));
         }
 
         @Test
         @DisplayName("Deve lancar excecao quando usuario nao e Premium")
         void deveLancarExcecaoQuandoUsuarioNaoPremium() {
-            when(usuarioRepository.findById(2L)).thenReturn(Optional.of(usuarioPadrao));
+            when(grupoAutorizacaoService.obterUsuarioValido(2L, "222222")).thenReturn(usuarioPadrao);
 
             assertThrows(UsuarioNaoPremiumException.class,
-                    () -> recomendacaoService.recomendar(1L, 1L, 2L, "222222", "PLACAR_FREQUENTE"));
+                    () -> recomendacaoService.recomendar(1L, 1L, 2L, "222222"));
         }
     }
 
@@ -249,58 +217,181 @@ class RecomendacaoServiceImplTest {
         @Test
         @DisplayName("Deve lancar excecao quando partida nao existe")
         void deveLancarExcecaoQuandoPartidaNaoExiste() {
-            when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuarioPremium));
+            when(grupoAutorizacaoService.obterUsuarioValido(1L, "111111")).thenReturn(usuarioPremium);
             when(partidaRepository.findById(99L)).thenReturn(Optional.empty());
 
             assertThrows(PartidaNaoExisteException.class,
-                    () -> recomendacaoService.recomendar(1L, 99L, 1L, "111111", "PLACAR_FREQUENTE"));
+                    () -> recomendacaoService.recomendar(1L, 99L, 1L, "111111"));
         }
 
         @Test
         @DisplayName("Deve lancar excecao quando grupo nao existe")
         void deveLancarExcecaoQuandoGrupoNaoExiste() {
-            when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuarioPremium));
+            when(grupoAutorizacaoService.obterUsuarioValido(1L, "111111")).thenReturn(usuarioPremium);
             when(partidaRepository.findById(1L)).thenReturn(Optional.of(partida));
             when(grupoRepository.findById(99L)).thenReturn(Optional.empty());
 
             assertThrows(GrupoNaoExisteException.class,
-                    () -> recomendacaoService.recomendar(99L, 1L, 1L, "111111", "PLACAR_FREQUENTE"));
+                    () -> recomendacaoService.recomendar(99L, 1L, 1L, "111111"));
         }
 
         @Test
         @DisplayName("Deve lancar excecao quando partida nao pertence ao campeonato do grupo")
-        void deveLancarExcecaoQuandoPartidaNaoPertenceAoCampeonatoDoGrupo() {
+        void deveLancarExcecaoQuandoPartidaNaoPertenceAoCampeonato() {
             Partida partidaOutroCampeonato = Partida.builder()
-                    .id(2L)
-                    .campeonato(outroCampeonato)
-                    .codigoExterno(2L)
-                    .mandante("Time C")
-                    .visitante("Time D")
-                    .status(PartidaStatus.ABERTO)
-                    .build();
+                    .id(2L).campeonato(outroCampeonato)
+                    .codigoExterno(2L).mandante("Time C")
+                    .visitante("Time D").status(PartidaStatus.ABERTO).build();
 
-            when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuarioPremium));
+            when(grupoAutorizacaoService.obterUsuarioValido(1L, "111111")).thenReturn(usuarioPremium);
             when(partidaRepository.findById(2L)).thenReturn(Optional.of(partidaOutroCampeonato));
             when(grupoRepository.findById(1L)).thenReturn(Optional.of(grupo));
 
             assertThrows(PartidaNaoPertenceAoCampeonatoException.class,
-                    () -> recomendacaoService.recomendar(1L, 2L, 1L, "111111", "PLACAR_FREQUENTE"));
+                    () -> recomendacaoService.recomendar(1L, 2L, 1L, "111111"));
         }
     }
-
-    @Nested
-    @DisplayName("Validacao de estrategia")
-    class ValidacaoDeEstrategia {
+        @Nested
+        @DisplayName("Sobrecarga sem grupoId")
+        class SobreargaSemGrupoId {
 
         @Test
-        @DisplayName("Deve lancar excecao quando estrategia e invalida")
-        void deveLancarExcecaoQuandoEstrategiaInvalida() {
-            when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuarioPremium));
-            when(partidaRepository.findById(1L)).thenReturn(Optional.of(partida));
-            when(grupoRepository.findById(1L)).thenReturn(Optional.of(grupo));
+        @DisplayName("Deve retornar recomendacao sem validar grupo")
+        void deveRetornarRecomendacaoSemGrupo() {
+                RecomendacaoResponseDTO esperada = RecomendacaoResponseDTO.builder()
+                        .golsMandanteRecomendado(1).golsVisitanteRecomendado(0)
+                        .estrategia("PLACAR_FREQUENTE").temRecomendacao(true)
+                        .mensagem("Recomendação baseada no placar mais frequente do campeonato: 1x0")
+                        .build();
 
-            assertThrows(RecomendacaoEstrategiaInvalidaException.class,
-                    () -> recomendacaoService.recomendar(1L, 1L, 1L, "111111", "ESTRATEGIA_INEXISTENTE"));
+                when(grupoAutorizacaoService.obterUsuarioValido(1L, "111111")).thenReturn(usuarioPremium);
+                when(partidaRepository.findById(1L)).thenReturn(Optional.of(partida));
+                when(placarFrequente.recomendar(partida)).thenReturn(Optional.of(esperada));
+
+                RecomendacaoResponseDTO resultado = recomendacaoService.recomendar(1L, 1L, "111111");
+
+                assertAll(
+                        () -> assertNotNull(resultado),
+                        () -> assertEquals(1, resultado.getGolsMandanteRecomendado()),
+                        () -> assertEquals(0, resultado.getGolsVisitanteRecomendado()),
+                        () -> assertEquals(partida.getId(), resultado.getPartidaId()),
+                        () -> assertEquals("Time A", resultado.getMandante()),
+                        () -> assertEquals("Time B", resultado.getVisitante()),
+                        () -> assertTrue(resultado.isTemRecomendacao())
+                );
         }
-    }
+
+        @Test
+        @DisplayName("Deve retornar fallback sem grupoId quando sem historico")
+        void deveRetornarFallbackSemGrupo() {
+                when(grupoAutorizacaoService.obterUsuarioValido(1L, "111111")).thenReturn(usuarioPremium);
+                when(partidaRepository.findById(1L)).thenReturn(Optional.of(partida));
+                when(placarFrequente.recomendar(partida)).thenReturn(Optional.empty());
+                when(mediaGols.recomendar(partida)).thenReturn(Optional.empty());
+
+                RecomendacaoResponseDTO resultado = recomendacaoService.recomendar(1L, 1L, "111111");
+
+                assertAll(
+                        () -> assertFalse(resultado.isTemRecomendacao()),
+                        () -> assertNull(resultado.getGolsMandanteRecomendado()),
+                        () -> assertNull(resultado.getGolsVisitanteRecomendado())
+                );
+        }
+
+        @Test
+        @DisplayName("Deve lancar excecao quando usuario nao e Premium na sobrecarga")
+        void deveLancarExcecaoQuandoNaoPremiumSemGrupo() {
+                when(grupoAutorizacaoService.obterUsuarioValido(2L, "222222")).thenReturn(usuarioPadrao);
+
+                assertThrows(UsuarioNaoPremiumException.class,
+                        () -> recomendacaoService.recomendar(1L, 2L, "222222"));
+        }
+
+        @Test
+        @DisplayName("Deve lancar excecao quando partida nao existe na sobrecarga")
+        void deveLancarExcecaoQuandoPartidaNaoExisteSemGrupo() {
+                when(grupoAutorizacaoService.obterUsuarioValido(1L, "111111")).thenReturn(usuarioPremium);
+                when(partidaRepository.findById(99L)).thenReturn(Optional.empty());
+
+                assertThrows(PartidaNaoExisteException.class,
+                        () -> recomendacaoService.recomendar(99L, 1L, "111111"));
+        }
+        }
+
+        @Nested
+        @DisplayName("listarPartidasFuturasComRecomendacao")
+        class ListarPartidasFuturas {
+
+        @Test
+        @DisplayName("Deve retornar partidas sem recomendacao para usuario nao Premium")
+        void deveRetornarPartidasSemRecomendacaoParaNaoPremium() {
+                PartidaResponseDTO partidaDTO = new PartidaResponseDTO(partida);
+
+                when(grupoAutorizacaoService.obterUsuarioValido(2L, "222222")).thenReturn(usuarioPadrao);
+                when(partidaService.listarPartidasFuturas()).thenReturn(List.of(partidaDTO));
+
+                List<PartidaResponseDTO> resultado = recomendacaoService.listarPartidasFuturasComRecomendacao(2L, "222222");
+
+                assertAll(
+                        () -> assertEquals(1, resultado.size()),
+                        () -> assertNull(resultado.get(0).getRecomendacao())
+                );
+        }
+
+        @Test
+        @DisplayName("Deve retornar partidas com recomendacao para usuario Premium")
+        void deveRetornarPartidasComRecomendacaoParaPremium() {
+                PartidaResponseDTO partidaDTO = new PartidaResponseDTO(partida);
+                RecomendacaoResponseDTO recomendacao = RecomendacaoResponseDTO.builder()
+                        .golsMandanteRecomendado(1).golsVisitanteRecomendado(0)
+                        .estrategia("PLACAR_FREQUENTE").temRecomendacao(true)
+                        .mensagem("Recomendação baseada no placar mais frequente do campeonato: 1x0")
+                        .build();
+
+                when(grupoAutorizacaoService.obterUsuarioValido(1L, "111111")).thenReturn(usuarioPremium);
+                when(partidaService.listarPartidasFuturas()).thenReturn(List.of(partidaDTO));
+                when(placarFrequente.recomendar(partida)).thenReturn(Optional.of(recomendacao));
+                when(partidaRepository.findById(1L)).thenReturn(Optional.of(partida));
+
+                List<PartidaResponseDTO> resultado = recomendacaoService.listarPartidasFuturasComRecomendacao(1L, "111111");
+
+                assertAll(
+                        () -> assertEquals(1, resultado.size()),
+                        () -> assertNotNull(resultado.get(0).getRecomendacao()),
+                        () -> assertTrue(resultado.get(0).getRecomendacao().isTemRecomendacao())
+                );
+        }
+
+        @Test
+        @DisplayName("Deve retornar lista vazia quando nao ha partidas futuras")
+        void deveRetornarListaVaziaQuandoSemPartidasFuturas() {
+                when(grupoAutorizacaoService.obterUsuarioValido(1L, "111111")).thenReturn(usuarioPremium);
+                when(partidaService.listarPartidasFuturas()).thenReturn(List.of());
+
+                List<PartidaResponseDTO> resultado = recomendacaoService.listarPartidasFuturasComRecomendacao(1L, "111111");
+
+                assertTrue(resultado.isEmpty());
+        }
+
+        @Test
+        @DisplayName("Deve lancar excecao quando usuario nao existe")
+        void deveLancarExcecaoQuandoUsuarioNaoExiste() {
+                when(grupoAutorizacaoService.obterUsuarioValido(99L, "111111"))
+                        .thenThrow(UsuarioNaoExisteException.class);
+
+                assertThrows(UsuarioNaoExisteException.class,
+                        () -> recomendacaoService.listarPartidasFuturasComRecomendacao(99L, "111111"));
+        }
+
+        @Test
+        @DisplayName("Deve lancar excecao quando codigo invalido")
+        void deveLancarExcecaoQuandoCodigoInvalido() {
+                when(grupoAutorizacaoService.obterUsuarioValido(1L, "ERRADO"))
+                        .thenThrow(CodigoDeAcessoInvalidoException.class);
+
+                assertThrows(CodigoDeAcessoInvalidoException.class,
+                        () -> recomendacaoService.listarPartidasFuturasComRecomendacao(1L, "ERRADO"));
+        }
+        }
+        
 }

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component("PLACAR_FREQUENTE")
@@ -19,7 +20,7 @@ public class RecomendacaoPlacarFrequente extends RecomendacaoStrategyBase {
     }
 
     @Override
-    public RecomendacaoResponseDTO recomendar(Partida partida) {
+    public Optional<RecomendacaoResponseDTO> recomendar(Partida partida) {
         List<Partida> finalizadas = buscarPartidasFinalizadas(partida.getCampeonato().getId());
 
         if (finalizadas.isEmpty()) {
@@ -28,12 +29,15 @@ public class RecomendacaoPlacarFrequente extends RecomendacaoStrategyBase {
 
         Placar placar = encontrarPlacarMaisFrequente(finalizadas);
 
-        return RecomendacaoResponseDTO.builder()
+        return Optional.of(RecomendacaoResponseDTO.builder()
                 .golsMandanteRecomendado(placar.mandante())
                 .golsVisitanteRecomendado(placar.visitante())
                 .estrategia(getNome())
-                .temHistorico(true)
-                .build();
+                .temRecomendacao(true)
+                .mensagem(String.format(
+                        "Recomendação baseada no placar mais frequente do campeonato: %dx%d",
+                        placar.mandante(), placar.visitante()))
+                .build());
     }
 
     private Placar encontrarPlacarMaisFrequente(List<Partida> finalizadas) {

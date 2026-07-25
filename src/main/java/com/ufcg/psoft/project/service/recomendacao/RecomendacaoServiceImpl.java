@@ -1,32 +1,37 @@
 package com.ufcg.psoft.project.service.recomendacao;
 
+import java.util.List;
+
 import com.ufcg.psoft.project.dto.recomendacao.RecomendacaoResponseDTO;
-import com.ufcg.psoft.project.exception.RecomendacaoEstrategiaInvalidaException;
 import com.ufcg.psoft.project.exception.grupo.GrupoNaoExisteException;
 import com.ufcg.psoft.project.exception.partida.PartidaNaoExisteException;
-import com.ufcg.psoft.project.exception.usuario.UsuarioNaoExisteException;
-import com.ufcg.psoft.project.exception.CodigoDeAcessoInvalidoException;
-import com.ufcg.psoft.project.model.PerfilUsuario;
-import com.ufcg.psoft.project.model.Partida;
-import com.ufcg.psoft.project.model.Usuario;
-import com.ufcg.psoft.project.repository.GrupoRepository;
-import com.ufcg.psoft.project.repository.PartidaRepository;
-import com.ufcg.psoft.project.repository.UsuarioRepository;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.Map;
-
 import com.ufcg.psoft.project.exception.partida.PartidaNaoPertenceAoCampeonatoException;
 import com.ufcg.psoft.project.exception.usuario.UsuarioNaoPremiumException;
 import com.ufcg.psoft.project.model.Grupo;
+import com.ufcg.psoft.project.model.Partida;
+import com.ufcg.psoft.project.model.PerfilUsuario;
+import com.ufcg.psoft.project.model.Usuario;
+import com.ufcg.psoft.project.repository.GrupoRepository;
+import com.ufcg.psoft.project.repository.PartidaRepository;
+import com.ufcg.psoft.project.service.grupo.GrupoAutorizacaoService;
+import com.ufcg.psoft.project.service.partida.PartidaService;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+
+import java.util.Optional;
+
+import com.ufcg.psoft.project.dto.partida.PartidaResponseDTO;
 
 @Service
 public class RecomendacaoServiceImpl implements RecomendacaoService {
 
     @Autowired
-    private UsuarioRepository usuarioRepository;
+    private GrupoAutorizacaoService grupoAutorizacaoService;
+
+    @Autowired
+    private PartidaService partidaService;
 
     @Autowired
     private PartidaRepository partidaRepository;
@@ -35,25 +40,78 @@ public class RecomendacaoServiceImpl implements RecomendacaoService {
     private GrupoRepository grupoRepository;
 
     @Autowired
-    private Map<String, RecomendacaoStrategy> estrategias;
+    @Qualifier("PLACAR_FREQUENTE")
+    private RecomendacaoStrategy placarFrequente;
+
+    @Autowired
+    @Qualifier("MEDIA_GOLS")
+    private RecomendacaoStrategy mediaGols;
 
     @Override
-    public RecomendacaoResponseDTO recomendar(Long grupoId, Long partidaId, Long usuarioId, String codigo, String estrategia) {
-        Usuario usuario = obterUsuarioValido(usuarioId, codigo);
+    public RecomendacaoResponseDTO recomendar(Long grupoId, Long partidaId, Long usuarioId, String codigo) {
+        Usuario usuario = grupoAutorizacaoService.obterUsuarioValido(usuarioId, codigo);
         validarPremium(usuario);
         Partida partida = obterPartida(partidaId);
         validarPartidaPertenceAoGrupo(partida, grupoId);
-        RecomendacaoStrategy strategy = obterEstrategia(estrategia);
-        return strategy.recomendar(partida);
+
+        RecomendacaoResponseDTO response = placarFrequente.recomendar(partida)
+                .or(() -> mediaGols.recomendar(partida))
+                .orElse(RecomendacaoResponseDTO.builder()
+                        .golsMandanteRecomendado(null)
+                        .golsVisitanteRecomendado(null)
+                        .estrategia(null)
+                        .temRecomendacao(false)
+                        .mensagem("Não há dados suficientes para gerar uma recomendação para esta partida.")
+                        .build());
+
+        response.setPartidaId(partida.getId());
+        response.setMandante(partida.getMandante());
+        response.setVisitante(partida.getVisitante());
+        return response;
     }
 
-    private Usuario obterUsuarioValido(Long usuarioId, String codigo) {
-        Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(UsuarioNaoExisteException::new);
-        if (!usuario.getCodigo().equals(codigo)) {
-            throw new CodigoDeAcessoInvalidoException();
+    @Override
+    public RecomendacaoResponseDTO recomendar(Long partidaId, Long usuarioId, String codigo) {
+        Usuario usuario = grupoAutorizacaoService.obterUsuarioValido(usuarioId, codigo);
+        validarPremium(usuario);
+        Partida partida = obterPartida(partidaId);
+
+        RecomendacaoResponseDTO response = placarFrequente.recomendar(partida)
+                .or(() -> mediaGols.recomendar(partida))
+                .orElse(RecomendacaoResponseDTO.builder()
+                        .golsMandanteRecomendado(null)
+                        .golsVisitanteRecomendado(null)
+                        .estrategia(null)
+                        .temRecomendacao(false)
+                        .mensagem("Não há dados suficientes para gerar uma recomendação para esta partida.")
+                        .build());
+
+        response.setPartidaId(partida.getId());
+        response.setMandante(partida.getMandante());
+        response.setVisitante(partida.getVisitante());
+        return response;
+    }
+
+    @Override
+    public List<PartidaResponseDTO> listarPartidasFuturasComRecomendacao(Long usuarioId, String codigo) {
+        Usuario usuario = grupoAutorizacaoService.obterUsuarioValido(usuarioId, codigo);
+        boolean isPremium = usuario.getPerfil() == PerfilUsuario.PREMIUM;
+
+        List<PartidaResponseDTO> futuras = partidaService.listarPartidasFuturas();
+
+        if (!isPremium) {
+            return futuras;
         }
-        return usuario;
+
+        return futuras.stream()
+                .map(dto -> {
+                    try {
+                        RecomendacaoResponseDTO recomendacao = recomendar(dto.getId(), usuarioId, codigo);
+                        dto.setRecomendacao(recomendacao);
+                    } catch (Exception ignored) {}
+                    return dto;
+                })
+                .toList();
     }
 
     private void validarPremium(Usuario usuario) {
@@ -65,14 +123,6 @@ public class RecomendacaoServiceImpl implements RecomendacaoService {
     private Partida obterPartida(Long partidaId) {
         return partidaRepository.findById(partidaId)
                 .orElseThrow(PartidaNaoExisteException::new);
-    }
-
-    private RecomendacaoStrategy obterEstrategia(String estrategia) {
-        RecomendacaoStrategy strategy = estrategias.get(estrategia);
-        if (strategy == null) {
-            throw new RecomendacaoEstrategiaInvalidaException();
-        }
-        return strategy;
     }
 
     private void validarPartidaPertenceAoGrupo(Partida partida, Long grupoId) {

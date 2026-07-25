@@ -61,7 +61,7 @@ public class PontuacaoServiceImpl implements PontuacaoService {
     private UsuarioRepository usuarioRepository;
 
     @Autowired
-private ApplicationEventPublisher eventPublisher;
+    private ApplicationEventPublisher eventPublisher;
 
     @Autowired
     private List<Pontuador> pontuadoresDisponiveis;
@@ -186,7 +186,7 @@ private ApplicationEventPublisher eventPublisher;
 
         List<PontuacaoPalpite> pontuacoes = pontuacaoPalpiteRepository.findByPalpite_Grupo_IdAndPalpite_Usuario_Id(grupoId, participanteId);
 
-        return calcularPontuacaoParticipante(grupoId, participante, pontuacoes);
+        return calcularPontuacaoParticipante(participante, pontuacoes);
     }
 
     @Override
@@ -213,7 +213,7 @@ private ApplicationEventPublisher eventPublisher;
     public PontuacaoParticipanteResponseDTO calcularPontuacaoGlobalDoParticipante(Long usuarioId) {
         Usuario usuario = usuarioRepository.findById(usuarioId).orElseThrow(UsuarioNaoExisteException::new);
         List<PontuacaoPalpite> pontuacoes = pontuacaoPalpiteRepository.findByPalpite_Usuario_Id(usuarioId);
-        return calcularPontuacaoParticipante(null, usuario, pontuacoes);
+        return calcularPontuacaoParticipante(usuario, pontuacoes);
     }
 
     @Override
@@ -223,7 +223,8 @@ private ApplicationEventPublisher eventPublisher;
             .toList();
     }
 
-    private PontuacaoParticipanteResponseDTO calcularPontuacaoParticipante(Long grupoId, Usuario participante, List<PontuacaoPalpite> pontuacoes) {
+    private PontuacaoParticipanteResponseDTO calcularPontuacaoParticipante(Usuario participante, List<PontuacaoPalpite> pontuacoes) {
+        int totalPalpitesAvaliados = 0;
         int pontuacaoTotal = 0;
         int erros = 0;
         int acertosVencedor = 0;
@@ -252,11 +253,13 @@ private ApplicationEventPublisher eventPublisher;
             if (!acertouAlgo) {
                 erros += 1;
             }
+
+            totalPalpitesAvaliados += 1;
         }
 
         return new PontuacaoParticipanteResponseDTO(
-            grupoId,
             participante,
+            totalPalpitesAvaliados,
             pontuacaoTotal,
             erros,
             acertosVencedor,

@@ -13,7 +13,6 @@ import com.ufcg.psoft.project.model.Partida;
 import com.ufcg.psoft.project.model.PartidaStatus;
 import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.PartidaRepository;
-import com.ufcg.psoft.project.service.pontuacao.PontuacaoService;
 
 import jakarta.transaction.Transactional;
 
@@ -41,9 +40,6 @@ import java.util.stream.Collectors;
 public class PartidaServiceImpl implements PartidaService {
     @Autowired
     private PartidaRepository partidaRepository;
-
-    @Autowired
-    private PontuacaoService pontuacaoService;
 
     @Autowired
     private GrupoRepository grupoRepository;
@@ -117,6 +113,15 @@ public class PartidaServiceImpl implements PartidaService {
     @Override
     public void deleteByCampeonatoId(Long campeonatoId) {
         partidaRepository.deleteByCampeonatoId(campeonatoId);
+    }
+
+    @Override
+    public List<PartidaResponseDTO> listarPartidasFuturas() {
+        return partidaRepository.findByDataAfterAndStatus(
+                        LocalDateTime.now(), PartidaStatus.ABERTO)
+                .stream()
+                .map(PartidaResponseDTO::new)
+                .toList();
     }
 
     private PartidaResponseDTO salvarOuAtualizarPartida(Campeonato campeonato, Map<String, Object> match) {

@@ -216,6 +216,7 @@ public class RankingControllerTest {
                     () -> assertNotNull(entry.getPontuacaoParticipante().getPontuacao()),
                     () -> assertNotNull(entry.getPontuacaoParticipante().getAcertosVencedor()),
                     () -> assertNotNull(entry.getPontuacaoParticipante().getAcertosEmpate()),
+                    () -> assertNotNull(entry.getPontuacaoParticipante().getTotalPalpitesAvaliados()),
                     () -> assertNotNull(entry.getPontuacaoParticipante().getPlacaresExatos())
             );
         }

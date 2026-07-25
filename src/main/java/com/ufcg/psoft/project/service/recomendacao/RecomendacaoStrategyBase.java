@@ -7,6 +7,7 @@ import com.ufcg.psoft.project.repository.PartidaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.Optional;
 
 public abstract class RecomendacaoStrategyBase implements RecomendacaoStrategy {
 
@@ -21,12 +22,7 @@ public abstract class RecomendacaoStrategyBase implements RecomendacaoStrategy {
                 .toList();
     }
 
-    protected RecomendacaoResponseDTO semHistorico() {
-        return RecomendacaoResponseDTO.builder()
-                .golsMandanteRecomendado(0)
-                .golsVisitanteRecomendado(0)
-                .estrategia(getNome())
-                .temHistorico(false)
-                .build();
+    protected Optional<RecomendacaoResponseDTO> semHistorico() {
+        return Optional.empty();
     }
 }
