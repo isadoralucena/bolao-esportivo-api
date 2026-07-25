@@ -1,5 +1,7 @@
 package com.ufcg.psoft.project.service.recomendacao;
 
+import java.util.List;
+
 import com.ufcg.psoft.project.dto.recomendacao.RecomendacaoResponseDTO;
 import com.ufcg.psoft.project.exception.grupo.GrupoNaoExisteException;
 import com.ufcg.psoft.project.exception.partida.PartidaNaoExisteException;
@@ -12,17 +14,24 @@ import com.ufcg.psoft.project.model.Usuario;
 import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.PartidaRepository;
 import com.ufcg.psoft.project.service.grupo.GrupoAutorizacaoService;
+import com.ufcg.psoft.project.service.partida.PartidaService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+import com.ufcg.psoft.project.dto.partida.PartidaResponseDTO;
+
 @Service
 public class RecomendacaoServiceImpl implements RecomendacaoService {
 
     @Autowired
     private GrupoAutorizacaoService grupoAutorizacaoService;
+
+    @Autowired
+    private PartidaService partidaService;
 
     @Autowired
     private PartidaRepository partidaRepository;
@@ -81,6 +90,28 @@ public class RecomendacaoServiceImpl implements RecomendacaoService {
         response.setMandante(partida.getMandante());
         response.setVisitante(partida.getVisitante());
         return response;
+    }
+
+    @Override
+    public List<PartidaResponseDTO> listarPartidasFuturasComRecomendacao(Long usuarioId, String codigo) {
+        Usuario usuario = grupoAutorizacaoService.obterUsuarioValido(usuarioId, codigo);
+        boolean isPremium = usuario.getPerfil() == PerfilUsuario.PREMIUM;
+
+        List<PartidaResponseDTO> futuras = partidaService.listarPartidasFuturas();
+
+        if (!isPremium) {
+            return futuras;
+        }
+
+        return futuras.stream()
+                .map(dto -> {
+                    try {
+                        RecomendacaoResponseDTO recomendacao = recomendar(dto.getId(), usuarioId, codigo);
+                        dto.setRecomendacao(recomendacao);
+                    } catch (Exception ignored) {}
+                    return dto;
+                })
+                .toList();
     }
 
     private void validarPremium(Usuario usuario) {
