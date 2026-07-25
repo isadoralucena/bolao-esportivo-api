@@ -115,6 +115,15 @@ public class PartidaServiceImpl implements PartidaService {
         partidaRepository.deleteByCampeonatoId(campeonatoId);
     }
 
+    @Override
+    public List<PartidaResponseDTO> listarPartidasFuturas() {
+        return partidaRepository.findByDataAfterAndStatus(
+                        LocalDateTime.now(), PartidaStatus.ABERTO)
+                .stream()
+                .map(PartidaResponseDTO::new)
+                .toList();
+    }
+
     private PartidaResponseDTO salvarOuAtualizarPartida(Campeonato campeonato, Map<String, Object> match) {
         Long codigoExterno = Long.valueOf(match.get("id").toString());
         Map<String, Object> homeTeam = (Map<String, Object>) match.get("homeTeam");
