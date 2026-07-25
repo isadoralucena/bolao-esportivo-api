@@ -1,4 +1,6 @@
-package com.ufcg.psoft.project.exception;
+package com.ufcg.psoft.project.exception.usuario;
+
+import com.ufcg.psoft.project.exception.ProjectException;
 
 public class UsuarioNaoPromovidoException extends ProjectException {
     public UsuarioNaoPromovidoException() {
