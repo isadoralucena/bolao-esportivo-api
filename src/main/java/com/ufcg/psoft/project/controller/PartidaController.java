@@ -27,4 +27,13 @@ public class PartidaController {
                 .status(HttpStatus.OK)
                 .body(partidaService.listarPorGrupo(grupoId));
     }
+
+    @GetMapping("/partidas/futuras")
+    public ResponseEntity<?> listarPartidasFuturas(
+            @RequestParam Long usuarioId,
+            @RequestParam String codigo) {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(partidaService.listarPartidasFuturas(usuarioId, codigo));
+    }
 }
