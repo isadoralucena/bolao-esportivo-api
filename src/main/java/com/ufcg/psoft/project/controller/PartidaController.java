@@ -1,14 +1,14 @@
 package com.ufcg.psoft.project.controller;
 
 import com.ufcg.psoft.project.service.partida.PartidaService;
-
+import com.ufcg.psoft.project.service.premium.RequisicaoAutenticadaEvent;
+import com.ufcg.psoft.project.service.recomendacao.RecomendacaoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import com.ufcg.psoft.project.service.recomendacao.RecomendacaoService;
 
 @RestController
 @RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE)
@@ -19,6 +19,9 @@ public class PartidaController {
 
     @Autowired
     private RecomendacaoService recomendacaoService;
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
     @GetMapping("/campeonatos/{campeonatoId}/partidas")
     public ResponseEntity<?> listarPartidasDoCampeonato(@PathVariable Long campeonatoId) {
@@ -38,8 +41,10 @@ public class PartidaController {
     public ResponseEntity<?> listarPartidasFuturas(
             @RequestParam Long usuarioId,
             @RequestParam String codigoUsuario) {
+        var resultado = recomendacaoService.listarPartidasFuturasComRecomendacao(usuarioId, codigoUsuario);
+        eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(recomendacaoService.listarPartidasFuturasComRecomendacao(usuarioId, codigoUsuario));
+                .body(resultado);
     }
 }

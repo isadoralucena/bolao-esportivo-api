@@ -1,7 +1,9 @@
 package com.ufcg.psoft.project.controller;
 
+import com.ufcg.psoft.project.service.premium.RequisicaoAutenticadaEvent;
 import com.ufcg.psoft.project.service.recomendacao.RecomendacaoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -14,14 +16,19 @@ public class RecomendacaoController {
     @Autowired
     private RecomendacaoService recomendacaoService;
 
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+
     @GetMapping("/grupos/{grupoId}/partidas/{partidaId}/recomendacao")
     public ResponseEntity<?> recomendarPalpite(
             @PathVariable Long grupoId,
             @PathVariable Long partidaId,
             @RequestParam Long usuarioId,
             @RequestParam String codigoUsuario) {
+        var resultado = recomendacaoService.recomendar(grupoId, partidaId, usuarioId, codigoUsuario);
+        eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(recomendacaoService.recomendar(grupoId, partidaId, usuarioId, codigoUsuario));
+                .body(resultado);
     }
 }
