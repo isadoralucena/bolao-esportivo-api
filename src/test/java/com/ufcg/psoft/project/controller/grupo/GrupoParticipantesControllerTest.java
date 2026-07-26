@@ -103,7 +103,7 @@ public class GrupoParticipantesControllerTest {
 
         driver.perform(get(URI_GRUPOS + "/99999/participantes")
                 .param("usuarioId", organizador.getId().toString())
-                .param("codigoAcesso", organizador.getCodigo()))
+                .param("codigoUsuario", organizador.getCodigo()))
                 .andExpect(status().isBadRequest());
     }
 
@@ -113,7 +113,7 @@ public class GrupoParticipantesControllerTest {
 
         driver.perform(get(URI_GRUPOS + "/" + grupo.getId() + "/participantes")
                 .param("usuarioId", "99999")
-                .param("codigoAcesso", organizador.getCodigo()))
+                .param("codigoUsuario", organizador.getCodigo()))
                 .andExpect(status().isBadRequest());
     }
 
@@ -123,7 +123,7 @@ public class GrupoParticipantesControllerTest {
 
         driver.perform(get(URI_GRUPOS + "/" + grupo.getId() + "/participantes")
                 .param("usuarioId", organizador.getId().toString())
-                .param("codigoAcesso", "INVALIDO"))
+                .param("codigoUsuario", "INVALIDO"))
                 .andExpect(status().isBadRequest());
     }
 
@@ -147,7 +147,7 @@ public class GrupoParticipantesControllerTest {
 
         driver.perform(get(URI_GRUPOS + "/" + grupoPrivado.getId() + "/participantes")
                 .param("usuarioId", participante.getId().toString())
-                .param("codigoAcesso", participante.getCodigo()))
+                .param("codigoUsuario", participante.getCodigo()))
                 .andExpect(status().isBadRequest());
     }
 
@@ -160,7 +160,7 @@ public class GrupoParticipantesControllerTest {
 
         driver.perform(get(URI_GRUPOS + "/" + grupo.getId() + "/participantes")
                 .param("usuarioId", organizador.getId().toString())
-                .param("codigoAcesso", organizador.getCodigo()))
+                .param("codigoUsuario", organizador.getCodigo()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2));
     }
@@ -176,7 +176,7 @@ public class GrupoParticipantesControllerTest {
         driver.perform(delete(URI_GRUPOS + "/" + grupo.getId()
                 + "/participantes/" + participante.getId())
                 .param("usuarioId", organizador.getId().toString())
-                .param("codigoAcesso", organizador.getCodigo()))
+                .param("codigoUsuario", organizador.getCodigo()))
                 .andExpect(status().isNoContent());
     }
 
@@ -187,7 +187,7 @@ public class GrupoParticipantesControllerTest {
         driver.perform(delete(URI_GRUPOS + "/" + grupo.getId()
                 + "/participantes/" + organizador.getId())
                 .param("usuarioId", organizador.getId().toString())
-                .param("codigoAcesso", organizador.getCodigo()))
+                .param("codigoUsuario", organizador.getCodigo()))
                 .andExpect(status().isBadRequest());
 
         Grupo grupoAtualizado = grupoRepository.findById(grupo.getId()).orElseThrow();

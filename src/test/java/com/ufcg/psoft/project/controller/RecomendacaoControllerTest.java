@@ -99,7 +99,7 @@ public class RecomendacaoControllerTest {
             String responseJsonString = driver.perform(get(URI_RECOMENDACAO, grupo.getId(), partida.getId())
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", usuarioPremium.getId().toString())
-                            .param("codigo", usuarioPremium.getCodigo()))
+                            .param("codigoUsuario", usuarioPremium.getCodigo()))
                     .andExpect(status().isOk())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -122,7 +122,7 @@ public class RecomendacaoControllerTest {
             String responseJsonString = driver.perform(get(URI_RECOMENDACAO, grupo.getId(), partida.getId())
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", usuarioPremium.getId().toString())
-                            .param("codigo", usuarioPremium.getCodigo()))
+                            .param("codigoUsuario", usuarioPremium.getCodigo()))
                     .andExpect(status().isOk())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -149,7 +149,7 @@ public class RecomendacaoControllerTest {
             String responseJsonString = driver.perform(get(URI_RECOMENDACAO, grupo.getId(), partida.getId())
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", usuarioPremium.getId().toString())
-                            .param("codigo", usuarioPremium.getCodigo()))
+                            .param("codigoUsuario", usuarioPremium.getCodigo()))
                     .andExpect(status().isOk())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -174,7 +174,7 @@ public class RecomendacaoControllerTest {
             driver.perform(get(URI_RECOMENDACAO, grupo.getId(), partida.getId())
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", "999999")
-                            .param("codigo", "111111"))
+                            .param("codigoUsuario", "111111"))
                     .andExpect(status().isBadRequest())
                     .andDo(print());
         }
@@ -185,7 +185,7 @@ public class RecomendacaoControllerTest {
             driver.perform(get(URI_RECOMENDACAO, grupo.getId(), partida.getId())
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", usuarioPremium.getId().toString())
-                            .param("codigo", "ERRADO"))
+                            .param("codigoUsuario", "ERRADO"))
                     .andExpect(status().isBadRequest())
                     .andDo(print());
         }
@@ -196,7 +196,7 @@ public class RecomendacaoControllerTest {
             String responseJsonString = driver.perform(get(URI_RECOMENDACAO, grupo.getId(), partida.getId())
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", usuarioPadrao.getId().toString())
-                            .param("codigo", usuarioPadrao.getCodigo()))
+                            .param("codigoUsuario", usuarioPadrao.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -216,7 +216,7 @@ public class RecomendacaoControllerTest {
             driver.perform(get(URI_RECOMENDACAO, grupo.getId(), 999999L)
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", usuarioPremium.getId().toString())
-                            .param("codigo", usuarioPremium.getCodigo()))
+                            .param("codigoUsuario", usuarioPremium.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andDo(print());
         }
@@ -227,7 +227,7 @@ public class RecomendacaoControllerTest {
             driver.perform(get(URI_RECOMENDACAO, 999999L, partida.getId())
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", usuarioPremium.getId().toString())
-                            .param("codigo", usuarioPremium.getCodigo()))
+                            .param("codigoUsuario", usuarioPremium.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andDo(print());
         }
@@ -244,7 +244,7 @@ public class RecomendacaoControllerTest {
             driver.perform(get(URI_RECOMENDACAO, grupo.getId(), partidaOutroCampeonato.getId())
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", usuarioPremium.getId().toString())
-                            .param("codigo", usuarioPremium.getCodigo()))
+                            .param("codigoUsuario", usuarioPremium.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andDo(print());
         }

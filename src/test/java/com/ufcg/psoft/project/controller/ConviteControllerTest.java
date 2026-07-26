@@ -138,7 +138,7 @@ public class ConviteControllerTest {
         void quandoOrganizadorCriaConviteValido() throws Exception {
             String responseJsonString = driver.perform(post(URI_CONVITES)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .param("codigoAcesso", organizador.getCodigo())
+                    .param("codigoUsuario", organizador.getCodigo())
                     .content(objectMapper.writeValueAsString(conviteDTO)))
                     .andExpect(status().isCreated())
                     .andDo(print())
@@ -163,7 +163,7 @@ public class ConviteControllerTest {
 
             String responseJsonString = driver.perform(post(URI_CONVITES)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .param("codigoAcesso", organizador.getCodigo())
+                    .param("codigoUsuario", organizador.getCodigo())
                     .content(objectMapper.writeValueAsString(conviteDTO)))
                     .andExpect(status().isCreated())
                     .andDo(print())
@@ -187,7 +187,7 @@ public class ConviteControllerTest {
 
             String responseJsonString = driver.perform(post(URI_CONVITES)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .param("codigoAcesso", organizador.getCodigo())
+                    .param("codigoUsuario", organizador.getCodigo())
                     .content(objectMapper.writeValueAsString(conviteDTO)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -205,7 +205,7 @@ public class ConviteControllerTest {
         void quandoCriaConviteComCodigoInvalido() throws Exception {
             String responseJsonString = driver.perform(post(URI_CONVITES)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .param("codigoAcesso", "999999")
+                    .param("codigoUsuario", "999999")
                     .content(objectMapper.writeValueAsString(conviteDTO)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -225,7 +225,7 @@ public class ConviteControllerTest {
 
             String responseJsonString = driver.perform(post(URI_CONVITES)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .param("codigoAcesso", organizador.getCodigo())
+                    .param("codigoUsuario", organizador.getCodigo())
                     .content(objectMapper.writeValueAsString(conviteDTO)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -247,7 +247,7 @@ public class ConviteControllerTest {
 
             String responseJsonString = driver.perform(post(URI_CONVITES)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .param("codigoAcesso", organizador.getCodigo())
+                    .param("codigoUsuario", organizador.getCodigo())
                     .content(objectMapper.writeValueAsString(conviteDTO)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -265,13 +265,13 @@ public class ConviteControllerTest {
         void quandoCriaConviteDuplicado() throws Exception {
             driver.perform(post(URI_CONVITES)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .param("codigoAcesso", organizador.getCodigo())
+                    .param("codigoUsuario", organizador.getCodigo())
                     .content(objectMapper.writeValueAsString(conviteDTO)))
                     .andExpect(status().isCreated());
 
             String responseJsonString = driver.perform(post(URI_CONVITES)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .param("codigoAcesso", organizador.getCodigo())
+                    .param("codigoUsuario", organizador.getCodigo())
                     .content(objectMapper.writeValueAsString(conviteDTO)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -291,7 +291,7 @@ public class ConviteControllerTest {
 
             String responseJsonString = driver.perform(post(URI_CONVITES)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .param("codigoAcesso", convidado.getCodigo())
+                    .param("codigoUsuario", convidado.getCodigo())
                     .content(objectMapper.writeValueAsString(conviteDTO)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -311,7 +311,7 @@ public class ConviteControllerTest {
 
             driver.perform(post(URI_CONVITES)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .param("codigoAcesso", organizador.getCodigo())
+                    .param("codigoUsuario", organizador.getCodigo())
                     .content(objectMapper.writeValueAsString(conviteDTO)))
                     .andExpect(status().isBadRequest());
         }
@@ -323,7 +323,7 @@ public class ConviteControllerTest {
 
             driver.perform(post(URI_CONVITES)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .param("codigoAcesso", organizador.getCodigo())
+                    .param("codigoUsuario", organizador.getCodigo())
                     .content(objectMapper.writeValueAsString(conviteDTO)))
                     .andExpect(status().isBadRequest());
         }
@@ -339,7 +339,7 @@ public class ConviteControllerTest {
         void setupConvite() throws Exception {
             String responseJsonString = driver.perform(post(URI_CONVITES)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .param("codigoAcesso", organizador.getCodigo())
+                    .param("codigoUsuario", organizador.getCodigo())
                     .content(objectMapper.writeValueAsString(conviteDTO)))
                     .andExpect(status().isCreated())
                     .andReturn().getResponse().getContentAsString();
@@ -353,7 +353,7 @@ public class ConviteControllerTest {
         void quandoConvidadoAceitaConvite() throws Exception {
             String responseJsonString = driver.perform(post(URI_CONVITES + "/" + convite.getId() + "/aceitar")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .param("codigoAcessoConvidado", convidado.getCodigo()))
+                    .param("codigoUsuario", convidado.getCodigo()))
                     .andExpect(status().isOk())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -377,7 +377,7 @@ public class ConviteControllerTest {
 
             String responseJsonString = driver.perform(post(URI_CONVITES + "/" + convite.getId() + "/aceitar")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .param("codigoAcessoConvidado", convidado.getCodigo()))
+                    .param("codigoUsuario", convidado.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -399,7 +399,7 @@ public class ConviteControllerTest {
 
             String responseJsonString = driver.perform(post(URI_CONVITES + "/" + convite.getId() + "/aceitar")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .param("codigoAcessoConvidado", convidado.getCodigo()))
+                    .param("codigoUsuario", convidado.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -419,7 +419,7 @@ public class ConviteControllerTest {
         void quandoConvidadoRecusaConvite() throws Exception {
             String responseJsonString = driver.perform(post(URI_CONVITES + "/" + convite.getId() + "/recusar")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .param("codigoAcessoConvidado", convidado.getCodigo()))
+                    .param("codigoUsuario", convidado.getCodigo()))
                     .andExpect(status().isOk())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -436,7 +436,7 @@ public class ConviteControllerTest {
         void quandoConvidadoIgnoraConvite() throws Exception {
             String responseJsonString = driver.perform(post(URI_CONVITES + "/" + convite.getId() + "/ignorar")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .param("codigoAcessoConvidado", convidado.getCodigo()))
+                    .param("codigoUsuario", convidado.getCodigo()))
                     .andExpect(status().isOk())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -453,12 +453,12 @@ public class ConviteControllerTest {
         void quandoTentaAceitarConviteJaProcessado() throws Exception {
             driver.perform(post(URI_CONVITES + "/" + convite.getId() + "/recusar")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .param("codigoAcessoConvidado", convidado.getCodigo()))
+                    .param("codigoUsuario", convidado.getCodigo()))
                     .andExpect(status().isOk());
 
             String responseJsonString = driver.perform(post(URI_CONVITES + "/" + convite.getId() + "/aceitar")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .param("codigoAcessoConvidado", convidado.getCodigo()))
+                    .param("codigoUsuario", convidado.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -475,12 +475,12 @@ public class ConviteControllerTest {
         void quandoTentaRecusarConviteJaProcessado() throws Exception {
             driver.perform(post(URI_CONVITES + "/" + convite.getId() + "/aceitar")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoAcessoConvidado", convidado.getCodigo()))
+                            .param("codigoUsuario", convidado.getCodigo()))
                     .andExpect(status().isOk());
 
             String responseJsonString = driver.perform(post(URI_CONVITES + "/" + convite.getId() + "/recusar")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoAcessoConvidado", convidado.getCodigo()))
+                            .param("codigoUsuario", convidado.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -497,12 +497,12 @@ public class ConviteControllerTest {
         void quandoTentaIgnorarConviteJaProcessado() throws Exception {
             driver.perform(post(URI_CONVITES + "/" + convite.getId() + "/aceitar")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoAcessoConvidado", convidado.getCodigo()))
+                            .param("codigoUsuario", convidado.getCodigo()))
                     .andExpect(status().isOk());
 
             String responseJsonString = driver.perform(post(URI_CONVITES + "/" + convite.getId() + "/ignorar")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoAcessoConvidado", convidado.getCodigo()))
+                            .param("codigoUsuario", convidado.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -519,7 +519,7 @@ public class ConviteControllerTest {
         void quandoTentaAceitarConviteInexistente() throws Exception {
             String responseJsonString = driver.perform(post(URI_CONVITES + "/999999/aceitar")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoAcessoConvidado", convidado.getCodigo()))
+                            .param("codigoUsuario", convidado.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -536,7 +536,7 @@ public class ConviteControllerTest {
         void quandoTentaAceitarConviteComCodigoInvalido() throws Exception {
             String responseJsonString = driver.perform(post(URI_CONVITES + "/" + convite.getId() + "/aceitar")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoAcessoConvidado", "999999"))
+                            .param("codigoUsuario", "999999"))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -559,7 +559,7 @@ public class ConviteControllerTest {
         void setupConvite() throws Exception {
             String responseJsonString = driver.perform(post(URI_CONVITES)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoAcesso", organizador.getCodigo())
+                            .param("codigoUsuario", organizador.getCodigo())
                             .content(objectMapper.writeValueAsString(conviteDTO)))
                     .andExpect(status().isCreated())
                     .andReturn().getResponse().getContentAsString();
@@ -573,7 +573,7 @@ public class ConviteControllerTest {
         void quandoOrganizadorRemoveConvite() throws Exception {
             driver.perform(delete(URI_CONVITES + "/" + convite.getId() + "/remover")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoAcessoOrganizador", organizador.getCodigo()))
+                            .param("codigoUsuario", organizador.getCodigo()))
                     .andExpect(status().isNoContent())
                     .andDo(print());
 
@@ -585,7 +585,7 @@ public class ConviteControllerTest {
         void quandoTentaRemoverConviteInexistente() throws Exception {
             String responseJsonString = driver.perform(delete(URI_CONVITES + "/999999/remover")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoAcessoOrganizador", organizador.getCodigo()))
+                            .param("codigoUsuario", organizador.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -602,7 +602,7 @@ public class ConviteControllerTest {
         void quandoTentaRemoverConviteComCodigoInvalido() throws Exception {
             String responseJsonString = driver.perform(delete(URI_CONVITES + "/" + convite.getId() + "/remover")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoAcessoOrganizador", "999999"))
+                            .param("codigoUsuario", "999999"))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -624,13 +624,13 @@ public class ConviteControllerTest {
         void quandoConvidadoListaConvitesPendentes() throws Exception {
             driver.perform(post(URI_CONVITES)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoAcesso", organizador.getCodigo())
+                            .param("codigoUsuario", organizador.getCodigo())
                             .content(objectMapper.writeValueAsString(conviteDTO)))
                     .andExpect(status().isCreated());
 
             String responseJsonString = driver.perform(get(URI_CONVITES + "/usuario/" + convidado.getId() + "/pendentes")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoAcessoConvidado", convidado.getCodigo()))
+                            .param("codigoUsuario", convidado.getCodigo()))
                     .andExpect(status().isOk())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -649,7 +649,7 @@ public class ConviteControllerTest {
         void quandoConvidadoListaConvitesPendentesVazio() throws Exception {
             String responseJsonString = driver.perform(get(URI_CONVITES + "/usuario/" + convidado.getId() + "/pendentes")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoAcessoConvidado", convidado.getCodigo()))
+                            .param("codigoUsuario", convidado.getCodigo()))
                     .andExpect(status().isOk())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -666,7 +666,7 @@ public class ConviteControllerTest {
         void quandoListaConvitesComCodigoInvalido() throws Exception {
             String responseJsonString = driver.perform(get(URI_CONVITES + "/usuario/" + convidado.getId() + "/pendentes")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoAcessoConvidado", "999999"))
+                            .param("codigoUsuario", "999999"))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();

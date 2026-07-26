@@ -175,7 +175,7 @@ public class RankingControllerTest {
             String responseJsonString = driver.perform(get(URI_RANKING + "/grupo/" + grupo.getId())
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", participante1.getId().toString())
-                            .param("codigoAcesso", participante1.getCodigo()))
+                            .param("codigoUsuario", participante1.getCodigo()))
                     .andExpect(status().isOk())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -199,7 +199,7 @@ public class RankingControllerTest {
             String responseJsonString = driver.perform(get(URI_RANKING + "/grupo/" + grupo.getId())
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", participante1.getId().toString())
-                            .param("codigoAcesso", participante1.getCodigo()))
+                            .param("codigoUsuario", participante1.getCodigo()))
                     .andExpect(status().isOk())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -227,7 +227,7 @@ public class RankingControllerTest {
             String responseJsonString = driver.perform(get(URI_RANKING + "/grupo/" + grupo.getId())
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", participante1.getId().toString())
-                            .param("codigoAcesso", participante1.getCodigo()))
+                            .param("codigoUsuario", participante1.getCodigo()))
                     .andExpect(status().isOk())
                     .andReturn().getResponse().getContentAsString();
 
@@ -248,7 +248,7 @@ public class RankingControllerTest {
             String responseJsonString = driver.perform(get(URI_RANKING + "/grupo/" + grupo.getId())
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", participante1.getId().toString())
-                            .param("codigoAcesso", participante1.getCodigo()))
+                            .param("codigoUsuario", participante1.getCodigo()))
                     .andExpect(status().isOk())
                     .andReturn().getResponse().getContentAsString();
 
@@ -272,7 +272,7 @@ public class RankingControllerTest {
             String responseJsonString = driver.perform(get(URI_RANKING + "/grupo/" + grupo.getId())
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", participante1.getId().toString())
-                            .param("codigoAcesso", participante1.getCodigo()))
+                            .param("codigoUsuario", participante1.getCodigo()))
                     .andExpect(status().isOk())
                     .andReturn().getResponse().getContentAsString();
 
@@ -300,7 +300,7 @@ public class RankingControllerTest {
             driver.perform(get(URI_RANKING + "/grupo/" + grupo.getId())
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", forasteiro.getId().toString())
-                            .param("codigoAcesso", forasteiro.getCodigo()))
+                            .param("codigoUsuario", forasteiro.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andDo(print());
         }
@@ -311,7 +311,7 @@ public class RankingControllerTest {
             driver.perform(get(URI_RANKING + "/grupo/999999")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", participante1.getId().toString())
-                            .param("codigoAcesso", participante1.getCodigo()))
+                            .param("codigoUsuario", participante1.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andDo(print());
         }
@@ -322,7 +322,7 @@ public class RankingControllerTest {
             driver.perform(get(URI_RANKING + "/grupo/" + grupo.getId())
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", participante1.getId().toString())
-                            .param("codigoAcesso", "999999"))
+                            .param("codigoUsuario", "999999"))
                     .andExpect(status().isBadRequest())
                     .andDo(print());
         }
@@ -338,7 +338,7 @@ public class RankingControllerTest {
             String responseJsonString = driver.perform(get(URI_RANKING)
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", participante1.getId().toString())
-                            .param("codigoAcesso", participante1.getCodigo()))
+                            .param("codigoUsuario", participante1.getCodigo()))
                     .andExpect(status().isOk())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -362,7 +362,7 @@ public class RankingControllerTest {
             String responseJsonString = driver.perform(get(URI_RANKING)
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", participante1.getId().toString())
-                            .param("codigoAcesso", participante1.getCodigo()))
+                            .param("codigoUsuario", participante1.getCodigo()))
                     .andExpect(status().isOk())
                     .andReturn().getResponse().getContentAsString();
 
@@ -388,7 +388,7 @@ public class RankingControllerTest {
             driver.perform(get(URI_RANKING)
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", participante1.getId().toString())
-                            .param("codigoAcesso", "999999"))
+                            .param("codigoUsuario", "999999"))
                     .andExpect(status().isBadRequest())
                     .andDo(print());
         }
@@ -399,7 +399,7 @@ public class RankingControllerTest {
             driver.perform(get(URI_RANKING)
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", "999999")
-                            .param("codigoAcesso", "999999"))
+                            .param("codigoUsuario", "999999"))
                     .andExpect(status().isBadRequest())
                     .andDo(print());
         }

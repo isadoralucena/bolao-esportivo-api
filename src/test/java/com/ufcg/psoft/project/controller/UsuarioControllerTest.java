@@ -113,7 +113,7 @@ public class UsuarioControllerTest {
             // Act
             String responseJsonString = driver.perform(put(URI_USUARIOS + "/" + usuario.getId())
                             .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigo", usuario.getCodigo())
+                            .param("codigoUsuario", usuario.getCodigo())
                             .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
                     .andExpect(status().isOk())
                     .andDo(print())
@@ -134,7 +134,7 @@ public class UsuarioControllerTest {
             // Act
             String responseJsonString = driver.perform(put(URI_USUARIOS + "/" + usuario.getId())
                             .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigo", usuario.getCodigo())
+                            .param("codigoUsuario", usuario.getCodigo())
                             .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -158,7 +158,7 @@ public class UsuarioControllerTest {
             // Act
             String responseJsonString = driver.perform(put(URI_USUARIOS + "/" + usuario.getId())
                             .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigo", usuario.getCodigo())
+                            .param("codigoUsuario", usuario.getCodigo())
                             .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -187,7 +187,7 @@ public class UsuarioControllerTest {
             // Act
             String responseJsonString = driver.perform(put(URI_USUARIOS + "/" + usuario.getId())
                             .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigo", usuario.getCodigo())
+                            .param("codigoUsuario", usuario.getCodigo())
                             .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
                     .andExpect(status().isOk())
                     .andDo(print())
@@ -208,7 +208,7 @@ public class UsuarioControllerTest {
             // Act
             String responseJsonString = driver.perform(put(URI_USUARIOS + "/" + usuario.getId())
                             .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigo", usuario.getCodigo())
+                            .param("codigoUsuario", usuario.getCodigo())
                             .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -232,7 +232,7 @@ public class UsuarioControllerTest {
             // Act
             String responseJsonString = driver.perform(put(URI_USUARIOS + "/" + usuario.getId())
                             .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigo", usuario.getCodigo())
+                            .param("codigoUsuario", usuario.getCodigo())
                             .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -261,7 +261,7 @@ public class UsuarioControllerTest {
             // Act
             String responseJsonString = driver.perform(put(URI_USUARIOS + "/" + usuario.getId())
                             .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigo", usuario.getCodigo())
+                            .param("codigoUsuario", usuario.getCodigo())
                             .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -285,7 +285,7 @@ public class UsuarioControllerTest {
             // Act
             String responseJsonString = driver.perform(put(URI_USUARIOS + "/" + usuario.getId())
                             .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigo", usuario.getCodigo())
+                            .param("codigoUsuario", usuario.getCodigo())
                             .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -309,7 +309,7 @@ public class UsuarioControllerTest {
             // Act
             String responseJsonString = driver.perform(put(URI_USUARIOS + "/" + usuario.getId())
                             .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigo", usuario.getCodigo())
+                            .param("codigoUsuario", usuario.getCodigo())
                             .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -333,7 +333,7 @@ public class UsuarioControllerTest {
             // Act
             String responseJsonString = driver.perform(put(URI_USUARIOS + "/" + usuario.getId())
                             .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigo", usuario.getCodigo())
+                            .param("codigoUsuario", usuario.getCodigo())
                             .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -460,7 +460,7 @@ public class UsuarioControllerTest {
             // Act
             String responseJsonString = driver.perform(put(URI_USUARIOS + "/" + usuario.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .param("codigo", usuario.getCodigo())
+                        .param("codigoUsuario", usuario.getCodigo())
                         .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -485,7 +485,7 @@ public class UsuarioControllerTest {
         // Act
         String responseJsonString = driver.perform(put(URI_USUARIOS + "/" + usuario.getId())
                 .contentType(MediaType.APPLICATION_JSON)
-                .param("codigo", usuario.getCodigo())
+                .param("codigoUsuario", usuario.getCodigo())
                 .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
                 .andExpect(status().isOk())
                 .andDo(print())
@@ -747,7 +747,7 @@ public class UsuarioControllerTest {
             // Act
             String responseJsonString = driver.perform(put(URI_USUARIOS + "/" + usuario.getId())
                             .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigo", usuario.getCodigo())
+                            .param("codigoUsuario", usuario.getCodigo())
                             .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
                     .andExpect(status().isOk()) // Codigo 200
                     .andDo(print())
@@ -771,7 +771,7 @@ public class UsuarioControllerTest {
             // Act
             String responseJsonString = driver.perform(put(URI_USUARIOS + "/" + 99999L)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigo", usuario.getCodigo())
+                            .param("codigoUsuario", usuario.getCodigo())
                             .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
                     .andExpect(status().isBadRequest()) // Codigo 400
                     .andDo(print())
@@ -794,7 +794,7 @@ public class UsuarioControllerTest {
             // Act
             String responseJsonString = driver.perform(put(URI_USUARIOS + "/" + usuarioId)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigo", "invalido")
+                            .param("codigoUsuario", "invalido")
                             .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
                     .andExpect(status().isBadRequest()) // Codigo 400
                     .andDo(print())
@@ -817,7 +817,7 @@ public class UsuarioControllerTest {
             // Act
             String responseJsonString = driver.perform(delete(URI_USUARIOS + "/" + usuario.getId())
                             .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigo", usuario.getCodigo()))
+                            .param("codigoUsuario", usuario.getCodigo()))
                     .andExpect(status().isNoContent()) // Codigo 204
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -835,7 +835,7 @@ public class UsuarioControllerTest {
             // Act
             String responseJsonString = driver.perform(delete(URI_USUARIOS + "/" + 999999)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigo", usuario.getCodigo()))
+                            .param("codigoUsuario", usuario.getCodigo()))
                     .andExpect(status().isBadRequest()) // Codigo 400
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -857,7 +857,7 @@ public class UsuarioControllerTest {
             // Act
             String responseJsonString = driver.perform(delete(URI_USUARIOS + "/" + usuario.getId())
                             .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigo", "invalido"))
+                            .param("codigoUsuario", "invalido"))
                     .andExpect(status().isBadRequest()) // Codigo 400
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();

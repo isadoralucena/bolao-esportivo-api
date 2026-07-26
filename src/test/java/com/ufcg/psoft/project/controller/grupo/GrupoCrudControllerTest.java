@@ -129,7 +129,7 @@ public class GrupoCrudControllerTest {
         void quandoCriarGrupoValido() throws Exception {
                 driver.perform(post(URI_GRUPOS)
                         .param("usuarioId", organizador.getId().toString())
-                        .param("codigoAcesso", organizador.getCodigo())
+                        .param("codigoUsuario", organizador.getCodigo())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(grupoPostRequestDTO)))
                         .andExpect(status().isCreated())
@@ -151,7 +151,7 @@ public class GrupoCrudControllerTest {
 
                 driver.perform(post(URI_GRUPOS)
                         .param("usuarioId", organizador.getId().toString())
-                        .param("codigoAcesso", organizador.getCodigo())
+                        .param("codigoUsuario", organizador.getCodigo())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(grupoPostRequestDTO)))
                         .andExpect(status().isBadRequest());
@@ -162,7 +162,7 @@ public class GrupoCrudControllerTest {
         void quandoCriarGrupoCodigoInvalido() throws Exception {
                 driver.perform(post(URI_GRUPOS)
                         .param("usuarioId", organizador.getId().toString())
-                        .param("codigoAcesso", "CODIGO_ERRADO")
+                        .param("codigoUsuario", "CODIGO_ERRADO")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(grupoPostRequestDTO)))
                         .andExpect(status().isBadRequest());
@@ -175,7 +175,7 @@ public class GrupoCrudControllerTest {
 
                 driver.perform(post(URI_GRUPOS)
                         .param("usuarioId", organizador.getId().toString())
-                        .param("codigoAcesso", organizador.getCodigo())
+                        .param("codigoUsuario", organizador.getCodigo())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(grupoPostRequestDTO)))
                         .andExpect(status().isBadRequest());
@@ -191,7 +191,7 @@ public class GrupoCrudControllerTest {
 		void quandoRecuperarGrupoExistente() throws Exception {
 			driver.perform(get(URI_GRUPOS + "/" + grupo.getId())
 					.param("usuarioId", participante.getId().toString())
-					.param("codigoAcesso", participante.getCodigo()))
+					.param("codigoUsuario", participante.getCodigo()))
 					.andExpect(status().isOk())
 					.andExpect(jsonPath("$.id").value(grupo.getId()))
 					.andExpect(jsonPath("$.nome").value(grupo.getNome()))
@@ -204,7 +204,7 @@ public class GrupoCrudControllerTest {
 		void quandoRecuperarGrupoInexistente() throws Exception {
 			driver.perform(get(URI_GRUPOS + "/99999")
 					.param("usuarioId", participante.getId().toString())
-					.param("codigoAcesso", participante.getCodigo()))
+					.param("codigoUsuario", participante.getCodigo()))
 					.andExpect(status().isBadRequest());
 		}
 
@@ -226,7 +226,7 @@ public class GrupoCrudControllerTest {
 
 			driver.perform(get(URI_GRUPOS + "/" + grupoPrivado.getId())
 					.param("usuarioId", participante.getId().toString())
-					.param("codigoAcesso", participante.getCodigo()))
+					.param("codigoUsuario", participante.getCodigo()))
 					.andExpect(status().isBadRequest());
 		}
 	}
@@ -239,7 +239,7 @@ public class GrupoCrudControllerTest {
 		void quandoListarGrupos() throws Exception {
 			driver.perform(get(URI_GRUPOS)
 					.param("usuarioId", participante.getId().toString())
-					.param("codigoAcesso", participante.getCodigo()))
+					.param("codigoUsuario", participante.getCodigo()))
 					.andExpect(status().isOk())
 					.andExpect(jsonPath("$").isArray())
 					.andExpect(jsonPath("$[0].id").value(grupo.getId()))
@@ -251,7 +251,7 @@ public class GrupoCrudControllerTest {
         void quandoListarGruposComUsuarioInexistente() throws Exception {
             driver.perform(get(URI_GRUPOS)
                     .param("usuarioId", "99999")
-                    .param("codigoAcesso", "qualquer"))
+                    .param("codigoUsuario", "qualquer"))
                     .andExpect(status().isBadRequest());
         }
  
@@ -260,7 +260,7 @@ public class GrupoCrudControllerTest {
         void quandoListarGruposComCodigoInvalido() throws Exception {
             driver.perform(get(URI_GRUPOS)
                     .param("usuarioId", participante.getId().toString())
-                    .param("codigoAcesso", "CODIGO_ERRADO"))
+                    .param("codigoUsuario", "CODIGO_ERRADO"))
                     .andExpect(status().isBadRequest());
         }
  
@@ -282,7 +282,7 @@ public class GrupoCrudControllerTest {
  
             driver.perform(get(URI_GRUPOS)
                     .param("usuarioId", participante.getId().toString())
-                    .param("codigoAcesso", participante.getCodigo()))
+                    .param("codigoUsuario", participante.getCodigo()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray())
                     .andExpect(jsonPath("$[?(@.id == " + grupoPrivado.getId() + ")]").doesNotExist());
@@ -298,7 +298,7 @@ public class GrupoCrudControllerTest {
         void quandoAtualizarGrupoComSucesso() throws Exception {
             driver.perform(put(URI_GRUPOS + "/" + grupo.getId())
                     .param("usuarioId", organizador.getId().toString())
-                    .param("codigoAcesso", organizador.getCodigo())
+                    .param("codigoUsuario", organizador.getCodigo())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(grupoPutRequestDTO)))
                     .andExpect(status().isOk())
@@ -319,7 +319,7 @@ public class GrupoCrudControllerTest {
  
             driver.perform(put(URI_GRUPOS + "/" + grupo.getId())
                     .param("usuarioId", organizador.getId().toString())
-                    .param("codigoAcesso", organizador.getCodigo())
+                    .param("codigoUsuario", organizador.getCodigo())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(grupoPutRequestDTO)))
                     .andExpect(status().isBadRequest());
@@ -330,7 +330,7 @@ public class GrupoCrudControllerTest {
         void quandoAtualizarGrupoInexistente() throws Exception {
             driver.perform(put(URI_GRUPOS + "/99999")
                     .param("usuarioId", organizador.getId().toString())
-                    .param("codigoAcesso", organizador.getCodigo())
+                    .param("codigoUsuario", organizador.getCodigo())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(grupoPutRequestDTO)))
                     .andExpect(status().isBadRequest());
@@ -343,7 +343,7 @@ public class GrupoCrudControllerTest {
  
             driver.perform(put(URI_GRUPOS + "/" + grupo.getId())
                     .param("usuarioId", organizador.getId().toString())
-                    .param("codigoAcesso", organizador.getCodigo())
+                    .param("codigoUsuario", organizador.getCodigo())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(grupoPutRequestDTO)))
                     .andExpect(status().isBadRequest());
@@ -354,7 +354,7 @@ public class GrupoCrudControllerTest {
         void quandoUsuarioTentaAtualizarGrupo() throws Exception {
             driver.perform(put(URI_GRUPOS + "/" + grupo.getId())
                     .param("usuarioId", participante.getId().toString())
-                    .param("codigoAcesso", participante.getCodigo())
+                    .param("codigoUsuario", participante.getCodigo())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(grupoPutRequestDTO)))
                     .andExpect(status().isBadRequest());
@@ -370,7 +370,7 @@ public class GrupoCrudControllerTest {
  
             driver.perform(put(URI_GRUPOS + "/" + grupo.getId())
                     .param("usuarioId", organizador.getId().toString())
-                    .param("codigoAcesso", organizador.getCodigo())
+                    .param("codigoUsuario", organizador.getCodigo())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(grupoPutRequestDTO)))
                     .andExpect(status().isOk())
@@ -387,7 +387,7 @@ public class GrupoCrudControllerTest {
  
             driver.perform(put(URI_GRUPOS + "/" + grupo.getId())
                     .param("usuarioId", organizador.getId().toString())
-                    .param("codigoAcesso", organizador.getCodigo())
+                    .param("codigoUsuario", organizador.getCodigo())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(grupoPutRequestDTO)))
                     .andExpect(status().isOk())
@@ -404,7 +404,7 @@ public class GrupoCrudControllerTest {
  
             driver.perform(put(URI_GRUPOS + "/" + grupo.getId())
                     .param("usuarioId", organizador.getId().toString())
-                    .param("codigoAcesso", organizador.getCodigo())
+                    .param("codigoUsuario", organizador.getCodigo())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(grupoPutRequestDTO)))
                     .andExpect(status().isOk());
@@ -420,7 +420,7 @@ public class GrupoCrudControllerTest {
         void quandoRemoverGrupoComSucesso() throws Exception {
             driver.perform(delete(URI_GRUPOS + "/" + grupo.getId())
                     .param("usuarioId", organizador.getId().toString())
-                    .param("codigoAcesso", organizador.getCodigo()))
+                    .param("codigoUsuario", organizador.getCodigo()))
                     .andExpect(status().isNoContent());
         }
  
@@ -429,7 +429,7 @@ public class GrupoCrudControllerTest {
         void quandoUsuarioComumTentaRemoverGrupo() throws Exception {
             driver.perform(delete(URI_GRUPOS + "/" + grupo.getId())
                     .param("usuarioId", participante.getId().toString())
-                    .param("codigoAcesso", participante.getCodigo()))
+                    .param("codigoUsuario", participante.getCodigo()))
                     .andExpect(status().isBadRequest());
         }
  
@@ -438,7 +438,7 @@ public class GrupoCrudControllerTest {
         void quandoRemoverGrupoInexistente() throws Exception {
             driver.perform(delete(URI_GRUPOS + "/99999")
                     .param("usuarioId", organizador.getId().toString())
-                    .param("codigoAcesso", organizador.getCodigo()))
+                    .param("codigoUsuario", organizador.getCodigo()))
                     .andExpect(status().isBadRequest());
         }
     }

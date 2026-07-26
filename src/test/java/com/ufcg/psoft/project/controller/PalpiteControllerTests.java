@@ -192,7 +192,7 @@ public class PalpiteControllerTests {
     void criarPalpiteValido() throws Exception {
         mockMvc.perform(post("/grupos/{grupoId}/partidas/{partidaId}/palpites", grupo.getId(), partida.getId())
                 .param("usuarioId", usuario.getId().toString())
-                .param("codigo", usuario.getCodigo())
+                .param("codigoUsuario", usuario.getCodigo())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isCreated());
@@ -203,7 +203,7 @@ public class PalpiteControllerTests {
     void criarPalpiteCodigoErrado() throws Exception {
         mockMvc.perform(post("/grupos/{grupoId}/partidas/{partidaId}/palpites", grupo.getId(), partida.getId())
                 .param("usuarioId", usuario.getId().toString())
-                .param("codigo", "999999")
+                .param("codigoUsuario", "999999")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest());
@@ -214,14 +214,14 @@ public class PalpiteControllerTests {
     void criarPalpiteDuplicado() throws Exception {
         mockMvc.perform(post("/grupos/{grupoId}/partidas/{partidaId}/palpites", grupo.getId(), partida.getId())
                 .param("usuarioId", usuario.getId().toString())
-                .param("codigo", usuario.getCodigo())
+                .param("codigoUsuario", usuario.getCodigo())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isCreated());
 
         mockMvc.perform(post("/grupos/{grupoId}/partidas/{partidaId}/palpites", grupo.getId(), partida.getId())
                 .param("usuarioId", usuario.getId().toString())
-                .param("codigo", usuario.getCodigo())
+                .param("codigoUsuario", usuario.getCodigo())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest());
@@ -248,7 +248,7 @@ public class PalpiteControllerTests {
 
         mockMvc.perform(post("/grupos/{grupoId}/partidas/{partidaId}/palpites", grupo.getId(), outraPartida.getId())
                 .param("usuarioId", usuario.getId().toString())
-                .param("codigo", usuario.getCodigo())
+                .param("codigoUsuario", usuario.getCodigo())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest());
@@ -267,7 +267,7 @@ public class PalpiteControllerTests {
 
         mockMvc.perform(post("/grupos/{grupoId}/partidas/{partidaId}/palpites", grupo.getId(), partida.getId())
                 .param("usuarioId", naoParticipante.getId().toString())
-                .param("codigo", naoParticipante.getCodigo())
+                .param("codigoUsuario", naoParticipante.getCodigo())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest());
@@ -278,7 +278,7 @@ public class PalpiteControllerTests {
     void criarPalpitePartidaInexistente() throws Exception {
         mockMvc.perform(post("/grupos/{grupoId}/partidas/{partidaId}/palpites", grupo.getId(), 999L)
                 .param("usuarioId", usuario.getId().toString())
-                .param("codigo", usuario.getCodigo())
+                .param("codigoUsuario", usuario.getCodigo())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest());
@@ -289,7 +289,7 @@ public class PalpiteControllerTests {
     void criarPalpiteGrupoInexistente() throws Exception {
         mockMvc.perform(post("/grupos/{grupoId}/partidas/{partidaId}/palpites", 999L, partida.getId())
                 .param("usuarioId", usuario.getId().toString())
-                .param("codigo", usuario.getCodigo())
+                .param("codigoUsuario", usuario.getCodigo())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest());
@@ -300,7 +300,7 @@ public class PalpiteControllerTests {
     void criarPalpiteUsuarioInexistente() throws Exception {
         mockMvc.perform(post("/grupos/{grupoId}/partidas/{partidaId}/palpites", grupo.getId(), partida.getId())
                 .param("usuarioId", "999")
-                .param("codigo", "123456")
+                .param("codigoUsuario", "123456")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest());
@@ -311,7 +311,7 @@ public class PalpiteControllerTests {
     void criarPalpiteGolsNulos() throws Exception {
         mockMvc.perform(post("/grupos/{grupoId}/partidas/{partidaId}/palpites", grupo.getId(), partida.getId())
                 .param("usuarioId", usuario.getId().toString())
-                .param("codigo", usuario.getCodigo())
+                .param("codigoUsuario", usuario.getCodigo())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}"))
                 .andExpect(status().isBadRequest());
@@ -322,7 +322,7 @@ public class PalpiteControllerTests {
     void listarPalpitesDaPartida() throws Exception {
         mockMvc.perform(post("/grupos/{grupoId}/partidas/{partidaId}/palpites", grupo.getId(), partida.getId())
                 .param("usuarioId", usuario.getId().toString())
-                .param("codigo", usuario.getCodigo())
+                .param("codigoUsuario", usuario.getCodigo())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isCreated());
@@ -361,14 +361,14 @@ public class PalpiteControllerTests {
 
         mockMvc.perform(post("/grupos/{grupoId}/partidas/{partidaId}/palpites", grupo.getId(), partida.getId())
                 .param("usuarioId", usuario.getId().toString())
-                .param("codigo", usuario.getCodigo())
+                .param("codigoUsuario", usuario.getCodigo())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isCreated());
 
         mockMvc.perform(post("/grupos/{grupoId}/partidas/{partidaId}/palpites", grupo.getId(), partida2.getId())
                 .param("usuarioId", usuario.getId().toString())
-                .param("codigo", usuario.getCodigo())
+                .param("codigoUsuario", usuario.getCodigo())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto2)))
                 .andExpect(status().isCreated());
@@ -383,7 +383,7 @@ public class PalpiteControllerTests {
     void listarPalpitesDoUsuario() throws Exception {
         mockMvc.perform(post("/grupos/{grupoId}/partidas/{partidaId}/palpites", grupo.getId(), partida.getId())
                 .param("usuarioId", usuario.getId().toString())
-                .param("codigo", usuario.getCodigo())
+                .param("codigoUsuario", usuario.getCodigo())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isCreated());
@@ -425,7 +425,7 @@ public class PalpiteControllerTests {
         void criarPalpitePartidaAbertaEDentroJanela() throws Exception {
             mockMvc.perform(post("/grupos/{grupoId}/partidas/{partidaId}/palpites", grupo.getId(), partida.getId())
                     .param("usuarioId", usuario.getId().toString())
-                    .param("codigo", usuario.getCodigo())
+                    .param("codigoUsuario", usuario.getCodigo())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(dto)))
                     .andExpect(status().isCreated());
@@ -436,7 +436,7 @@ public class PalpiteControllerTests {
         void criarPalpitePartidaAbertaForaJanela() throws Exception {
             mockMvc.perform(post("/grupos/{grupoId}/partidas/{partidaId}/palpites", grupo.getId(), partidaAbertaForaJanela.getId())
                     .param("usuarioId", usuario.getId().toString())
-                    .param("codigo", usuario.getCodigo())
+                    .param("codigoUsuario", usuario.getCodigo())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(dto)))
                     .andExpect(status().isBadRequest());
@@ -447,7 +447,7 @@ public class PalpiteControllerTests {
         void criarPalpitePartidaEmAndamento() throws Exception {
             mockMvc.perform(post("/grupos/{grupoId}/partidas/{partidaId}/palpites", grupo.getId(), partidaEmAndamento.getId())
                     .param("usuarioId", usuario.getId().toString())
-                    .param("codigo", usuario.getCodigo())
+                    .param("codigoUsuario", usuario.getCodigo())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(dto)))
                     .andExpect(status().isBadRequest());
@@ -458,7 +458,7 @@ public class PalpiteControllerTests {
         void criarPalpitePartidaFinalizada() throws Exception {
             mockMvc.perform(post("/grupos/{grupoId}/partidas/{partidaId}/palpites", grupo.getId(), partidaFinalizada.getId())
                     .param("usuarioId", usuario.getId().toString())
-                    .param("codigo", usuario.getCodigo())
+                    .param("codigoUsuario", usuario.getCodigo())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(dto)))
                     .andExpect(status().isBadRequest());
@@ -469,7 +469,7 @@ public class PalpiteControllerTests {
         void criarPalpitePartidaCancelada() throws Exception {
             mockMvc.perform(post("/grupos/{grupoId}/partidas/{partidaId}/palpites", grupo.getId(), partidaCancelada.getId())
                     .param("usuarioId", usuario.getId().toString())
-                    .param("codigo", usuario.getCodigo())
+                    .param("codigoUsuario", usuario.getCodigo())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(dto)))
                     .andExpect(status().isBadRequest());
@@ -480,7 +480,7 @@ public class PalpiteControllerTests {
         void criarPalpitePartidaAbertaJanelaFechada() throws Exception {
             mockMvc.perform(post("/grupos/{grupoId}/partidas/{partidaId}/palpites", grupo.getId(), partidaAbertaJanelaFechada.getId())
                     .param("usuarioId", usuario.getId().toString())
-                    .param("codigo", usuario.getCodigo())
+                    .param("codigoUsuario", usuario.getCodigo())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(dto)))
                     .andExpect(status().isBadRequest());
@@ -506,7 +506,7 @@ public class PalpiteControllerTests {
             mockMvc.perform(put("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
                     grupo.getId(), partida.getId(), palpiteExistente.getId())
                     .param("usuarioId", usuario.getId().toString())
-                    .param("codigo", usuario.getCodigo())
+                    .param("codigoUsuario", usuario.getCodigo())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(dtoEdicao)))
                     .andExpect(status().isOk())
@@ -529,7 +529,7 @@ public class PalpiteControllerTests {
             mockMvc.perform(put("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
                     grupo.getId(), partidaAbertaForaJanela.getId(), palpiteExistente.getId())
                     .param("usuarioId", usuario.getId().toString())
-                    .param("codigo", usuario.getCodigo())
+                    .param("codigoUsuario", usuario.getCodigo())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(dtoEdicao)))
                     .andExpect(status().isBadRequest());
@@ -550,7 +550,7 @@ public class PalpiteControllerTests {
             mockMvc.perform(put("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
                     grupo.getId(), partidaEmAndamento.getId(), palpiteExistente.getId())
                     .param("usuarioId", usuario.getId().toString())
-                    .param("codigo", usuario.getCodigo())
+                    .param("codigoUsuario", usuario.getCodigo())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(dtoEdicao)))
                     .andExpect(status().isBadRequest());
@@ -571,7 +571,7 @@ public class PalpiteControllerTests {
             mockMvc.perform(put("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
                     grupo.getId(), partidaFinalizada.getId(), palpiteExistente.getId())
                     .param("usuarioId", usuario.getId().toString())
-                    .param("codigo", usuario.getCodigo())
+                    .param("codigoUsuario", usuario.getCodigo())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(dtoEdicao)))
                     .andExpect(status().isBadRequest());
@@ -592,7 +592,7 @@ public class PalpiteControllerTests {
             mockMvc.perform(put("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
                     grupo.getId(), partidaCancelada.getId(), palpiteExistente.getId())
                     .param("usuarioId", usuario.getId().toString())
-                    .param("codigo", usuario.getCodigo())
+                    .param("codigoUsuario", usuario.getCodigo())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(dtoEdicao)))
                     .andExpect(status().isBadRequest());
@@ -618,7 +618,7 @@ public class PalpiteControllerTests {
             mockMvc.perform(delete("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
                     grupo.getId(), partida.getId(), palpiteExistente.getId())
                     .param("usuarioId", usuario.getId().toString())
-                    .param("codigo", usuario.getCodigo()))
+                    .param("codigoUsuario", usuario.getCodigo()))
                     .andExpect(status().isNoContent());
         }
 
@@ -637,7 +637,7 @@ public class PalpiteControllerTests {
             mockMvc.perform(delete("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
                     grupo.getId(), partidaAbertaForaJanela.getId(), palpiteExistente.getId())
                     .param("usuarioId", usuario.getId().toString())
-                    .param("codigo", usuario.getCodigo()))
+                    .param("codigoUsuario", usuario.getCodigo()))
                     .andExpect(status().isBadRequest());
         }
 
@@ -656,7 +656,7 @@ public class PalpiteControllerTests {
             mockMvc.perform(delete("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
                     grupo.getId(), partidaEmAndamento.getId(), palpiteExistente.getId())
                     .param("usuarioId", usuario.getId().toString())
-                    .param("codigo", usuario.getCodigo()))
+                    .param("codigoUsuario", usuario.getCodigo()))
                     .andExpect(status().isBadRequest());
         }
 
@@ -675,7 +675,7 @@ public class PalpiteControllerTests {
             mockMvc.perform(delete("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
                     grupo.getId(), partidaFinalizada.getId(), palpiteExistente.getId())
                     .param("usuarioId", usuario.getId().toString())
-                    .param("codigo", usuario.getCodigo()))
+                    .param("codigoUsuario", usuario.getCodigo()))
                     .andExpect(status().isBadRequest());
         }
 
@@ -694,7 +694,7 @@ public class PalpiteControllerTests {
             mockMvc.perform(delete("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
                     grupo.getId(), partidaCancelada.getId(), palpiteExistente.getId())
                     .param("usuarioId", usuario.getId().toString())
-                    .param("codigo", usuario.getCodigo()))
+                    .param("codigoUsuario", usuario.getCodigo()))
                     .andExpect(status().isBadRequest());
         }
     }

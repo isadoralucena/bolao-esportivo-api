@@ -159,7 +159,7 @@ public class GrupoPublicoControllerTest {
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/entrar")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", participante.getId().toString())
-                            .param("codigoAcesso", participante.getCodigo()))
+                            .param("codigoUsuario", participante.getCodigo()))
                     .andExpect(status().isOk())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -191,7 +191,7 @@ public class GrupoPublicoControllerTest {
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoSemLimite.getId() + "/entrar")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", participante.getId().toString())
-                            .param("codigoAcesso", participante.getCodigo()))
+                            .param("codigoUsuario", participante.getCodigo()))
                     .andExpect(status().isOk())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -223,7 +223,7 @@ public class GrupoPublicoControllerTest {
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/entrar")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", outroParticipante.getId().toString())
-                            .param("codigoAcesso", outroParticipante.getCodigo()))
+                            .param("codigoUsuario", outroParticipante.getCodigo()))
                     .andExpect(status().isOk())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -265,7 +265,7 @@ public class GrupoPublicoControllerTest {
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/entrar")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", participante.getId().toString())
-                            .param("codigoAcesso", participante.getCodigo()))
+                            .param("codigoUsuario", participante.getCodigo()))
                     .andExpect(status().isOk())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -290,7 +290,7 @@ public class GrupoPublicoControllerTest {
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + 999999L + "/entrar")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", participante.getId().toString())
-                            .param("codigoAcesso", participante.getCodigo()))
+                            .param("codigoUsuario", participante.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -308,7 +308,7 @@ public class GrupoPublicoControllerTest {
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPrivado.getId() + "/entrar")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", participante.getId().toString())
-                            .param("codigoAcesso", participante.getCodigo()))
+                            .param("codigoUsuario", participante.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -337,7 +337,7 @@ public class GrupoPublicoControllerTest {
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoComCampeonatoInativo.getId() + "/entrar")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", participante.getId().toString())
-                            .param("codigoAcesso", participante.getCodigo()))
+                            .param("codigoUsuario", participante.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -364,7 +364,7 @@ public class GrupoPublicoControllerTest {
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/entrar")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", participante.getId().toString())
-                            .param("codigoAcesso", participante.getCodigo()))
+                            .param("codigoUsuario", participante.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -400,7 +400,7 @@ public class GrupoPublicoControllerTest {
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/entrar")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", participante.getId().toString())
-                            .param("codigoAcesso", participante.getCodigo()))
+                            .param("codigoUsuario", participante.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -418,7 +418,7 @@ public class GrupoPublicoControllerTest {
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublicoSemVagas.getId() + "/entrar")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", participante.getId().toString())
-                            .param("codigoAcesso", participante.getCodigo()))
+                            .param("codigoUsuario", participante.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -441,7 +441,7 @@ public class GrupoPublicoControllerTest {
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/entrar")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", "999999")
-                            .param("codigoAcesso", "111111"))
+                            .param("codigoUsuario", "111111"))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -459,7 +459,7 @@ public class GrupoPublicoControllerTest {
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/entrar")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", participante.getId().toString())
-                            .param("codigoAcesso", "999999"))
+                            .param("codigoUsuario", "999999"))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -481,7 +481,7 @@ public class GrupoPublicoControllerTest {
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/entrar")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", participante.getId().toString())
-                            .param("codigoAcesso", participante.getCodigo()))
+                            .param("codigoUsuario", participante.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -499,7 +499,7 @@ public class GrupoPublicoControllerTest {
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/entrar")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", organizador.getId().toString())
-                            .param("codigoAcesso", organizador.getCodigo()))
+                            .param("codigoUsuario", organizador.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -521,7 +521,7 @@ public class GrupoPublicoControllerTest {
         void quandoEntrarSemInformarUsuarioId() throws Exception {
             driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/entrar")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoAcesso", participante.getCodigo()))
+                            .param("codigoUsuario", participante.getCodigo()))
                     .andExpect(status().isBadRequest());
         }
  

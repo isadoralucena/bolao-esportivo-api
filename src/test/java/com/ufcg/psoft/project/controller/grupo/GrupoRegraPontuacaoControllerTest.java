@@ -120,7 +120,7 @@ public class GrupoRegraPontuacaoControllerTest {
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", organizador.getId().toString())
-                            .param("codigoAcesso", organizador.getCodigo())
+                            .param("codigoUsuario", organizador.getCodigo())
                             .content(objectMapper.writeValueAsString(regraPontuacaoDto)))
                     .andExpect(status().isCreated())
                     .andDo(print())
@@ -135,14 +135,14 @@ public class GrupoRegraPontuacaoControllerTest {
             driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao")
                         .contentType(MediaType.APPLICATION_JSON)
                         .param("usuarioId", organizador.getId().toString())
-                        .param("codigoAcesso", organizador.getCodigo())
+                        .param("codigoUsuario", organizador.getCodigo())
                         .content(objectMapper.writeValueAsString(regraPontuacaoDto)))
                     .andExpect(status().isCreated());
 
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao")
                         .contentType(MediaType.APPLICATION_JSON)
                         .param("usuarioId", organizador.getId().toString())
-                        .param("codigoAcesso", organizador.getCodigo())
+                        .param("codigoUsuario", organizador.getCodigo())
                         .content(objectMapper.writeValueAsString(regraPontuacaoDto)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -167,7 +167,7 @@ public class GrupoRegraPontuacaoControllerTest {
                 driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .param("usuarioId", organizador.getId().toString())
-                                .param("codigoAcesso", organizador.getCodigo())
+                                .param("codigoUsuario", organizador.getCodigo())
                                 .content(objectMapper.writeValueAsString(dto)))
                         .andExpect(status().isCreated())
                         .andDo(print());
@@ -180,7 +180,7 @@ public class GrupoRegraPontuacaoControllerTest {
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", outroUsuario.getId().toString())
-                            .param("codigoAcesso", outroUsuario.getCodigo())
+                            .param("codigoUsuario", outroUsuario.getCodigo())
                             .content(objectMapper.writeValueAsString(regraPontuacaoDto)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -204,7 +204,7 @@ public class GrupoRegraPontuacaoControllerTest {
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", organizador.getId().toString())
-                            .param("codigoAcesso", organizador.getCodigo())
+                            .param("codigoUsuario", organizador.getCodigo())
                             .content(objectMapper.writeValueAsString(dtoInvalido)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -229,7 +229,7 @@ public class GrupoRegraPontuacaoControllerTest {
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", organizador.getId().toString())
-                            .param("codigoAcesso", organizador.getCodigo())
+                            .param("codigoUsuario", organizador.getCodigo())
                             .content(objectMapper.writeValueAsString(dtoInvalido)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -254,7 +254,7 @@ public class GrupoRegraPontuacaoControllerTest {
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", organizador.getId().toString())
-                            .param("codigoAcesso", organizador.getCodigo())
+                            .param("codigoUsuario", organizador.getCodigo())
                             .content(objectMapper.writeValueAsString(dtoInvalido)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -274,7 +274,7 @@ public class GrupoRegraPontuacaoControllerTest {
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + 999999L + "/regras-pontuacao")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", organizador.getId().toString())
-                            .param("codigoAcesso", organizador.getCodigo())
+                            .param("codigoUsuario", organizador.getCodigo())
                             .content(objectMapper.writeValueAsString(regraPontuacaoDto)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -293,7 +293,7 @@ public class GrupoRegraPontuacaoControllerTest {
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", organizador.getId().toString())
-                            .param("codigoAcesso", "999999")
+                            .param("codigoUsuario", "999999")
                             .content(objectMapper.writeValueAsString(regraPontuacaoDto)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -316,7 +316,7 @@ public class GrupoRegraPontuacaoControllerTest {
 			driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao")
 					.contentType(MediaType.APPLICATION_JSON)
 					.param("usuarioId", organizador.getId().toString())
-					.param("codigoAcesso", organizador.getCodigo())
+					.param("codigoUsuario", organizador.getCodigo())
 					.content(objectMapper.writeValueAsString(regraPontuacaoDto)))
 				.andExpect(status().isCreated());
 		}
@@ -327,7 +327,7 @@ public class GrupoRegraPontuacaoControllerTest {
 			String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao")
 							.contentType(MediaType.APPLICATION_JSON)
 							.param("usuarioId", organizador.getId().toString())
-							.param("codigoAcesso", organizador.getCodigo()))
+							.param("codigoUsuario", organizador.getCodigo()))
 					.andExpect(status().isOk())
 					.andDo(print())
 					.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
@@ -348,7 +348,7 @@ public class GrupoRegraPontuacaoControllerTest {
 			String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao")
 							.contentType(MediaType.APPLICATION_JSON)
 							.param("usuarioId", outroUsuario.getId().toString())
-							.param("codigoAcesso", outroUsuario.getCodigo()))
+							.param("codigoUsuario", outroUsuario.getCodigo()))
 					.andExpect(status().isOk())
 					.andDo(print())
 					.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
@@ -365,7 +365,7 @@ public class GrupoRegraPontuacaoControllerTest {
 			String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + grupoPrivado.getId() + "/regras-pontuacao")
 							.contentType(MediaType.APPLICATION_JSON)
 							.param("usuarioId", outroUsuario.getId().toString())
-							.param("codigoAcesso", outroUsuario.getCodigo()))
+							.param("codigoUsuario", outroUsuario.getCodigo()))
 					.andExpect(status().isBadRequest())
 					.andDo(print())
 					.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
@@ -383,7 +383,7 @@ public class GrupoRegraPontuacaoControllerTest {
 			String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao")
 							.contentType(MediaType.APPLICATION_JSON)
 							.param("usuarioId", outroUsuario.getId().toString())
-							.param("codigoAcesso", outroUsuario.getCodigo()))
+							.param("codigoUsuario", outroUsuario.getCodigo()))
 					.andExpect(status().isOk())
 					.andDo(print())
 					.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
@@ -400,7 +400,7 @@ public class GrupoRegraPontuacaoControllerTest {
 			String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao")
 							.contentType(MediaType.APPLICATION_JSON)
 							.param("usuarioId", organizador.getId().toString())
-							.param("codigoAcesso", organizador.getCodigo()))
+							.param("codigoUsuario", organizador.getCodigo()))
 					.andExpect(status().isOk())
 					.andDo(print())
 					.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
@@ -424,7 +424,7 @@ public class GrupoRegraPontuacaoControllerTest {
 			String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + grupoPrivado.getId() + "/regras-pontuacao")
 							.contentType(MediaType.APPLICATION_JSON)
 							.param("usuarioId", organizador.getId().toString())
-							.param("codigoAcesso", organizador.getCodigo()))
+							.param("codigoUsuario", organizador.getCodigo()))
 					.andExpect(status().isOk())
 					.andDo(print())
 					.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
@@ -446,7 +446,7 @@ public class GrupoRegraPontuacaoControllerTest {
 			String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao")
 							.contentType(MediaType.APPLICATION_JSON)
 							.param("usuarioId", "999999")
-							.param("codigoAcesso", organizador.getCodigo()))
+							.param("codigoUsuario", organizador.getCodigo()))
 					.andExpect(status().isBadRequest())
 					.andDo(print())
 					.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
@@ -464,7 +464,7 @@ public class GrupoRegraPontuacaoControllerTest {
 			String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + 999999L + "/regras-pontuacao")
 							.contentType(MediaType.APPLICATION_JSON)
 							.param("usuarioId", organizador.getId().toString())
-							.param("codigoAcesso", organizador.getCodigo()))
+							.param("codigoUsuario", organizador.getCodigo()))
 					.andExpect(status().isBadRequest())
 					.andDo(print())
 					.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
@@ -482,7 +482,7 @@ public class GrupoRegraPontuacaoControllerTest {
 			String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao")
 							.contentType(MediaType.APPLICATION_JSON)
 							.param("usuarioId", organizador.getId().toString())
-							.param("codigoAcesso", "999999"))
+							.param("codigoUsuario", "999999"))
 					.andExpect(status().isBadRequest())
 					.andDo(print())
 					.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
@@ -506,7 +506,7 @@ public class GrupoRegraPontuacaoControllerTest {
             String responseJsonString = driver.perform(post(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", organizador.getId().toString())
-                            .param("codigoAcesso", organizador.getCodigo())
+                            .param("codigoUsuario", organizador.getCodigo())
                             .content(objectMapper.writeValueAsString(regraPontuacaoDto)))
                     .andExpect(status().isCreated())
                     .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
@@ -522,7 +522,7 @@ public class GrupoRegraPontuacaoControllerTest {
             driver.perform(delete(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao/" + regraId)
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", organizador.getId().toString())
-                            .param("codigoAcesso", organizador.getCodigo()))
+                            .param("codigoUsuario", organizador.getCodigo()))
                     .andExpect(status().isNoContent())
                     .andDo(print());
         }
@@ -533,7 +533,7 @@ public class GrupoRegraPontuacaoControllerTest {
             String responseJsonString = driver.perform(delete(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao/" + regraId)
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", outroUsuario.getId().toString())
-                            .param("codigoAcesso", outroUsuario.getCodigo()))
+                            .param("codigoUsuario", outroUsuario.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
@@ -551,7 +551,7 @@ public class GrupoRegraPontuacaoControllerTest {
             String responseJsonString = driver.perform(delete(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao/" + 999999L)
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", organizador.getId().toString())
-                            .param("codigoAcesso", organizador.getCodigo()))
+                            .param("codigoUsuario", organizador.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
@@ -569,7 +569,7 @@ public class GrupoRegraPontuacaoControllerTest {
             String responseJsonString = driver.perform(delete(URI_GRUPOS + "/" + 999999L + "/regras-pontuacao/" + regraId)
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", organizador.getId().toString())
-                            .param("codigoAcesso", organizador.getCodigo()))
+                            .param("codigoUsuario", organizador.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
@@ -587,7 +587,7 @@ public class GrupoRegraPontuacaoControllerTest {
             String responseJsonString = driver.perform(delete(URI_GRUPOS + "/" + grupoPublico.getId() + "/regras-pontuacao/" + regraId)
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", organizador.getId().toString())
-                            .param("codigoAcesso", "999999"))
+                            .param("codigoUsuario", "999999"))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);

@@ -136,7 +136,7 @@ public class GrupoRegrasPalpitesControllerTest {
             String responseJsonString = driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/regras-palpites")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", organizador.getId().toString())
-                            .param("codigo", organizador.getCodigo())
+                            .param("codigoUsuario", organizador.getCodigo())
                             .content(objectMapper.writeValueAsString(dto)))
                     .andExpect(status().isOk())
                     .andDo(print())
@@ -158,7 +158,7 @@ public class GrupoRegrasPalpitesControllerTest {
             String responseJsonString = driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/regras-palpites")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", organizador.getId().toString())
-                            .param("codigo", organizador.getCodigo())
+                            .param("codigoUsuario", organizador.getCodigo())
                             .content(objectMapper.writeValueAsString(dtoPersonalizado)))
                     .andExpect(status().isOk())
                     .andDo(print())
@@ -178,7 +178,7 @@ public class GrupoRegrasPalpitesControllerTest {
             String responseJsonString = driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/regras-palpites")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", outroUsuario.getId().toString())
-                            .param("codigo", outroUsuario.getCodigo())
+                            .param("codigoUsuario", outroUsuario.getCodigo())
                             .content(objectMapper.writeValueAsString(dto)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -194,7 +194,7 @@ public class GrupoRegrasPalpitesControllerTest {
             String responseJsonString = driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/regras-palpites")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", organizador.getId().toString())
-                            .param("codigo", "999999")
+                            .param("codigoUsuario", "999999")
                             .content(objectMapper.writeValueAsString(dto)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -210,7 +210,7 @@ public class GrupoRegrasPalpitesControllerTest {
             String responseJsonString = driver.perform(put(URI_GRUPOS + "/999999/regras-palpites")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", organizador.getId().toString())
-                            .param("codigo", organizador.getCodigo())
+                            .param("codigoUsuario", organizador.getCodigo())
                             .content(objectMapper.writeValueAsString(dto)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -228,7 +228,7 @@ public class GrupoRegrasPalpitesControllerTest {
             String responseJsonString = driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/regras-palpites")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", organizador.getId().toString())
-                            .param("codigo", organizador.getCodigo())
+                            .param("codigoUsuario", organizador.getCodigo())
                             .content(objectMapper.writeValueAsString(dtoInvalido)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -246,7 +246,7 @@ public class GrupoRegrasPalpitesControllerTest {
             String responseJsonString = driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/regras-palpites")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", organizador.getId().toString())
-                            .param("codigo", organizador.getCodigo())
+                            .param("codigoUsuario", organizador.getCodigo())
                             .content(objectMapper.writeValueAsString(dtoInvalido)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
@@ -264,7 +264,7 @@ public class GrupoRegrasPalpitesControllerTest {
             driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/regras-palpites")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", organizador.getId().toString())
-                            .param("codigo", organizador.getCodigo())
+                            .param("codigoUsuario", organizador.getCodigo())
                             .content(objectMapper.writeValueAsString(dtoInvalido)))
                     .andExpect(status().isBadRequest());
         }
@@ -277,7 +277,7 @@ public class GrupoRegrasPalpitesControllerTest {
             driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/regras-palpites")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", organizador.getId().toString())
-                            .param("codigo", organizador.getCodigo())
+                            .param("codigoUsuario", organizador.getCodigo())
                             .content(objectMapper.writeValueAsString(dtoInvalido)))
                     .andExpect(status().isBadRequest());
         }
@@ -290,7 +290,7 @@ public class GrupoRegrasPalpitesControllerTest {
             driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/regras-palpites")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", organizador.getId().toString())
-                            .param("codigo", organizador.getCodigo())
+                            .param("codigoUsuario", organizador.getCodigo())
                             .content(objectMapper.writeValueAsString(dtoInvalido)))
                     .andExpect(status().isBadRequest());
         }
@@ -329,7 +329,7 @@ public class GrupoRegrasPalpitesControllerTest {
                             grupo.getId(), partida.getId())
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", participante.getId().toString())
-                            .param("codigo", participante.getCodigo())
+                            .param("codigoUsuario", participante.getCodigo())
                             .content(objectMapper.writeValueAsString(palpiteDto)))
                     .andExpect(status().isCreated());
         }
@@ -352,7 +352,7 @@ public class GrupoRegrasPalpitesControllerTest {
                             grupo.getId(), partida.getId())
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", participante.getId().toString())
-                            .param("codigo", participante.getCodigo())
+                            .param("codigoUsuario", participante.getCodigo())
                             .content(objectMapper.writeValueAsString(palpiteDto)))
                     .andExpect(status().isBadRequest())
                     .andReturn().getResponse().getContentAsString();
@@ -378,7 +378,7 @@ public class GrupoRegrasPalpitesControllerTest {
             driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/regras-palpites")
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", organizador.getId().toString())
-                            .param("codigo", organizador.getCodigo())
+                            .param("codigoUsuario", organizador.getCodigo())
                             .content(objectMapper.writeValueAsString(new RegrasPalpitesRequestDTO(240, 0))))
                     .andExpect(status().isOk());
 
@@ -387,7 +387,7 @@ public class GrupoRegrasPalpitesControllerTest {
                             grupo.getId(), partida.getId())
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("usuarioId", participante.getId().toString())
-                            .param("codigo", participante.getCodigo())
+                            .param("codigoUsuario", participante.getCodigo())
                             .content(objectMapper.writeValueAsString(palpiteDto)))
                     .andExpect(status().isCreated());
         }

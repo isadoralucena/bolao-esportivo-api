@@ -142,7 +142,7 @@ public class PalpiteEdicaoControllerTests {
             mockMvc.perform(put("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
                             grupo.getId(), partida.getId(), palpite.getId())
                             .param("usuarioId", usuario.getId().toString())
-                            .param("codigo", usuario.getCodigo())
+                            .param("codigoUsuario", usuario.getCodigo())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(dto)))
                     .andExpect(status().isOk())
@@ -156,7 +156,7 @@ public class PalpiteEdicaoControllerTests {
             mockMvc.perform(put("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
                             grupo.getId(), partida.getId(), 999L)
                             .param("usuarioId", usuario.getId().toString())
-                            .param("codigo", usuario.getCodigo())
+                            .param("codigoUsuario", usuario.getCodigo())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(dto)))
                     .andExpect(status().isBadRequest())
@@ -169,7 +169,7 @@ public class PalpiteEdicaoControllerTests {
             mockMvc.perform(put("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
                             grupo.getId(), partida.getId(), palpite.getId())
                             .param("usuarioId", outroUsuario.getId().toString())
-                            .param("codigo", outroUsuario.getCodigo())
+                            .param("codigoUsuario", outroUsuario.getCodigo())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(dto)))
                     .andExpect(status().isBadRequest())
@@ -182,7 +182,7 @@ public class PalpiteEdicaoControllerTests {
             mockMvc.perform(put("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
                             grupo.getId(), partida.getId(), palpite.getId())
                             .param("usuarioId", usuario.getId().toString())
-                            .param("codigo", "999999")
+                            .param("codigoUsuario", "999999")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(dto)))
                     .andExpect(status().isBadRequest());
@@ -203,7 +203,7 @@ public class PalpiteEdicaoControllerTests {
             mockMvc.perform(put("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
                             grupo.getId(), partidaFechada.getId(), palpiteFechado.getId())
                             .param("usuarioId", usuario.getId().toString())
-                            .param("codigo", usuario.getCodigo())
+                            .param("codigoUsuario", usuario.getCodigo())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(dto)))
                     .andExpect(status().isBadRequest())
@@ -216,7 +216,7 @@ public class PalpiteEdicaoControllerTests {
             mockMvc.perform(put("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
                             grupo.getId(), partida.getId(), palpite.getId())
                             .param("usuarioId", usuario.getId().toString())
-                            .param("codigo", usuario.getCodigo())
+                            .param("codigoUsuario", usuario.getCodigo())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{}"))
                     .andExpect(status().isBadRequest());
@@ -233,7 +233,7 @@ public class PalpiteEdicaoControllerTests {
             mockMvc.perform(delete("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
                             grupo.getId(), partida.getId(), palpite.getId())
                             .param("usuarioId", usuario.getId().toString())
-                            .param("codigo", usuario.getCodigo()))
+                            .param("codigoUsuario", usuario.getCodigo()))
                     .andExpect(status().isNoContent());
         }
 
@@ -243,7 +243,7 @@ public class PalpiteEdicaoControllerTests {
             mockMvc.perform(delete("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
                             grupo.getId(), partida.getId(), 999L)
                             .param("usuarioId", usuario.getId().toString())
-                            .param("codigo", usuario.getCodigo()))
+                            .param("codigoUsuario", usuario.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.message").value("O palpite não existe!"));
         }
@@ -254,7 +254,7 @@ public class PalpiteEdicaoControllerTests {
             mockMvc.perform(delete("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
                             grupo.getId(), partida.getId(), palpite.getId())
                             .param("usuarioId", outroUsuario.getId().toString())
-                            .param("codigo", outroUsuario.getCodigo()))
+                            .param("codigoUsuario", outroUsuario.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.message").value("O usuário consultado é inválido para essa operação!"));
         }
@@ -265,7 +265,7 @@ public class PalpiteEdicaoControllerTests {
             mockMvc.perform(delete("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
                             grupo.getId(), partida.getId(), palpite.getId())
                             .param("usuarioId", usuario.getId().toString())
-                            .param("codigo", "999999"))
+                            .param("codigoUsuario", "999999"))
                     .andExpect(status().isBadRequest());
         }
 
@@ -284,7 +284,7 @@ public class PalpiteEdicaoControllerTests {
             mockMvc.perform(delete("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
                             grupo.getId(), partidaFechada.getId(), palpiteFechado.getId())
                             .param("usuarioId", usuario.getId().toString())
-                            .param("codigo", usuario.getCodigo()))
+                            .param("codigoUsuario", usuario.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.message").value("O palpite não pode ser editado ou removido pois o tempo de criação do palpite expirou!"));
         }
