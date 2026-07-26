@@ -30,8 +30,8 @@ public class RankingController {
     @GetMapping
     public ResponseEntity<?> rankingGlobal(
             @RequestParam Long usuarioId,
-            @RequestParam String codigoAcesso) {
-        var resultado = rankingService.rankingGlobal(usuarioId, codigoAcesso);
+            @RequestParam String codigoUsuario) {
+        var resultado = rankingService.rankingGlobal(usuarioId, codigoUsuario);
         eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -42,8 +42,8 @@ public class RankingController {
     public ResponseEntity<?> rankingDoGrupo(
             @PathVariable Long grupoId,
             @RequestParam Long usuarioId,
-            @RequestParam String codigoAcesso) {
-        var resultado = rankingService.rankingDoGrupo(grupoId, usuarioId, codigoAcesso);
+            @RequestParam String codigoUsuario) {
+        var resultado = rankingService.rankingDoGrupo(grupoId, usuarioId, codigoUsuario);
         eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.OK)

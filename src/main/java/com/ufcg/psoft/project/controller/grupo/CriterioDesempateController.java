@@ -34,10 +34,10 @@ public class CriterioDesempateController {
     @PutMapping("/{grupoId}/criterios-desempate")
 	public ResponseEntity<?> configurarCriteriosDesempate(
 					@RequestParam Long usuarioId,
-					@RequestParam String codigoAcesso,
+					@RequestParam String codigoUsuario,
 					@PathVariable Long grupoId,
 					@RequestBody @Valid CriteriosDesempatePutRequestDTO criteriosDesempatePutRequestDTO) {
-			var resultado = criterioDesempateService.configurarCriteriosDesempate(grupoId, usuarioId, codigoAcesso, criteriosDesempatePutRequestDTO);
+			var resultado = criterioDesempateService.configurarCriteriosDesempate(grupoId, usuarioId, codigoUsuario, criteriosDesempatePutRequestDTO);
 			eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
 			return ResponseEntity
 							.status(HttpStatus.OK)
@@ -47,9 +47,9 @@ public class CriterioDesempateController {
 	@GetMapping("/{grupoId}/criterios-desempate")
 	public ResponseEntity<?> listarCriteriosDesempate(
 					@RequestParam Long usuarioId,
-					@RequestParam String codigoAcesso,
+					@RequestParam String codigoUsuario,
 					@PathVariable Long grupoId) {
-			var resultado = criterioDesempateService.listarCriteriosDesempate(usuarioId, codigoAcesso, grupoId);
+			var resultado = criterioDesempateService.listarCriteriosDesempate(usuarioId, codigoUsuario, grupoId);
 			eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
 			return ResponseEntity
 							.status(HttpStatus.OK)

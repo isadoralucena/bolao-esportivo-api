@@ -37,9 +37,9 @@ public class PartidaController {
     @GetMapping("/partidas/futuras")
     public ResponseEntity<?> listarPartidasFuturas(
             @RequestParam Long usuarioId,
-            @RequestParam String codigo) {
+            @RequestParam String codigoUsuario) {
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(recomendacaoService.listarPartidasFuturasComRecomendacao(usuarioId, codigo));
+                .body(recomendacaoService.listarPartidasFuturasComRecomendacao(usuarioId, codigoUsuario));
     }
 }

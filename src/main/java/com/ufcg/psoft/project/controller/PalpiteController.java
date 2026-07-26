@@ -27,9 +27,9 @@ public class PalpiteController {
             @PathVariable Long grupoId,
             @PathVariable Long partidaId,
             @RequestParam Long usuarioId,
-            @RequestParam String codigo,
+            @RequestParam String codigoUsuario,
             @RequestBody @Valid PalpitePostPutRequestDTO dto) {
-        var resultado = palpiteService.criar(usuarioId, codigo, grupoId, partidaId, dto);
+        var resultado = palpiteService.criar(usuarioId, codigoUsuario, grupoId, partidaId, dto);
         eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -65,9 +65,9 @@ public class PalpiteController {
             @PathVariable Long partidaId,
             @PathVariable Long palpiteId,
             @RequestParam Long usuarioId,
-            @RequestParam String codigo,
+            @RequestParam String codigoUsuario,
             @RequestBody @Valid PalpitePostPutRequestDTO dto) {
-        var resultado = palpiteService.editar(palpiteId, usuarioId, codigo, dto);
+        var resultado = palpiteService.editar(palpiteId, usuarioId, codigoUsuario, dto);
         eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -80,8 +80,8 @@ public class PalpiteController {
             @PathVariable Long partidaId,
             @PathVariable Long palpiteId,
             @RequestParam Long usuarioId,
-            @RequestParam String codigo) {
-        palpiteService.deletar(palpiteId, usuarioId, codigo);
+            @RequestParam String codigoUsuario) {
+        palpiteService.deletar(palpiteId, usuarioId, codigoUsuario);
         eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.NO_CONTENT)

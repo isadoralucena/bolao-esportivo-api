@@ -35,10 +35,10 @@ public class RegraPontuacaoController {
     @PostMapping("/{grupoId}/regras-pontuacao")
 	public ResponseEntity<?> inserirRegraPontuacao(
 			@RequestParam Long usuarioId,
-			@RequestParam String codigoAcesso,
+			@RequestParam String codigoUsuario,
 			@PathVariable Long grupoId,
 			@RequestBody @Valid RegraPontuacaoPostPutRequestDTO regraPontuacaoPostPutRequestDto) {
-		var resultado = regraPontuacaoService.inserirRegraPontuacao(usuarioId, codigoAcesso, grupoId, regraPontuacaoPostPutRequestDto);
+		var resultado = regraPontuacaoService.inserirRegraPontuacao(usuarioId, codigoUsuario, grupoId, regraPontuacaoPostPutRequestDto);
 		eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
 		return ResponseEntity
 				.status(HttpStatus.CREATED)
@@ -48,9 +48,9 @@ public class RegraPontuacaoController {
 	@GetMapping("/{grupoId}/regras-pontuacao")
 	public ResponseEntity<?> listarRegrasPontuacao(
 			@RequestParam Long usuarioId,
-			@RequestParam String codigoAcesso,
+			@RequestParam String codigoUsuario,
 			@PathVariable Long grupoId) {
-		var resultado = regraPontuacaoService.listarRegrasPontuacao(usuarioId, codigoAcesso, grupoId);
+		var resultado = regraPontuacaoService.listarRegrasPontuacao(usuarioId, codigoUsuario, grupoId);
 		eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
 		return ResponseEntity
 				.status(HttpStatus.OK)
@@ -60,10 +60,10 @@ public class RegraPontuacaoController {
 	@DeleteMapping("/{grupoId}/regras-pontuacao/{regraId}")
 	public ResponseEntity<?> removerRegraPontuacao(
 			@RequestParam Long usuarioId,
-			@RequestParam String codigoAcesso,
+			@RequestParam String codigoUsuario,
 			@PathVariable Long grupoId,
 			@PathVariable Long regraId) {
-		regraPontuacaoService.removerRegraPontuacao(usuarioId, codigoAcesso, grupoId, regraId);
+		regraPontuacaoService.removerRegraPontuacao(usuarioId, codigoUsuario, grupoId, regraId);
 		eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
 		return ResponseEntity
 				.status(HttpStatus.NO_CONTENT)

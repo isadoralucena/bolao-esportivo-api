@@ -42,10 +42,10 @@ public class ConviteController {
 
     @PostMapping("")
     public ResponseEntity<ConviteResponseDTO> criarConvite(
-        @RequestParam String codigoAcesso,
+        @RequestParam String codigoUsuario,
         @RequestBody @Valid ConvitePostPutRequestDTO convitePostPutRequestDto
         ) {
-        var resultado = conviteService.criar(codigoAcesso, convitePostPutRequestDto);
+        var resultado = conviteService.criar(codigoUsuario, convitePostPutRequestDto);
         eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(convitePostPutRequestDto.getOrganizador()));
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -55,10 +55,10 @@ public class ConviteController {
 
     @PostMapping("/{id}/aceitar")
     public ResponseEntity<ConviteResponseDTO> aceitarConvite(
-            @RequestParam String codigoAcessoConvidado,
+            @RequestParam String codigoUsuario,
             @PathVariable Long id) {
-        var resultado = conviteService.aceitar(id, codigoAcessoConvidado);
-        publicarEventoPorCodigo(codigoAcessoConvidado);
+        var resultado = conviteService.aceitar(id, codigoUsuario);
+        publicarEventoPorCodigo(codigoUsuario);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(resultado);
@@ -66,10 +66,10 @@ public class ConviteController {
 
     @PostMapping("/{id}/recusar")
     public ResponseEntity<ConviteResponseDTO> recusarConvite(
-            @RequestParam String codigoAcessoConvidado,
+            @RequestParam String codigoUsuario,
             @PathVariable Long id) {
-        var resultado = conviteService.recusar(id, codigoAcessoConvidado);
-        publicarEventoPorCodigo(codigoAcessoConvidado);
+        var resultado = conviteService.recusar(id, codigoUsuario);
+        publicarEventoPorCodigo(codigoUsuario);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(resultado);
@@ -77,10 +77,10 @@ public class ConviteController {
 
     @PostMapping("/{id}/ignorar")
     public ResponseEntity<ConviteResponseDTO> ignorarConvite(
-            @RequestParam String codigoAcessoConvidado,
+            @RequestParam String codigoUsuario,
             @PathVariable Long id) {
-        var resultado = conviteService.ignorar(id, codigoAcessoConvidado);
-        publicarEventoPorCodigo(codigoAcessoConvidado);
+        var resultado = conviteService.ignorar(id, codigoUsuario);
+        publicarEventoPorCodigo(codigoUsuario);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(resultado);
@@ -88,10 +88,10 @@ public class ConviteController {
 
     @DeleteMapping("/{id}/remover")
     public ResponseEntity<Void> removerConvite(
-            @RequestParam String codigoAcessoOrganizador,
+            @RequestParam String codigoUsuario,
             @PathVariable Long id) {
-        conviteService.remover(id, codigoAcessoOrganizador);
-        publicarEventoPorCodigo(codigoAcessoOrganizador);
+        conviteService.remover(id, codigoUsuario);
+        publicarEventoPorCodigo(codigoUsuario);
         return ResponseEntity
                 .status(HttpStatus.NO_CONTENT)
                 .build();
@@ -99,9 +99,9 @@ public class ConviteController {
 
     @GetMapping("/usuario/{convidadoId}/pendentes")
     public ResponseEntity<List<ConviteResponseDTO>> listarConvitesPendentes(
-            @RequestParam String codigoAcessoConvidado,
+            @RequestParam String codigoUsuario,
             @PathVariable Long convidadoId) {
-        var resultado = conviteService.listarConvitesPendentesPorConvidado(convidadoId, codigoAcessoConvidado);
+        var resultado = conviteService.listarConvitesPendentesPorConvidado(convidadoId, codigoUsuario);
         eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(convidadoId));
         return ResponseEntity
                 .status(HttpStatus.OK)

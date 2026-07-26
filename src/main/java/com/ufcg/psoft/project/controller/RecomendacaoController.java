@@ -19,9 +19,9 @@ public class RecomendacaoController {
             @PathVariable Long grupoId,
             @PathVariable Long partidaId,
             @RequestParam Long usuarioId,
-            @RequestParam String codigo) {
+            @RequestParam String codigoUsuario) {
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(recomendacaoService.recomendar(grupoId, partidaId, usuarioId, codigo));
+                .body(recomendacaoService.recomendar(grupoId, partidaId, usuarioId, codigoUsuario));
     }
 }

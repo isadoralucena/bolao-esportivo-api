@@ -16,20 +16,20 @@ public class EstatisticasController {
     private EstatisticasService estatisticasService;
 
     @GetMapping("/{usuarioId}/estatisticas")
-    public ResponseEntity<?> obterEstatisticas(@PathVariable Long usuarioId, @RequestParam String codigoAcesso) {
+    public ResponseEntity<?> obterEstatisticas(@PathVariable Long usuarioId, @RequestParam String codigoUsuario) {
 
         return ResponseEntity
             .status(HttpStatus.OK)
-            .body(estatisticasService.obterEstatisticaMaisRecente(usuarioId, codigoAcesso)
+            .body(estatisticasService.obterEstatisticaMaisRecente(usuarioId, codigoUsuario)
         );
     }
 
     @GetMapping("/{usuarioId}/estatisticas/evolucao")
-    public ResponseEntity<?> obterEvolucao(@PathVariable Long usuarioId, @RequestParam String codigoAcesso) {
+    public ResponseEntity<?> obterEvolucao(@PathVariable Long usuarioId, @RequestParam String codigoUsuario) {
 
         return ResponseEntity
             .status(HttpStatus.OK)
-            .body(estatisticasService.obterEvolucaoEstatisticas(usuarioId, codigoAcesso)
+            .body(estatisticasService.obterEvolucaoEstatisticas(usuarioId, codigoUsuario)
         );
     }
 }

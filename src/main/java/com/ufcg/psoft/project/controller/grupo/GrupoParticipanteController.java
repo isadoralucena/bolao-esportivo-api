@@ -31,9 +31,9 @@ public class GrupoParticipanteController {
     @GetMapping("/{grupoId}/participantes")
     public ResponseEntity<?> listarParticipantes(
             @RequestParam Long usuarioId,
-            @RequestParam String codigoAcesso,
+            @RequestParam String codigoUsuario,
             @PathVariable Long grupoId) {
-        var resultado = grupoParticipanteService.listarParticipantes(usuarioId, codigoAcesso, grupoId);
+        var resultado = grupoParticipanteService.listarParticipantes(usuarioId, codigoUsuario, grupoId);
         eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -43,10 +43,10 @@ public class GrupoParticipanteController {
     @DeleteMapping("/{grupoId}/participantes/{participanteId}")
     public ResponseEntity<?> removerParticipante(
             @RequestParam Long usuarioId,
-            @RequestParam String codigoAcesso,
+            @RequestParam String codigoUsuario,
             @PathVariable Long grupoId,
             @PathVariable Long participanteId) {
-        grupoParticipanteService.removerParticipante(usuarioId, codigoAcesso, grupoId, participanteId);
+        grupoParticipanteService.removerParticipante(usuarioId, codigoUsuario, grupoId, participanteId);
         eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.NO_CONTENT)
@@ -56,9 +56,9 @@ public class GrupoParticipanteController {
     @PostMapping("/{grupoId}/entrar")
     public ResponseEntity<?> entrarEmGrupoPublico(
                 @RequestParam Long usuarioId,
-                @RequestParam String codigoAcesso,
+                @RequestParam String codigoUsuario,
                 @PathVariable Long grupoId) {
-        var resultado = grupoParticipanteService.entrarEmGrupoPublico(grupoId, usuarioId, codigoAcesso);
+        var resultado = grupoParticipanteService.entrarEmGrupoPublico(grupoId, usuarioId, codigoUsuario);
         eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.OK)

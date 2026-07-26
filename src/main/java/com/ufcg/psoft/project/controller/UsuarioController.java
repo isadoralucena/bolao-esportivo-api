@@ -57,9 +57,9 @@ public class UsuarioController {
     @PutMapping("/{id}")
     public ResponseEntity<?> atualizarUsuario(
             @PathVariable Long id,
-            @RequestParam String codigo,
+            @RequestParam String codigoUsuario,
             @RequestBody @Valid UsuarioPostPutRequestDTO usuarioPostPutRequestDto) {
-        var resultado = usuarioService.alterar(id, codigo, usuarioPostPutRequestDto);
+        var resultado = usuarioService.alterar(id, codigoUsuario, usuarioPostPutRequestDto);
         eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(id));
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -77,8 +77,8 @@ public class UsuarioController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> excluirUsuario(
             @PathVariable Long id,
-            @RequestParam String codigo) {
-        usuarioService.remover(id, codigo);
+            @RequestParam String codigoUsuario) {
+        usuarioService.remover(id, codigoUsuario);
         eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(id));
         return ResponseEntity
                 .status(HttpStatus.NO_CONTENT)

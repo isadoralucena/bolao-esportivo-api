@@ -49,9 +49,9 @@ public class GrupoController {
     @PostMapping("")
     public ResponseEntity<?> criarGrupo(
             @RequestParam Long usuarioId,
-            @RequestParam String codigoAcesso,
+            @RequestParam String codigoUsuario,
             @RequestBody @Valid GrupoPostRequestDTO grupoPostRequestDto) {
-        var resultado = grupoService.criar(usuarioId, codigoAcesso, grupoPostRequestDto);
+        var resultado = grupoService.criar(usuarioId, codigoUsuario, grupoPostRequestDto);
         eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -61,9 +61,9 @@ public class GrupoController {
     @GetMapping("/{id}")
     public ResponseEntity<?> recuperarGrupo(
             @RequestParam Long usuarioId,
-            @RequestParam String codigoAcesso,
+            @RequestParam String codigoUsuario,
             @PathVariable Long id) {
-        var resultado = grupoService.recuperar(usuarioId, codigoAcesso, id);
+        var resultado = grupoService.recuperar(usuarioId, codigoUsuario, id);
         eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -73,9 +73,9 @@ public class GrupoController {
     @GetMapping("")
     public ResponseEntity<?> listarGrupos(
             @RequestParam Long usuarioId,
-            @RequestParam String codigoAcesso
+            @RequestParam String codigoUsuario
         ) {
-        var resultado = grupoService.listar(usuarioId, codigoAcesso);
+        var resultado = grupoService.listar(usuarioId, codigoUsuario);
         eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -85,10 +85,10 @@ public class GrupoController {
     @PutMapping("/{id}")
     public ResponseEntity<?> atualizarGrupo(
             @RequestParam Long usuarioId,
-            @RequestParam String codigoAcesso,
+            @RequestParam String codigoUsuario,
             @PathVariable Long id,
             @RequestBody @Valid GrupoPutRequestDTO grupoPutRequestDto) {
-        var resultado = grupoService.alterar(usuarioId, codigoAcesso, id, grupoPutRequestDto);
+        var resultado = grupoService.alterar(usuarioId, codigoUsuario, id, grupoPutRequestDto);
         eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -98,9 +98,9 @@ public class GrupoController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> removerGrupo(
             @RequestParam Long usuarioId,
-            @RequestParam String codigoAcesso,
+            @RequestParam String codigoUsuario,
             @PathVariable Long id) {
-        grupoService.remover(usuarioId, codigoAcesso, id);
+        grupoService.remover(usuarioId, codigoUsuario, id);
         eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.NO_CONTENT)
@@ -111,9 +111,9 @@ public class GrupoController {
     public ResponseEntity<?> configurarRegrasPalpites(
             @PathVariable Long grupoId,
             @RequestParam Long usuarioId,
-            @RequestParam String codigo,
+            @RequestParam String codigoUsuario,
             @RequestBody @Valid RegrasPalpitesRequestDTO regrasPalpitesRequestDTO) {
-        var resultado = grupoService.configurarRegrasPalpites(grupoId, usuarioId, codigo, regrasPalpitesRequestDTO);
+        var resultado = grupoService.configurarRegrasPalpites(grupoId, usuarioId, codigoUsuario, regrasPalpitesRequestDTO);
         eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -123,9 +123,9 @@ public class GrupoController {
     @GetMapping("/{grupoId}/pontuacoes")
     public ResponseEntity<?> listarPontuacoesDoGrupo(
             @RequestParam Long usuarioId,
-            @RequestParam String codigoAcesso,
+            @RequestParam String codigoUsuario,
             @PathVariable Long grupoId) {
-        var resultado = pontuacaoService.listarPontuacoesParticipantesDoGrupo(grupoId, usuarioId, codigoAcesso);
+        var resultado = pontuacaoService.listarPontuacoesParticipantesDoGrupo(grupoId, usuarioId, codigoUsuario);
         eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -135,9 +135,9 @@ public class GrupoController {
     @GetMapping("{grupoId}/ranking")
     public ResponseEntity<?> rankingDoGrupo(
             @RequestParam Long usuarioId,
-            @RequestParam String codigoAcesso,
+            @RequestParam String codigoUsuario,
             @PathVariable Long grupoId) {
-        var resultado = rankingService.rankingDoGrupo(grupoId, usuarioId, codigoAcesso);
+        var resultado = rankingService.rankingDoGrupo(grupoId, usuarioId, codigoUsuario);
         eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.OK)
