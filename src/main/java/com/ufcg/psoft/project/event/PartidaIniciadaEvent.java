@@ -2,18 +2,17 @@ package com.ufcg.psoft.project.event;
 
 import org.springframework.context.ApplicationEvent;
 
-import com.ufcg.psoft.project.model.Partida;
-
 public class PartidaIniciadaEvent extends ApplicationEvent {
+    private static final long serialVersionUID = 1L;
 
-    private final Partida partida;
+    private final Long partidaId;
 
-    public PartidaIniciadaEvent(Object source, Partida partida) {
+    public PartidaIniciadaEvent(Object source, Long partidaId) {
         super(source);
-        this.partida = partida;
+        this.partidaId = partidaId;
     }
 
-    public Partida getPartida() {
-        return partida;
+    public Long getPartidaId() {
+        return partidaId;
     }
 }

@@ -81,7 +81,13 @@ class PartidaServiceImplTest {
         RestTemplate restTemplate = (RestTemplate) ReflectionTestUtils.getField(partidaService, "restTemplate");
         server = MockRestServiceServer.createServer(restTemplate);
         lenient().when(partidaRepository.save(any(Partida.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+                .thenAnswer(invocation -> {
+                    Partida partidaSalva = invocation.getArgument(0);
+                    if (partidaSalva.getId() == null) {
+                        partidaSalva.setId(partidaSalva.getCodigoExterno());
+                    }
+                    return partidaSalva;
+                });
     }
 
     @Test
@@ -316,14 +322,14 @@ class PartidaServiceImplTest {
                 .andExpect(method(GET))
                 .andRespond(withSuccess(resposta, MediaType.APPLICATION_JSON));
 
-        partidaService.sincronizarPartidas(campeonato);
+        List<PartidaResponseDTO> resultado = partidaService.sincronizarPartidas(campeonato);
 
         ArgumentCaptor<PalpitesAbertosEvent> eventoCaptor =
                 ArgumentCaptor.forClass(PalpitesAbertosEvent.class);
 
         verify(eventPublisher).publishEvent(eventoCaptor.capture());
-        assertEquals(30L, eventoCaptor.getValue().getPartida().getCodigoExterno());
-        assertEquals(PartidaStatus.ABERTO, eventoCaptor.getValue().getPartida().getStatus());
+        assertEquals(30L, eventoCaptor.getValue().getPartidaId());
+        assertEquals(PartidaStatus.ABERTO, resultado.get(0).getStatus());
     }
 
     @Test
@@ -383,11 +389,11 @@ class PartidaServiceImplTest {
         assertAll(
                 () -> assertEquals(
                         100L,
-                        eventoFechamento.getPartida().getId()
+                        eventoFechamento.getPartidaId()
                 ),
                 () -> assertEquals(
                         100L,
-                        eventoInicio.getPartida().getId()
+                        eventoInicio.getPartidaId()
                 )
         );
     }
@@ -430,8 +436,8 @@ class PartidaServiceImplTest {
                 ArgumentCaptor.forClass(PartidaFinalizadaEvent.class);
 
         verify(eventPublisher).publishEvent(eventoCaptor.capture());
-        assertEquals(101L, eventoCaptor.getValue().getPartida().getId());
-        assertEquals(PartidaStatus.FINALIZADO, eventoCaptor.getValue().getPartida().getStatus());
+        assertEquals(101L, eventoCaptor.getValue().getPartidaId());
+        assertEquals(PartidaStatus.FINALIZADO, existente.getStatus());
     }
 
     @Test
@@ -532,18 +538,16 @@ class PartidaServiceImplTest {
 
 		verify(eventPublisher).publishEvent(eventoCaptor.capture());
 
-		Partida partidaPublicada = eventoCaptor.getValue().getPartida();
-
 		assertEquals(1, resultado.size());
 		assertEquals(PartidaStatus.FINALIZADO, resultado.get(0).getStatus());
 		assertEquals(3, resultado.get(0).getGolsMandante());
 		assertEquals(0, resultado.get(0).getGolsVisitante());
 
-		assertEquals(200L, partidaPublicada.getId());
-		assertEquals(PartidaStatus.FINALIZADO, partidaPublicada.getStatus());
-		assertEquals(3, partidaPublicada.getGolsMandante());
-		assertEquals(0, partidaPublicada.getGolsVisitante());
-		assertFalse(partidaPublicada.isConsolidada());
+		assertEquals(200L, eventoCaptor.getValue().getPartidaId());
+		assertEquals(PartidaStatus.FINALIZADO, existente.getStatus());
+		assertEquals(3, existente.getGolsMandante());
+		assertEquals(0, existente.getGolsVisitante());
+		assertFalse(existente.isConsolidada());
 
 		verify(partidaRepository).save(existente);
 	}
@@ -588,10 +592,10 @@ class PartidaServiceImplTest {
                 ArgumentCaptor.forClass(PartidaFinalizadaEvent.class);
         verify(eventPublisher).publishEvent(eventoCaptor.capture());
 
-        Partida partidaAtualizada = eventoCaptor.getValue().getPartida();
-        assertEquals(2, partidaAtualizada.getGolsMandante());
-        assertEquals(0, partidaAtualizada.getGolsVisitante());
-        assertFalse(partidaAtualizada.isConsolidada());
+        assertEquals(103L, eventoCaptor.getValue().getPartidaId());
+        assertEquals(2, existente.getGolsMandante());
+        assertEquals(0, existente.getGolsVisitante());
+        assertFalse(existente.isConsolidada());
     }
 
     @Test

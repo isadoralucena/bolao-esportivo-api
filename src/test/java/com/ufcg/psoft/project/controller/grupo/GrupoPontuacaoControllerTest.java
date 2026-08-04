@@ -971,7 +971,7 @@ class GrupoPontuacaoControllerTest {
 
         @Test
         @DisplayName("atualizarAcertos: empate real com palpite vencedor nao acerta")
-        void quandoEmpateRealEPalpiteVencedor() throws Exception {
+        void quandoEmpateRealEPalpiteVencedor() {
             Partida partidaEE = partidaRepository.save(Partida.builder()
                     .campeonato(campeonato)
                     .codigoExterno(306L)
@@ -1041,7 +1041,7 @@ class GrupoPontuacaoControllerTest {
 
         @Test
         @DisplayName("atualizarAcertos: vitoria visitante com palpite errado nao acerta")
-        void quandoVitoriaVisitanteEPalpiteErrado() throws Exception {
+        void quandoVitoriaVisitanteEPalpiteErrado() {
             Partida partidaVE2 = partidaRepository.save(Partida.builder()
                     .campeonato(campeonato)
                     .codigoExterno(308L)

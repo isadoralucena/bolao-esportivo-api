@@ -24,7 +24,6 @@ import com.ufcg.psoft.project.exception.estatistica.EstatisticaNaoExisteExceptio
 import com.ufcg.psoft.project.model.Estatisticas;
 import com.ufcg.psoft.project.model.Grupo;
 import com.ufcg.psoft.project.model.Palpite;
-import com.ufcg.psoft.project.model.Partida;
 import com.ufcg.psoft.project.model.PontuacaoPalpite;
 import com.ufcg.psoft.project.model.Usuario;
 import com.ufcg.psoft.project.repository.EstatisticasRepository;
@@ -33,8 +32,6 @@ import com.ufcg.psoft.project.repository.PontuacaoPalpiteRepository;
 import com.ufcg.psoft.project.service.grupo.GrupoAutorizacaoService;
 import com.ufcg.psoft.project.service.pontuacao.PontuacaoService;
 import com.ufcg.psoft.project.service.ranking.RankingService;
-
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -60,15 +57,15 @@ public class EstatisticasServiceImpl implements EstatisticasService {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void aoConsolidarPartida(PartidaConsolidadaEvent event) {
-        this.calcularEstatisticasAssociadasAPartida(event.getPartida());
+        this.calcularEstatisticasAssociadasAPartida(event.getPartidaId());
     }
 
     @Override
-    public List<EstatisticasResponseDTO> calcularEstatisticasAssociadasAPartida(Partida p) {
+    public List<EstatisticasResponseDTO> calcularEstatisticasAssociadasAPartida(Long partidaId) {
         // obter o conjunto de usuarios afetados pela partida.
         // são considerados afetados usuários que estão em grupos nos quais alguem fez um palpite àquela partida.
         // pois basta um usuario do grupo ter feito o palpite e acertado para afetar o ranking do grupo, que é levado em consideração no calculo da estatística.
-        List<Palpite> palpitesDaPartida = palpiteRepository.findByPartidaId(p.getId());
+        List<Palpite> palpitesDaPartida = palpiteRepository.findByPartidaId(partidaId);
         List<Grupo> gruposAfetados = palpitesDaPartida.stream()
                 .map(Palpite::getGrupo)
                 .distinct()

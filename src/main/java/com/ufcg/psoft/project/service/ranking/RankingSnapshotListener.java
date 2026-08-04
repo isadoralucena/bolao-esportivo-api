@@ -22,7 +22,7 @@ public class RankingSnapshotListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void aoFinalizarPartida(PartidaFinalizadaEvent event) {
-        Long partidaId = event.getPartida().getId();
+        Long partidaId = event.getPartidaId();
 
         List<Long> gruposAfetados = palpiteRepository.findByPartidaId(partidaId)
                 .stream()

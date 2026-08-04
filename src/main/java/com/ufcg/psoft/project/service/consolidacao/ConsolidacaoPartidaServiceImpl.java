@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.ufcg.psoft.project.event.PartidaConsolidadaEvent;
 import com.ufcg.psoft.project.event.PartidaFinalizadaEvent;
+import com.ufcg.psoft.project.exception.partida.PartidaNaoExisteException;
 import com.ufcg.psoft.project.exception.partida.PartidaSyncException;
 import com.ufcg.psoft.project.model.Partida;
 import com.ufcg.psoft.project.model.PartidaStatus;
@@ -28,7 +29,10 @@ public class ConsolidacaoPartidaServiceImpl implements ConsolidacaoPartidaServic
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
-    public void consolidar(Partida partida) {
+    public void consolidar(Long partidaId) {
+        Partida partida = partidaRepository.findById(partidaId)
+                .orElseThrow(PartidaNaoExisteException::new);
+
         if (partida.getStatus() != PartidaStatus.FINALIZADO || partida.isConsolidada()) {
             return; 
         }
@@ -40,13 +44,13 @@ public class ConsolidacaoPartidaServiceImpl implements ConsolidacaoPartidaServic
         pontuacaoService.calcularPontuacoesAssociadasAPartida(partida.getId());
         partida.setConsolidada(true);
         partidaRepository.save(partida);
-        eventPublisher.publishEvent(new PartidaConsolidadaEvent(this, partida));
+        eventPublisher.publishEvent(new PartidaConsolidadaEvent(this, partida.getId()));
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void aoFinalizarPartida(PartidaFinalizadaEvent event) {
-        consolidar(event.getPartida());
+        consolidar(event.getPartidaId());
     }
 
     private boolean resultadoValido(Partida partida) {

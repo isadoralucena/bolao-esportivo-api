@@ -50,7 +50,7 @@ class PalpiteEdicaoControllerTests {
     private PalpitePostPutRequestDTO dto;
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp() {
         usuario = usuarioRepository.save(Usuario.builder()
                 .nome("Jogador")
                 .email("jogador@teste.com")

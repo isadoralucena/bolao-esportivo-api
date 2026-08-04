@@ -2,18 +2,17 @@ package com.ufcg.psoft.project.event;
 
 import org.springframework.context.ApplicationEvent;
 
-import com.ufcg.psoft.project.model.Partida;
-
 public class PalpitesFechadosEvent extends ApplicationEvent {
+    private static final long serialVersionUID = 1L;
 
-    private final Partida partida;
+    private final Long partidaId;
 
-    public PalpitesFechadosEvent(Object source, Partida partida) {
+    public PalpitesFechadosEvent(Object source, Long partidaId) {
         super(source);
-        this.partida = partida;
+        this.partidaId = partidaId;
     }
 
-    public Partida getPartida() {
-        return partida;
+    public Long getPartidaId() {
+        return partidaId;
     }
 }

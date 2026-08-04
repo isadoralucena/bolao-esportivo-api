@@ -73,7 +73,7 @@ class RankingSnapshotListenerTest {
         @Test
         @DisplayName("Deve gerar snapshot para cada grupo afetado pela partida")
         void deveGerarSnapshotParaCadaGrupoAfetado() {
-            PartidaFinalizadaEvent event = new PartidaFinalizadaEvent(this, partida);
+            PartidaFinalizadaEvent event = new PartidaFinalizadaEvent(this, partida.getId());
             when(palpiteRepository.findByPartidaId(1L)).thenReturn(List.of(palpite));
 
             rankingSnapshotListener.aoFinalizarPartida(event);
@@ -84,7 +84,7 @@ class RankingSnapshotListenerTest {
         @Test
         @DisplayName("Nao deve gerar snapshot quando nao ha palpites para a partida")
         void naoDeveGerarSnapshotSemPalpites() {
-            PartidaFinalizadaEvent event = new PartidaFinalizadaEvent(this, partida);
+            PartidaFinalizadaEvent event = new PartidaFinalizadaEvent(this, partida.getId());
             when(palpiteRepository.findByPartidaId(1L)).thenReturn(List.of());
 
             rankingSnapshotListener.aoFinalizarPartida(event);
@@ -105,7 +105,7 @@ class RankingSnapshotListenerTest {
                     .usuario(usuario2).golsMandante(1).golsVisitante(0)
                     .data(LocalDateTime.now(FIXED_CLOCK)).build();
 
-            PartidaFinalizadaEvent event = new PartidaFinalizadaEvent(this, partida);
+            PartidaFinalizadaEvent event = new PartidaFinalizadaEvent(this, partida.getId());
             when(palpiteRepository.findByPartidaId(1L)).thenReturn(List.of(palpite, palpite2));
 
             rankingSnapshotListener.aoFinalizarPartida(event);

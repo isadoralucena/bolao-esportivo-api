@@ -7,6 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -53,6 +56,8 @@ class ConsolidacaoPartidaServiceImplTest {
                 .golsVisitante(1)
                 .consolidada(false)
                 .build();
+        when(partidaRepository.findById(partida.getId()))
+                .thenReturn(Optional.of(partida));
     }
 
     @Nested
@@ -64,10 +69,12 @@ class ConsolidacaoPartidaServiceImplTest {
         void quandoPartidaNaoFinalizadaNaoConsolida() {
             partida.setStatus(PartidaStatus.EM_ANDAMENTO);
 
-            consolidacaoService.consolidar(partida);
+            consolidacaoService.consolidar(partida.getId());
 
             assertFalse(partida.isConsolidada());
-            verifyNoInteractions(pontuacaoService, partidaRepository);
+            verify(partidaRepository).findById(partida.getId());
+            verify(partidaRepository, never()).save(partida);
+            verifyNoInteractions(pontuacaoService, eventPublisher);
         }
 
         @Test
@@ -75,10 +82,12 @@ class ConsolidacaoPartidaServiceImplTest {
         void quandoPartidaJaConsolidadaNaoConsolidaNovamente() {
             partida.setConsolidada(true);
 
-            consolidacaoService.consolidar(partida);
+            consolidacaoService.consolidar(partida.getId());
 
             assertTrue(partida.isConsolidada());
-            verifyNoInteractions(pontuacaoService, partidaRepository);
+            verify(partidaRepository).findById(partida.getId());
+            verify(partidaRepository, never()).save(partida);
+            verifyNoInteractions(pontuacaoService, eventPublisher);
         }
 
         @Test
@@ -116,7 +125,7 @@ class ConsolidacaoPartidaServiceImplTest {
         @Test
         @DisplayName("Calcula pontuações, marca e salva uma partida válida")
         void quandoPartidaValidaConsolida() {
-            consolidacaoService.consolidar(partida);
+            consolidacaoService.consolidar(partida.getId());
 
             assertTrue(partida.isConsolidada());
 
@@ -137,7 +146,7 @@ class ConsolidacaoPartidaServiceImplTest {
         @DisplayName("Consolida a partida recebida pelo evento")
         void quandoRecebeEventoConsolidaPartida() {
             PartidaFinalizadaEvent event =
-                    new PartidaFinalizadaEvent(this, partida);
+                    new PartidaFinalizadaEvent(this, partida.getId());
 
             consolidacaoService.aoFinalizarPartida(event);
 
@@ -155,7 +164,7 @@ class ConsolidacaoPartidaServiceImplTest {
             partida.setConsolidada(true);
 
             PartidaFinalizadaEvent event =
-                    new PartidaFinalizadaEvent(this, partida);
+                    new PartidaFinalizadaEvent(this, partida.getId());
 
             consolidacaoService.aoFinalizarPartida(event);
 
@@ -169,7 +178,7 @@ class ConsolidacaoPartidaServiceImplTest {
     private void assertResultadoInvalido(Partida partidaInvalida) {
         PartidaSyncException exception = assertThrows(
                 PartidaSyncException.class,
-                () -> consolidacaoService.consolidar(partidaInvalida)
+                () -> consolidacaoService.consolidar(partidaInvalida.getId())
         );
 
         assertEquals(
@@ -179,6 +188,8 @@ class ConsolidacaoPartidaServiceImplTest {
 
         assertFalse(partidaInvalida.isConsolidada());
 
-        verifyNoInteractions(pontuacaoService, partidaRepository);
+        verify(partidaRepository).findById(partidaInvalida.getId());
+        verify(partidaRepository, never()).save(partidaInvalida);
+        verifyNoInteractions(pontuacaoService, eventPublisher);
     }
 }

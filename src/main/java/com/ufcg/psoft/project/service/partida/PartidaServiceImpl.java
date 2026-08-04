@@ -178,7 +178,7 @@ public class PartidaServiceImpl implements PartidaService {
         if (statusMudou) {
             publicarEventosMudancaStatus(statusAnterior, novoStatus, partida);
         } else if (precisaAtualizarPontuacao) {
-            eventPublisher.publishEvent(new PartidaFinalizadaEvent(this, partida));
+            eventPublisher.publishEvent(new PartidaFinalizadaEvent(this, partida.getId()));
         }
 
         return new PartidaResponseDTO(partida);
@@ -186,14 +186,14 @@ public class PartidaServiceImpl implements PartidaService {
 
     private void publicarEventosMudancaStatus(PartidaStatus statusAnterior, PartidaStatus novoStatus, Partida partida) {
         if (novoStatus == PartidaStatus.ABERTO && statusAnterior == null) {
-            eventPublisher.publishEvent(new PalpitesAbertosEvent(this, partida));
+            eventPublisher.publishEvent(new PalpitesAbertosEvent(this, partida.getId()));
         } else if (novoStatus == PartidaStatus.EM_ANDAMENTO) {
             if (statusAnterior == PartidaStatus.ABERTO) {
-                eventPublisher.publishEvent(new PalpitesFechadosEvent(this, partida));
+                eventPublisher.publishEvent(new PalpitesFechadosEvent(this, partida.getId()));
             }
-            eventPublisher.publishEvent(new PartidaIniciadaEvent(this, partida));
+            eventPublisher.publishEvent(new PartidaIniciadaEvent(this, partida.getId()));
         } else if (novoStatus == PartidaStatus.FINALIZADO) {
-            eventPublisher.publishEvent(new PartidaFinalizadaEvent(this, partida));
+            eventPublisher.publishEvent(new PartidaFinalizadaEvent(this, partida.getId()));
         }
     }
 

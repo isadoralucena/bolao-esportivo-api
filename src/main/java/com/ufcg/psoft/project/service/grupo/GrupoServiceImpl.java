@@ -1,7 +1,6 @@
 package com.ufcg.psoft.project.service.grupo;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import lombok.RequiredArgsConstructor;
