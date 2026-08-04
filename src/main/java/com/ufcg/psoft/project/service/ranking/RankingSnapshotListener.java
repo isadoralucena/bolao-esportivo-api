@@ -1,8 +1,6 @@
 package com.ufcg.psoft.project.service.ranking;
 
 import com.ufcg.psoft.project.event.PartidaFinalizadaEvent;
-import com.ufcg.psoft.project.model.Grupo;
-import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.PalpiteRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
