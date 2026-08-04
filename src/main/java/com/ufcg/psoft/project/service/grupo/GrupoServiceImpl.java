@@ -63,7 +63,7 @@ public class GrupoServiceImpl implements GrupoService {
         return grupos.stream()
                 .filter((g -> grupoAutorizacaoService.temAcessoLeitura(g, usuarioLogado)))
                 .map(GrupoResponseDTO::new)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public GrupoResponseDTO alterar(Long usuarioId, String codigoAcesso, Long id, GrupoPutRequestDTO grupoPutRequestDto) {

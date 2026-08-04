@@ -70,7 +70,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         List<Usuario> usuarios = usuarioRepository.findByNomeContaining(nome);
         return usuarios.stream()
                 .map(UsuarioResponseDTO::new)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -78,7 +78,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         List<Usuario> usuarios = usuarioRepository.findAll();
         return usuarios.stream()
                 .map(UsuarioResponseDTO::new)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override

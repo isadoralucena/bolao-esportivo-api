@@ -88,21 +88,21 @@ public class PalpiteServiceImpl implements PalpiteService {
     public List<PalpiteResponseDTO> listarPorGrupo(Long grupoId) {
         return palpiteRepository.findByGrupoId(grupoId).stream()
                 .map(PalpiteResponseDTO::new)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
     public List<PalpiteResponseDTO> listarPorGrupoEPartida(Long grupoId, Long partidaId) {
         return palpiteRepository.findByPartidaIdAndGrupoId(partidaId, grupoId).stream()
                 .map(PalpiteResponseDTO::new)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
     public List<PalpiteResponseDTO> listarPorUsuario(Long usuarioId) {
         return palpiteRepository.findByUsuarioId(usuarioId).stream()
                 .map(PalpiteResponseDTO::new)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override

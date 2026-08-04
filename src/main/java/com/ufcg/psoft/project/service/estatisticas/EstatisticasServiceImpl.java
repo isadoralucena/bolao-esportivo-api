@@ -87,7 +87,7 @@ public class EstatisticasServiceImpl implements EstatisticasService {
         
         return estatisticas.stream()
             .map(EstatisticasResponseDTO::new)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     @Override
@@ -109,7 +109,7 @@ public class EstatisticasServiceImpl implements EstatisticasService {
 
         return estatisticasRepository.findByUsuarioIdOrderByDataRegistroAsc(usuario.getId()).stream()
             .map(EstatisticasResponseDTO::new)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     private Estatisticas calcularEstatisticasUsuario(Usuario u) {

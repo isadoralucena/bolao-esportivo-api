@@ -48,7 +48,7 @@ public class PromocaoPremiumServiceImpl implements PromocaoPremiumService {
     public void avaliarPromocoes() {
         List<Usuario> usuariosPadrao = usuarioRepository.findAll().stream()
                 .filter(u -> u.getPerfil() == PerfilUsuario.PADRAO)
-                .collect(Collectors.toList());
+                .toList();
 
         for (Usuario usuario : usuariosPadrao) {
             if (promocaoPremiumRepository.existsByUsuarioId(usuario.getId())) {

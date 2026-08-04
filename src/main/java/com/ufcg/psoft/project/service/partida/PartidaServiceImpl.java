@@ -54,7 +54,7 @@ public class PartidaServiceImpl implements PartidaService {
     public List<PartidaResponseDTO> listarPorCampeonato(Long campeonatoId) {
         return partidaRepository.findByCampeonatoId(campeonatoId).stream()
                 .map(PartidaResponseDTO::new)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -64,7 +64,7 @@ public class PartidaServiceImpl implements PartidaService {
         LocalDateTime agora = LocalDateTime.now(ZoneOffset.UTC);
         return partidaRepository.findByCampeonatoId(grupo.getCampeonato().getId()).stream()
                 .map(p -> new PartidaResponseDTO(p, grupo, agora))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override

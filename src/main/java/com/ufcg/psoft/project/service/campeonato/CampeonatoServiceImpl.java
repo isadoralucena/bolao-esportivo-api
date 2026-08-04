@@ -98,7 +98,7 @@ public class CampeonatoServiceImpl implements CampeonatoService {
 		List<Campeonato> campeonatos = campeonatoRepository.findAll();
 		return campeonatos.stream()
 			.map(CampeonatoResponseDTO::new)
-			.collect(Collectors.toList());
+			.toList();
 	}
 
 	@Override
@@ -112,7 +112,7 @@ public class CampeonatoServiceImpl implements CampeonatoService {
 		List<Campeonato> campeonatos = campeonatoRepository.findByNomeContaining(nome);
 		return campeonatos.stream()
 			.map(CampeonatoResponseDTO::new)
-			.collect(Collectors.toList());
+			.toList();
 	}
 
 	@Override
