@@ -1,5 +1,7 @@
 package com.ufcg.psoft.project.controller.grupo;
 
+import static com.ufcg.psoft.project.config.TestClockConfig.FIXED_CLOCK;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ufcg.psoft.project.dto.grupo.RegraPontuacaoPostPutRequestDTO;
 import com.ufcg.psoft.project.dto.pontuacao.PontuacaoPalpiteResponseDTO;
@@ -110,7 +112,7 @@ class GrupoPontuacaoControllerTest {
                 .visitante("Time B")
                 .golsMandante(2)
                 .golsVisitante(1)
-                .data(LocalDateTime.now().minusHours(2))
+                .data(LocalDateTime.now(FIXED_CLOCK).minusHours(2))
                 .status(PartidaStatus.FINALIZADO)
                 .mataMata(false)
                 .build());
@@ -119,6 +121,7 @@ class GrupoPontuacaoControllerTest {
                 .partida(partida)
                 .usuario(participante)
                 .grupo(grupo)
+                .data(LocalDateTime.now(FIXED_CLOCK))
                 .golsMandante(1)
                 .golsVisitante(0)
                 .build());
@@ -355,6 +358,7 @@ class GrupoPontuacaoControllerTest {
                     .partida(partida)
                     .usuario(participante)
                     .grupo(grupo)
+                    .data(LocalDateTime.now(FIXED_CLOCK))
                     .golsMandante(0)
                     .golsVisitante(2)
                     .build());
@@ -383,7 +387,7 @@ class GrupoPontuacaoControllerTest {
                     .visitante("Time EX2")
                     .golsMandante(0)
                     .golsVisitante(0)
-                    .data(LocalDateTime.now().minusHours(1))
+                    .data(LocalDateTime.now(FIXED_CLOCK).minusHours(1))
                     .status(PartidaStatus.FINALIZADO)
                     .mataMata(false)
                     .build());
@@ -392,6 +396,7 @@ class GrupoPontuacaoControllerTest {
                     .partida(partidaEmpateExato)
                     .usuario(participante)
                     .grupo(grupo)
+                    .data(LocalDateTime.now(FIXED_CLOCK))
                     .golsMandante(0)
                     .golsVisitante(0) 
                     .build());
@@ -439,6 +444,7 @@ class GrupoPontuacaoControllerTest {
                     .partida(partida)
                     .usuario(participante)
                     .grupo(grupo)
+                    .data(LocalDateTime.now(FIXED_CLOCK))
                     .golsMandante(0)
                     .golsVisitante(2)
                     .build());
@@ -464,7 +470,7 @@ class GrupoPontuacaoControllerTest {
                     .visitante("Time D")
                     .golsMandante(1)
                     .golsVisitante(1)
-                    .data(LocalDateTime.now().minusHours(1))
+                    .data(LocalDateTime.now(FIXED_CLOCK).minusHours(1))
                     .status(PartidaStatus.FINALIZADO)
                     .mataMata(false)
                     .build());
@@ -473,6 +479,7 @@ class GrupoPontuacaoControllerTest {
                     .partida(partidaEmpate)
                     .usuario(participante)
                     .grupo(grupo)
+                    .data(LocalDateTime.now(FIXED_CLOCK))
                     .golsMandante(0)
                     .golsVisitante(0) 
                     .build());
@@ -508,6 +515,7 @@ class GrupoPontuacaoControllerTest {
                     .partida(partida)
                     .usuario(participante)
                     .grupo(grupo)
+                    .data(LocalDateTime.now(FIXED_CLOCK))
                     .golsMandante(2) 
                     .golsVisitante(1)
                     .build());
@@ -556,7 +564,7 @@ class GrupoPontuacaoControllerTest {
                     .visitante("Time MM-B")
                     .golsMandante(2)
                     .golsVisitante(0)
-                    .data(LocalDateTime.now().minusHours(1))
+                    .data(LocalDateTime.now(FIXED_CLOCK).minusHours(1))
                     .status(PartidaStatus.FINALIZADO)
                     .mataMata(true) 
                     .build());
@@ -566,6 +574,7 @@ class GrupoPontuacaoControllerTest {
                     .partida(partidaMM)
                     .usuario(participante)
                     .grupo(grupo)
+                    .data(LocalDateTime.now(FIXED_CLOCK))
                     .golsMandante(1)
                     .golsVisitante(0)
                     .build());
@@ -584,6 +593,7 @@ class GrupoPontuacaoControllerTest {
                     .partida(partida)
                     .usuario(participante)
                     .grupo(grupo)
+                    .data(LocalDateTime.now(FIXED_CLOCK))
                     .golsMandante(0)
                     .golsVisitante(2)
                     .build());
@@ -609,7 +619,7 @@ class GrupoPontuacaoControllerTest {
                     .visitante("Time QF-B")
                     .golsMandante(3)
                     .golsVisitante(1)
-                    .data(LocalDateTime.now().minusHours(1))
+                    .data(LocalDateTime.now(FIXED_CLOCK).minusHours(1))
                     .status(PartidaStatus.FINALIZADO)
                     .mataMata(true)
                     .build());
@@ -619,6 +629,7 @@ class GrupoPontuacaoControllerTest {
                     .partida(partidaMM)
                     .usuario(participante)
                     .grupo(grupo)
+                    .data(LocalDateTime.now(FIXED_CLOCK))
                     .golsMandante(2)
                     .golsVisitante(0) 
                     .build());
@@ -651,7 +662,7 @@ class GrupoPontuacaoControllerTest {
                     .visitante("Time SF-B")
                     .golsMandante(2)
                     .golsVisitante(0)
-                    .data(LocalDateTime.now().minusHours(1))
+                    .data(LocalDateTime.now(FIXED_CLOCK).minusHours(1))
                     .status(PartidaStatus.FINALIZADO)
                     .mataMata(true)
                     .build());
@@ -661,6 +672,7 @@ class GrupoPontuacaoControllerTest {
                     .partida(partidaMM)
                     .usuario(participante)
                     .grupo(grupo)
+                    .data(LocalDateTime.now(FIXED_CLOCK))
                     .golsMandante(0)
                     .golsVisitante(1) 
                     .build());
@@ -739,7 +751,7 @@ class GrupoPontuacaoControllerTest {
                     .visitante("Time Null-B")
                     .golsMandante(null)
                     .golsVisitante(null)
-                    .data(LocalDateTime.now().minusHours(1))
+                    .data(LocalDateTime.now(FIXED_CLOCK).minusHours(1))
                     .status(PartidaStatus.FINALIZADO)
                     .build());
 
@@ -748,6 +760,7 @@ class GrupoPontuacaoControllerTest {
                     .partida(partidaGolsNulos)
                     .usuario(participante)
                     .grupo(grupo)
+                    .data(LocalDateTime.now(FIXED_CLOCK))
                     .golsMandante(1)
                     .golsVisitante(0)
                     .build());
@@ -776,7 +789,7 @@ class GrupoPontuacaoControllerTest {
                     .codigoExterno(301L)
                     .mandante("Time Z1")
                     .visitante("Time Z2")
-                    .data(LocalDateTime.now().plusHours(2))
+                    .data(LocalDateTime.now(FIXED_CLOCK).plusHours(2))
                     .status(PartidaStatus.ABERTO)
                     .build());
 
@@ -798,7 +811,7 @@ class GrupoPontuacaoControllerTest {
                     .visitante("Time Nulo-B")
                     .golsMandante(null)
                     .golsVisitante(null)
-                    .data(LocalDateTime.now().minusHours(1))
+                    .data(LocalDateTime.now(FIXED_CLOCK).minusHours(1))
                     .status(PartidaStatus.FINALIZADO)
                     .build());
 
@@ -816,7 +829,7 @@ class GrupoPontuacaoControllerTest {
                     .visitante("Time W2")
                     .golsMandante(1)
                     .golsVisitante(0)
-                    .data(LocalDateTime.now().minusHours(1))
+                    .data(LocalDateTime.now(FIXED_CLOCK).minusHours(1))
                     .status(PartidaStatus.FINALIZADO)
                     .build());
 
@@ -888,7 +901,7 @@ class GrupoPontuacaoControllerTest {
                     .visitante("Time EE-B")
                     .golsMandante(1)
                     .golsVisitante(1)
-                    .data(LocalDateTime.now().minusHours(1))
+                    .data(LocalDateTime.now(FIXED_CLOCK).minusHours(1))
                     .status(PartidaStatus.FINALIZADO)
                     .mataMata(false)
                     .build());
@@ -897,6 +910,7 @@ class GrupoPontuacaoControllerTest {
                     .partida(partidaEmpateExato)
                     .usuario(organizador)
                     .grupo(grupo)
+                    .data(LocalDateTime.now(FIXED_CLOCK))
                     .golsMandante(1)
                     .golsVisitante(1)
                     .build());
@@ -929,7 +943,7 @@ class GrupoPontuacaoControllerTest {
                     .visitante("Time V-V")
                     .golsMandante(2)
                     .golsVisitante(1)
-                    .data(LocalDateTime.now().minusHours(1))
+                    .data(LocalDateTime.now(FIXED_CLOCK).minusHours(1))
                     .status(PartidaStatus.FINALIZADO)
                     .build());
 
@@ -938,6 +952,7 @@ class GrupoPontuacaoControllerTest {
                     .partida(partidaVE)
                     .usuario(participante)
                     .grupo(grupo)
+                    .data(LocalDateTime.now(FIXED_CLOCK))
                     .golsMandante(1)
                     .golsVisitante(1)
                     .build());
@@ -964,7 +979,7 @@ class GrupoPontuacaoControllerTest {
                     .visitante("Time E-V")
                     .golsMandante(1)
                     .golsVisitante(1)
-                    .data(LocalDateTime.now().minusHours(1))
+                    .data(LocalDateTime.now(FIXED_CLOCK).minusHours(1))
                     .status(PartidaStatus.FINALIZADO)
                     .build());
 
@@ -973,6 +988,7 @@ class GrupoPontuacaoControllerTest {
                     .partida(partidaEE)
                     .usuario(participante)
                     .grupo(grupo)
+                    .data(LocalDateTime.now(FIXED_CLOCK))
                     .golsMandante(2)
                     .golsVisitante(0)
                     .build());
@@ -997,7 +1013,7 @@ class GrupoPontuacaoControllerTest {
                     .visitante("Time VV-V")
                     .golsMandante(0)
                     .golsVisitante(2)
-                    .data(LocalDateTime.now().minusHours(1))
+                    .data(LocalDateTime.now(FIXED_CLOCK).minusHours(1))
                     .status(PartidaStatus.FINALIZADO)
                     .build());
 
@@ -1006,6 +1022,7 @@ class GrupoPontuacaoControllerTest {
                     .partida(partidaVV)
                     .usuario(participante)
                     .grupo(grupo)
+                    .data(LocalDateTime.now(FIXED_CLOCK))
                     .golsMandante(0)
                     .golsVisitante(2)
                     .build());
@@ -1032,7 +1049,7 @@ class GrupoPontuacaoControllerTest {
                     .visitante("Time WE-V")
                     .golsMandante(0)
                     .golsVisitante(2)
-                    .data(LocalDateTime.now().minusHours(1))
+                    .data(LocalDateTime.now(FIXED_CLOCK).minusHours(1))
                     .status(PartidaStatus.FINALIZADO)
                     .build());
 
@@ -1041,6 +1058,7 @@ class GrupoPontuacaoControllerTest {
                     .partida(partidaVE2)
                     .usuario(participante)
                     .grupo(grupo)
+                    .data(LocalDateTime.now(FIXED_CLOCK))
                     .golsMandante(2)
                     .golsVisitante(0)
                     .build());

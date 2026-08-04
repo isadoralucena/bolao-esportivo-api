@@ -1,7 +1,8 @@
 package com.ufcg.psoft.project.service;
 
+import static com.ufcg.psoft.project.config.TestClockConfig.FIXED_CLOCK;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpMethod.GET;
@@ -9,12 +10,12 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.modelmapper.ModelMapper;
@@ -55,7 +56,6 @@ class CampeonatoServiceImplTest {
     @Spy
     private ModelMapper modelMapper = new ModelMapper();
 
-    @InjectMocks
     private CampeonatoServiceImpl campeonatoService;
 
     private MockRestServiceServer server;
@@ -64,6 +64,14 @@ class CampeonatoServiceImplTest {
 
     @BeforeEach
     void setup() {
+        campeonatoService = new CampeonatoServiceImpl(
+                campeonatoRepository,
+                usuarioRepository,
+                partidaService,
+                classificacaoCampeonatoService,
+                modelMapper,
+                FIXED_CLOCK
+        );
         RestTemplate restTemplate = (RestTemplate) ReflectionTestUtils.getField(campeonatoService, "restTemplate");
         server = MockRestServiceServer.createServer(restTemplate);
 
@@ -111,7 +119,7 @@ class CampeonatoServiceImplTest {
 
         assertEquals("Nome atualizado", resultado.getNome());
         assertEquals("NEW", resultado.getCodigo());
-        assertNotNull(campeonato.getUltimaSincronizacao());
+        assertEquals(LocalDateTime.now(FIXED_CLOCK), campeonato.getUltimaSincronizacao());
     }
 
     @Test

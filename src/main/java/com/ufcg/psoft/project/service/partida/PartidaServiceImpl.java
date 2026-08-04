@@ -26,6 +26,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -33,7 +34,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 
 @Service
@@ -44,6 +44,8 @@ public class PartidaServiceImpl implements PartidaService {
     private final GrupoRepository grupoRepository;
 
     private final ApplicationEventPublisher eventPublisher;
+
+    private final Clock clock;
 
     @Value("${project.football-data.api-token:}")
     private String apiToken;
@@ -61,7 +63,7 @@ public class PartidaServiceImpl implements PartidaService {
     public List<PartidaResponseDTO> listarPorGrupo(Long grupoId) {
         Grupo grupo = grupoRepository.findById(grupoId)
                 .orElseThrow(GrupoNaoExisteException::new);
-        LocalDateTime agora = LocalDateTime.now(ZoneOffset.UTC);
+        LocalDateTime agora = LocalDateTime.now(clock);
         return partidaRepository.findByCampeonatoId(grupo.getCampeonato().getId()).stream()
                 .map(p -> new PartidaResponseDTO(p, grupo, agora))
                 .toList();
@@ -116,7 +118,7 @@ public class PartidaServiceImpl implements PartidaService {
     @Override
     public List<PartidaResponseDTO> listarPartidasFuturas() {
         return partidaRepository.findByDataAfterAndStatus(
-                        LocalDateTime.now(), PartidaStatus.ABERTO)
+                        LocalDateTime.now(clock), PartidaStatus.ABERTO)
                 .stream()
                 .map(PartidaResponseDTO::new)
                 .toList();

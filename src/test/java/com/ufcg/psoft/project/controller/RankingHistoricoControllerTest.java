@@ -1,5 +1,7 @@
 package com.ufcg.psoft.project.controller;
 
+import static com.ufcg.psoft.project.config.TestClockConfig.FIXED_CLOCK;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ufcg.psoft.project.dto.ranking.HistoricoRankingResponseDTO;
 import com.ufcg.psoft.project.model.*;
@@ -83,7 +85,7 @@ class RankingHistoricoControllerTest {
                 .visitante("Time B")
                 .golsMandante(2)
                 .golsVisitante(1)
-                .data(LocalDateTime.now().minusDays(1))
+                .data(LocalDateTime.now(FIXED_CLOCK).minusDays(1))
                 .status(PartidaStatus.FINALIZADO)
                 .consolidada(true)
                 .build());
@@ -129,7 +131,7 @@ class RankingHistoricoControllerTest {
                     .partida(partida)
                     .posicao(1)
                     .pontuacao(10)
-                    .dataSnapshot(LocalDateTime.now())
+                    .dataSnapshot(LocalDateTime.now(FIXED_CLOCK))
                     .build());
 
             String responseJsonString = driver.perform(get(URI_HISTORICO, grupo.getId())
@@ -170,7 +172,7 @@ class RankingHistoricoControllerTest {
                     .partida(partida)
                     .posicao(1)
                     .pontuacao(10)
-                    .dataSnapshot(LocalDateTime.now())
+                    .dataSnapshot(LocalDateTime.now(FIXED_CLOCK))
                     .build());
 
             String responseJsonString = driver.perform(get(URI_HISTORICO + "/{usuarioId}", grupo.getId(), usuario.getId())
@@ -214,7 +216,7 @@ class RankingHistoricoControllerTest {
                     .partida(partida)
                     .posicao(1)
                     .pontuacao(10)
-                    .dataSnapshot(LocalDateTime.now())
+                    .dataSnapshot(LocalDateTime.now(FIXED_CLOCK))
                     .build());
 
             String responseJsonString = driver.perform(get(URI_HISTORICO + "/lideres", grupo.getId())
@@ -252,7 +254,7 @@ class RankingHistoricoControllerTest {
                     .partida(partida)
                     .posicao(1)
                     .pontuacao(10)
-                    .dataSnapshot(LocalDateTime.now())
+                    .dataSnapshot(LocalDateTime.now(FIXED_CLOCK))
                     .build());
 
             String responseJsonString = driver.perform(get(URI_HISTORICO + "/recente", grupo.getId())

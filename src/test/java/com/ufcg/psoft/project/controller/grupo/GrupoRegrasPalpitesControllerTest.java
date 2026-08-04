@@ -1,5 +1,7 @@
 package com.ufcg.psoft.project.controller.grupo;
 
+import static com.ufcg.psoft.project.config.TestClockConfig.FIXED_CLOCK;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ufcg.psoft.project.dto.grupo.GrupoResponseDTO;
 import com.ufcg.psoft.project.dto.palpite.PalpitePostPutRequestDTO;
@@ -19,7 +21,6 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -316,7 +317,7 @@ class GrupoRegrasPalpitesControllerTest {
                     .codigoExterno(1L)
                     .mandante("Time A")
                     .visitante("Time B")
-                    .data(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(60))
+                    .data(LocalDateTime.now(FIXED_CLOCK).plusMinutes(60))
                     .status(PartidaStatus.ABERTO)
                     .build());
 
@@ -339,7 +340,7 @@ class GrupoRegrasPalpitesControllerTest {
                     .codigoExterno(2L)
                     .mandante("Time C")
                     .visitante("Time D")
-                    .data(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(180))
+                    .data(LocalDateTime.now(FIXED_CLOCK).plusMinutes(180))
                     .status(PartidaStatus.ABERTO)
                     .build());
 
@@ -365,7 +366,7 @@ class GrupoRegrasPalpitesControllerTest {
                     .codigoExterno(3L)
                     .mandante("Time E")
                     .visitante("Time F")
-                    .data(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(180))
+                    .data(LocalDateTime.now(FIXED_CLOCK).plusMinutes(180))
                     .status(PartidaStatus.ABERTO)
                     .build());
 

@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -28,6 +29,8 @@ public class PromocaoPremiumServiceImpl implements PromocaoPremiumService {
     private final PromocaoPremiumRepository promocaoPremiumRepository;
 
     private final ContadorRequisicoes contadorRequisicoes;
+
+    private final Clock clock;
 
     @Value("${project.premium.min-palpites:50}")
     private int minPalpites;
@@ -80,7 +83,7 @@ public class PromocaoPremiumServiceImpl implements PromocaoPremiumService {
 
                 PromocaoPremium promocao = PromocaoPremium.builder()
                         .usuario(usuario)
-                        .data(LocalDateTime.now())
+                        .data(LocalDateTime.now(clock))
                         .motivo(motivo)
                         .palpites((int) palpites)
                         .gruposParticipa((int) gruposParticipa)

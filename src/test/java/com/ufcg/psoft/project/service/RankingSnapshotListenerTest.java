@@ -1,5 +1,7 @@
 package com.ufcg.psoft.project.service;
 
+import static com.ufcg.psoft.project.config.TestClockConfig.FIXED_CLOCK;
+
 import com.ufcg.psoft.project.event.PartidaFinalizadaEvent;
 import com.ufcg.psoft.project.model.*;
 import com.ufcg.psoft.project.repository.PalpiteRepository;
@@ -51,7 +53,7 @@ class RankingSnapshotListenerTest {
                 .codigoExterno(1L).mandante("Time A")
                 .visitante("Time B").status(PartidaStatus.FINALIZADO)
                 .golsMandante(2).golsVisitante(1)
-                .data(LocalDateTime.now().minusDays(1)).build();
+                .data(LocalDateTime.now(FIXED_CLOCK).minusDays(1)).build();
 
         Usuario usuario = Usuario.builder()
                 .id(1L).nome("Usuario Teste")
@@ -61,7 +63,7 @@ class RankingSnapshotListenerTest {
         palpite = Palpite.builder()
                 .id(1L).partida(partida).grupo(grupo)
                 .usuario(usuario).golsMandante(2).golsVisitante(1)
-                .data(LocalDateTime.now()).build();
+                .data(LocalDateTime.now(FIXED_CLOCK)).build();
     }
 
     @Nested
@@ -101,7 +103,7 @@ class RankingSnapshotListenerTest {
             Palpite palpite2 = Palpite.builder()
                     .id(2L).partida(partida).grupo(grupo)
                     .usuario(usuario2).golsMandante(1).golsVisitante(0)
-                    .data(LocalDateTime.now()).build();
+                    .data(LocalDateTime.now(FIXED_CLOCK)).build();
 
             PartidaFinalizadaEvent event = new PartidaFinalizadaEvent(this, partida);
             when(palpiteRepository.findByPartidaId(1L)).thenReturn(List.of(palpite, palpite2));

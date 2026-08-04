@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -52,6 +53,8 @@ class RankingControllerTest {
     final RegraPontuacaoRepository regraPontuacaoRepository;
 
     final ObjectMapper objectMapper;
+
+    final Clock clock;
 
     Usuario organizador;
     Usuario participante1;
@@ -131,7 +134,7 @@ class RankingControllerTest {
                 .visitante("Time B")
                 .golsMandante(2)
                 .golsVisitante(1)
-                .data(LocalDateTime.now().minusDays(1))
+                .data(LocalDateTime.now(clock).minusDays(1))
                 .status(PartidaStatus.FINALIZADO)
                 .build());
     }
@@ -143,7 +146,7 @@ class RankingControllerTest {
                 .grupo(grupo)
                 .golsMandante(golsMandante)
                 .golsVisitante(golsVisitante)
-                .data(LocalDateTime.now())
+                .data(LocalDateTime.now(clock))
                 .build());
     }
 

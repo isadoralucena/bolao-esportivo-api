@@ -1,5 +1,7 @@
 package com.ufcg.psoft.project.service;
 
+import static com.ufcg.psoft.project.config.TestClockConfig.FIXED_CLOCK;
+
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -28,7 +30,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEvent;
@@ -65,13 +66,18 @@ class PartidaServiceImplTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
-    @InjectMocks
     private PartidaServiceImpl partidaService;
 
     private MockRestServiceServer server;
 
     @BeforeEach
     void setup() {
+        partidaService = new PartidaServiceImpl(
+                partidaRepository,
+                grupoRepository,
+                eventPublisher,
+                FIXED_CLOCK
+        );
         RestTemplate restTemplate = (RestTemplate) ReflectionTestUtils.getField(partidaService, "restTemplate");
         server = MockRestServiceServer.createServer(restTemplate);
         lenient().when(partidaRepository.save(any(Partida.class)))

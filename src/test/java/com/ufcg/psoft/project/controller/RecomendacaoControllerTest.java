@@ -1,5 +1,7 @@
 package com.ufcg.psoft.project.controller;
 
+import static com.ufcg.psoft.project.config.TestClockConfig.FIXED_CLOCK;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ufcg.psoft.project.dto.recomendacao.RecomendacaoResponseDTO;
 import com.ufcg.psoft.project.exception.CustomErrorType;
@@ -80,7 +82,7 @@ class RecomendacaoControllerTest {
         partida = partidaRepository.save(Partida.builder()
                 .campeonato(campeonato).codigoExterno(1L)
                 .mandante("Time A").visitante("Time B")
-                .data(LocalDateTime.now().plusDays(1))
+                .data(LocalDateTime.now(FIXED_CLOCK).plusDays(1))
                 .status(PartidaStatus.ABERTO).build());
     }
 
@@ -146,7 +148,7 @@ class RecomendacaoControllerTest {
                     .campeonato(campeonato).codigoExterno(99L)
                     .mandante("Time X").visitante("Time Y")
                     .golsMandante(2).golsVisitante(1)
-                    .data(LocalDateTime.now().minusDays(1))
+                    .data(LocalDateTime.now(FIXED_CLOCK).minusDays(1))
                     .status(PartidaStatus.FINALIZADO).consolidada(true).build());
 
             String responseJsonString = driver.perform(get(URI_RECOMENDACAO, grupo.getId(), partida.getId())
@@ -241,7 +243,7 @@ class RecomendacaoControllerTest {
             Partida partidaOutroCampeonato = partidaRepository.save(Partida.builder()
                     .campeonato(outroCampeonato).codigoExterno(2L)
                     .mandante("Time C").visitante("Time D")
-                    .data(LocalDateTime.now().plusDays(1))
+                    .data(LocalDateTime.now(FIXED_CLOCK).plusDays(1))
                     .status(PartidaStatus.ABERTO).build());
 
             driver.perform(get(URI_RECOMENDACAO, grupo.getId(), partidaOutroCampeonato.getId())

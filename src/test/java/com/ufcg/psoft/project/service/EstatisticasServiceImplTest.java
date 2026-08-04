@@ -1,5 +1,7 @@
 package com.ufcg.psoft.project.service;
 
+import static com.ufcg.psoft.project.config.TestClockConfig.FIXED_CLOCK;
+
 import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.PalpiteRepository;
 import com.ufcg.psoft.project.repository.PontuacaoPalpiteRepository;
@@ -14,11 +16,12 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.mockito.InjectMocks;
 
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -69,8 +72,22 @@ class EstatisticasServiceImplTest {
     @Mock
     PontuacaoPalpiteRepository pontuacaoPalpiteRepository;
 
-    @InjectMocks
     EstatisticasServiceImpl estatisticasService;
+
+    @BeforeEach
+    void setUp() {
+        estatisticasService = new EstatisticasServiceImpl(
+                campeonatoController,
+                grupoRepository,
+                palpiteRepository,
+                estatisticasRepository,
+                grupoAutorizacaoService,
+                pontuacaoService,
+                rankingService,
+                pontuacaoPalpiteRepository,
+                FIXED_CLOCK
+        );
+    }
 
     @Test
     @DisplayName("Calcula taxa de acerto")
@@ -111,7 +128,7 @@ class EstatisticasServiceImplTest {
 
         // Assert: um acerto entre dois palpites corresponde a uma taxa de 50%.
         assertEquals(0.5f, resultado.getTaxaAcerto(), 0.0001f);
-        assertNotNull(resultado.getDataRegistro());
+        assertEquals(LocalDateTime.now(FIXED_CLOCK), resultado.getDataRegistro());
     }
 
     @Test

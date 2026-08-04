@@ -1,5 +1,7 @@
 package com.ufcg.psoft.project.controller;
 
+import static com.ufcg.psoft.project.config.TestClockConfig.FIXED_CLOCK;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ufcg.psoft.project.dto.campeonato.CampeonatoResponseDTO;
 import com.ufcg.psoft.project.model.*;
@@ -18,7 +20,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -124,7 +125,7 @@ class PartidaControllerTests {
                 .codigoExterno(1L)
                 .mandante("Time A")
                 .visitante("Time B")
-                .data(LocalDateTime.now().plusDays(7))
+                .data(LocalDateTime.now(FIXED_CLOCK).plusDays(7))
                 .status(PartidaStatus.ABERTO)
                 .build());
 
@@ -133,7 +134,7 @@ class PartidaControllerTests {
                 .codigoExterno(2L)
                 .mandante("Time C")
                 .visitante("Time D")
-                .data(LocalDateTime.now().minusDays(1))
+                .data(LocalDateTime.now(FIXED_CLOCK).minusDays(1))
                 .status(PartidaStatus.FINALIZADO)
                 .golsMandante(3)
                 .golsVisitante(1)
@@ -248,7 +249,7 @@ class PartidaControllerTests {
                 .codigoExterno(3L)
                 .mandante("Time E")
                 .visitante("Time F")
-                .data(LocalDateTime.now().plusDays(14))
+                .data(LocalDateTime.now(FIXED_CLOCK).plusDays(14))
                 .status(PartidaStatus.ABERTO)
                 .build());
 
@@ -332,7 +333,7 @@ class PartidaControllerTests {
                 .codigoExterno(10L)
                 .mandante("X")
                 .visitante("Y")
-                .data(LocalDateTime.now(ZoneOffset.UTC).minusMinutes(5))
+                .data(LocalDateTime.now(FIXED_CLOCK).minusMinutes(5))
                 .status(PartidaStatus.ABERTO)
                 .build());
 
@@ -350,7 +351,7 @@ class PartidaControllerTests {
                 .codigoExterno(11L)
                 .mandante("W")
                 .visitante("Z")
-                .data(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(60))
+                .data(LocalDateTime.now(FIXED_CLOCK).plusMinutes(60))
                 .status(PartidaStatus.ABERTO)
                 .build());
 
@@ -368,7 +369,7 @@ class PartidaControllerTests {
                 .codigoExterno(12L)
                 .mandante("M")
                 .visitante("N")
-                .data(LocalDateTime.now(ZoneOffset.UTC).minusDays(1))
+                .data(LocalDateTime.now(FIXED_CLOCK).minusDays(1))
                 .status(PartidaStatus.FINALIZADO)
                 .golsMandante(2)
                 .golsVisitante(1)

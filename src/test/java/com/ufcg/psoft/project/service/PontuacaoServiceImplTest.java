@@ -1,5 +1,7 @@
 package com.ufcg.psoft.project.service;
 
+import static com.ufcg.psoft.project.config.TestClockConfig.FIXED_CLOCK;
+
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -113,7 +115,7 @@ class PontuacaoServiceImplTest {
                 .golsMandante(2)
                 .golsVisitante(1)
                 .status(PartidaStatus.FINALIZADO)
-                .data(LocalDateTime.now().minusHours(2))
+                .data(LocalDateTime.now(FIXED_CLOCK).minusHours(2))
                 .build();
 
         palpite = Palpite.builder()
@@ -252,7 +254,7 @@ class PontuacaoServiceImplTest {
                 .mandante("A").visitante("B")
                 .golsMandante(2).golsVisitante(1)
                 .status(PartidaStatus.FINALIZADO)
-                .data(LocalDateTime.now().minusHours(2))
+                .data(LocalDateTime.now(FIXED_CLOCK).minusHours(2))
                 .build();
 
         Palpite p1 = Palpite.builder().id(10L).partida(partida).usuario(u1).grupo(grupoComDois)

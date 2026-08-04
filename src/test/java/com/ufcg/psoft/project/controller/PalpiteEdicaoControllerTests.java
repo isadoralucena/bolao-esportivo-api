@@ -1,5 +1,7 @@
 package com.ufcg.psoft.project.controller;
 
+import static com.ufcg.psoft.project.config.TestClockConfig.FIXED_CLOCK;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ufcg.psoft.project.dto.palpite.PalpitePostPutRequestDTO;
 import com.ufcg.psoft.project.model.*;
@@ -13,7 +15,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -91,7 +92,7 @@ class PalpiteEdicaoControllerTests {
                 .codigoExterno(1L)
                 .mandante("Time A")
                 .visitante("Time B")
-                .data(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(60))
+                .data(LocalDateTime.now(FIXED_CLOCK).plusMinutes(60))
                 .status(PartidaStatus.ABERTO)
                 .build());
 
@@ -100,7 +101,7 @@ class PalpiteEdicaoControllerTests {
                 .codigoExterno(2L)
                 .mandante("Time C")
                 .visitante("Time D")
-                .data(LocalDateTime.now(ZoneOffset.UTC).minusDays(1))
+                .data(LocalDateTime.now(FIXED_CLOCK).minusDays(1))
                 .status(PartidaStatus.FINALIZADO)
                 .build());
 
@@ -110,7 +111,7 @@ class PalpiteEdicaoControllerTests {
                 .grupo(grupo)
                 .golsMandante(2)
                 .golsVisitante(1)
-                .data(LocalDateTime.now(ZoneOffset.UTC))
+                .data(LocalDateTime.now(FIXED_CLOCK))
                 .build());
 
         dto = PalpitePostPutRequestDTO.builder()
@@ -193,7 +194,7 @@ class PalpiteEdicaoControllerTests {
                     .grupo(grupo)
                     .golsMandante(1)
                     .golsVisitante(1)
-                    .data(LocalDateTime.now(ZoneOffset.UTC))
+                    .data(LocalDateTime.now(FIXED_CLOCK))
                     .build());
 
             mockMvc.perform(put("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
@@ -274,7 +275,7 @@ class PalpiteEdicaoControllerTests {
                     .grupo(grupo)
                     .golsMandante(1)
                     .golsVisitante(1)
-                    .data(LocalDateTime.now(ZoneOffset.UTC))
+                    .data(LocalDateTime.now(FIXED_CLOCK))
                     .build());
 
             mockMvc.perform(delete("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",

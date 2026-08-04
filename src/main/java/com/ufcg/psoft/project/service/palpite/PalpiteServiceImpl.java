@@ -23,10 +23,9 @@ import com.ufcg.psoft.project.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +38,8 @@ public class PalpiteServiceImpl implements PalpiteService {
     private final GrupoRepository grupoRepository;
 
     private final PartidaRepository partidaRepository;
+
+    private final Clock clock;
 
     @Override
     public PalpiteResponseDTO criar(Long usuarioId, String codigo, Long grupoId, Long partidaId, PalpitePostPutRequestDTO dto) {
@@ -55,7 +56,7 @@ public class PalpiteServiceImpl implements PalpiteService {
         Partida partida = partidaRepository.findById(partidaId)
                 .orElseThrow(PartidaNaoExisteException::new);
         
-        if (!partida.estaAbertaParaPalpite(grupo.getJanelaDePalpites(), LocalDateTime.now(ZoneOffset.UTC))) {
+        if (!partida.estaAbertaParaPalpite(grupo.getJanelaDePalpites(), LocalDateTime.now(clock))) {
             throw new PalpiteForaDoTempoException();
         }
 
@@ -77,7 +78,7 @@ public class PalpiteServiceImpl implements PalpiteService {
                 .grupo(grupo)
                 .golsMandante(dto.getGolsMandante())
                 .golsVisitante(dto.getGolsVisitante())
-                .data(LocalDateTime.now(ZoneOffset.UTC))
+                .data(LocalDateTime.now(clock))
                 .build();
 
         palpiteRepository.save(palpite);
@@ -137,7 +138,7 @@ public class PalpiteServiceImpl implements PalpiteService {
             throw new UsuarioInvalidoException();
         }
 
-        if (!palpite.getPartida().estaAbertaParaPalpite(palpite.getGrupo().getJanelaDePalpites(), LocalDateTime.now(ZoneOffset.UTC))) {
+        if (!palpite.getPartida().estaAbertaParaPalpite(palpite.getGrupo().getJanelaDePalpites(), LocalDateTime.now(clock))) {
             throw new PalpiteForaDoTempoException();
         }
 

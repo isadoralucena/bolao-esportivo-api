@@ -21,6 +21,8 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
 import java.util.List;
+import java.time.Clock;
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -46,6 +48,8 @@ class UsuarioControllerTest {
     final PromocaoPremiumRepository promocaoPremiumRepository;
 
     final WebApplicationContext webApplicationContext;
+
+    final Clock clock;
 
     ObjectMapper objectMapper = new ObjectMapper();
 
@@ -143,6 +147,7 @@ class UsuarioControllerTest {
 
             // Assert
             assertAll(
+                    () -> assertEquals(LocalDateTime.now(clock), resultado.getTimestamp()),
                     () -> assertEquals("Erros de validacao encontrados", resultado.getMessage()),
                     () -> assertEquals("Nome obrigatorio", resultado.getErrors().get(0))
             );
@@ -885,6 +890,7 @@ class UsuarioControllerTest {
             // Arrange
             PromocaoPremium promocao = PromocaoPremium.builder()
                     .usuario(usuario)
+                    .data(LocalDateTime.now(clock))
                     .motivo("Promovido por atingir os criterios")
                     .palpites(50)
                     .gruposParticipa(3)

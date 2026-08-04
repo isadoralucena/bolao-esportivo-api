@@ -42,6 +42,5 @@ public class RankingSnapshot {
 
     @JsonProperty("dataSnapshot")
     @Column(nullable = false)
-    @Builder.Default
-    private LocalDateTime dataSnapshot = LocalDateTime.now();
+    private LocalDateTime dataSnapshot;
 }

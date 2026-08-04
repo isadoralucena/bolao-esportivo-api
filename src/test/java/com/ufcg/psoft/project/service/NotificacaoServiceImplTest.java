@@ -1,5 +1,7 @@
 package com.ufcg.psoft.project.service;
 
+import static com.ufcg.psoft.project.config.TestClockConfig.FIXED_CLOCK;
+
 import com.ufcg.psoft.project.model.Partida;
 import com.ufcg.psoft.project.model.PartidaStatus;
 import com.ufcg.psoft.project.service.notificacao.NotificacaoService;
@@ -58,7 +60,7 @@ class NotificacaoServiceImplTest {
                 .golsMandante(2)
                 .golsVisitante(1)
                 .status(status)
-                .data(LocalDateTime.now().plusDays(1))
+                .data(LocalDateTime.now(FIXED_CLOCK).plusDays(1))
                 .codigoExterno(id)
                 .build();
     }

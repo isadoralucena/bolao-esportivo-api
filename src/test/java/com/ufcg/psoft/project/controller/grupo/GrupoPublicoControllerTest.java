@@ -1,5 +1,7 @@
 package com.ufcg.psoft.project.controller.grupo;
 
+import static com.ufcg.psoft.project.config.TestClockConfig.FIXED_CLOCK;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.ufcg.psoft.project.dto.grupo.GrupoResponseDTO;
@@ -246,7 +248,7 @@ class GrupoPublicoControllerTest {
                     .codigoExterno(123L)
                     .mandante("Time A")
                     .visitante("Time B")
-                    .data(LocalDateTime.now().minusDays(1))
+                    .data(LocalDateTime.now(FIXED_CLOCK).minusDays(1))
                     .status(PartidaStatus.FINALIZADO)
                     .build());
  
@@ -255,7 +257,7 @@ class GrupoPublicoControllerTest {
                     .codigoExterno(125L)
                     .mandante("Time E")
                     .visitante("Time F")
-                    .data(LocalDateTime.now().plusDays(1))
+                    .data(LocalDateTime.now(FIXED_CLOCK).plusDays(1))
                     .status(PartidaStatus.ABERTO)
                     .build());
  
@@ -354,7 +356,7 @@ class GrupoPublicoControllerTest {
                     .codigoExterno(123L)
                     .mandante("Time A")
                     .visitante("Time B")
-                    .data(LocalDateTime.now().plusDays(1))
+                    .data(LocalDateTime.now(FIXED_CLOCK).plusDays(1))
                     .status(PartidaStatus.FINALIZADO)
                     .build());
  
@@ -381,7 +383,7 @@ class GrupoPublicoControllerTest {
                     .codigoExterno(123L)
                     .mandante("Time A")
                     .visitante("Time B")
-                    .data(LocalDateTime.now().minusDays(1))
+                    .data(LocalDateTime.now(FIXED_CLOCK).minusDays(1))
                     .status(PartidaStatus.FINALIZADO)
                     .build());
  
@@ -390,7 +392,7 @@ class GrupoPublicoControllerTest {
                     .codigoExterno(124L)
                     .mandante("Time C")
                     .visitante("Time D")
-                    .data(LocalDateTime.now().minusDays(2))
+                    .data(LocalDateTime.now(FIXED_CLOCK).minusDays(2))
                     .status(PartidaStatus.FINALIZADO)
                     .build());
  

@@ -46,6 +46,5 @@ public class Palpite {
 
     @JsonProperty("data")
     @Column(nullable = false)
-    @Builder.Default
-    private LocalDateTime data = LocalDateTime.now();
+    private LocalDateTime data;
 }

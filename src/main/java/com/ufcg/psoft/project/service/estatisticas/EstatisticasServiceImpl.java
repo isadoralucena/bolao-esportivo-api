@@ -2,8 +2,8 @@ package com.ufcg.psoft.project.service.estatisticas;
 
 import com.ufcg.psoft.project.controller.CampeonatoController;
 import com.ufcg.psoft.project.repository.GrupoRepository;
+import java.time.Clock;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -54,6 +54,8 @@ public class EstatisticasServiceImpl implements EstatisticasService {
     private final RankingService rankingService;
 
     private final PontuacaoPalpiteRepository pontuacaoPalpiteRepository;
+
+    private final Clock clock;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -128,7 +130,7 @@ public class EstatisticasServiceImpl implements EstatisticasService {
             .vitoriasRankings(contarVitoriasRankings(u))
             .maiorSequenciaAcertos(contarSequenciaAcertos(u))
             .totalPalpitesCorretos(palpitesCorretos)
-            .dataRegistro(LocalDateTime.now(ZoneOffset.UTC))
+            .dataRegistro(LocalDateTime.now(clock))
             .build();
         
         return e;

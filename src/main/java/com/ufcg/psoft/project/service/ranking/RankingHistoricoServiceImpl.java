@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +32,8 @@ public class RankingHistoricoServiceImpl implements RankingHistoricoService {
     private final PontuacaoService pontuacaoService;
 
     private final RankingCalculator rankingCalculator;
+
+    private final Clock clock;
 
     @Value("${project.ranking.historico.desempenho-recente-partidas:5}")
     private int desempenhoRecentePartidas;
@@ -114,7 +117,7 @@ public class RankingHistoricoServiceImpl implements RankingHistoricoService {
                     .partida(partida)
                     .posicao(posicoes.get(pontuacao.getUsuarioId()))
                     .pontuacao(pontuacao.getPontuacao())
-                    .dataSnapshot(LocalDateTime.now())
+                    .dataSnapshot(LocalDateTime.now(clock))
                     .build());
         }
 
