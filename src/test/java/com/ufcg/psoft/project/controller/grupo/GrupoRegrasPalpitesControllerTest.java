@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("Testes de configuração de regras de palpites - US10")
 @RequiredArgsConstructor
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
-public class GrupoRegrasPalpitesControllerTest {
+class GrupoRegrasPalpitesControllerTest {
 
     final String URI_GRUPOS = "/grupos";
 

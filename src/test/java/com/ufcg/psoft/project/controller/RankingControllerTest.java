@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("Testes do controlador de Rankings - US13")
 @RequiredArgsConstructor
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
-public class RankingControllerTest {
+class RankingControllerTest {
 
     final String URI_RANKING = "/ranking";
 

@@ -1,6 +1,9 @@
 package com.ufcg.psoft.project.controller.grupo;
 
 import lombok.RequiredArgsConstructor;
+
+import java.util.Set;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.MediaType;
 
 import com.ufcg.psoft.project.dto.grupo.RegraPontuacaoPostPutRequestDTO;
+import com.ufcg.psoft.project.dto.grupo.RegraPontuacaoResponseDTO;
 import com.ufcg.psoft.project.service.grupo.pontuacao.RegraPontuacaoService;
 import com.ufcg.psoft.project.service.premium.RequisicaoAutenticadaEvent;
 
@@ -32,7 +36,7 @@ public class RegraPontuacaoController {
     private final ApplicationEventPublisher eventPublisher;
     
     @PostMapping("/{grupoId}/regras-pontuacao")
-	public ResponseEntity<?> inserirRegraPontuacao(
+	public ResponseEntity<RegraPontuacaoResponseDTO> inserirRegraPontuacao(
 			@RequestParam Long usuarioId,
 			@RequestParam String codigoUsuario,
 			@PathVariable Long grupoId,
@@ -45,7 +49,7 @@ public class RegraPontuacaoController {
 	}
 
 	@GetMapping("/{grupoId}/regras-pontuacao")
-	public ResponseEntity<?> listarRegrasPontuacao(
+	public ResponseEntity<Set<RegraPontuacaoResponseDTO>> listarRegrasPontuacao(
 			@RequestParam Long usuarioId,
 			@RequestParam String codigoUsuario,
 			@PathVariable Long grupoId) {
@@ -57,7 +61,7 @@ public class RegraPontuacaoController {
 	}
 
 	@DeleteMapping("/{grupoId}/regras-pontuacao/{regraId}")
-	public ResponseEntity<?> removerRegraPontuacao(
+	public ResponseEntity<Void> removerRegraPontuacao(
 			@RequestParam Long usuarioId,
 			@RequestParam String codigoUsuario,
 			@PathVariable Long grupoId,

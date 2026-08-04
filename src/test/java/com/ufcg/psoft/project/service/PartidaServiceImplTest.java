@@ -55,7 +55,7 @@ import com.ufcg.psoft.project.service.partida.PartidaServiceImpl;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Testes de service de partida")
-public class PartidaServiceImplTest {
+class PartidaServiceImplTest {
     @Mock
     private PartidaRepository partidaRepository;
 

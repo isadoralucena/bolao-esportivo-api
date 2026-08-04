@@ -1,6 +1,9 @@
 package com.ufcg.psoft.project.controller.grupo;
 
 import lombok.RequiredArgsConstructor;
+
+import java.util.Set;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.MediaType;
 
+import com.ufcg.psoft.project.dto.grupo.GrupoResponseDTO;
+import com.ufcg.psoft.project.dto.usuario.UsuarioResponseDTO;
 import com.ufcg.psoft.project.service.grupo.participante.GrupoParticipanteService;
 import com.ufcg.psoft.project.service.premium.RequisicaoAutenticadaEvent;
 
@@ -28,7 +33,7 @@ public class GrupoParticipanteController {
     private final ApplicationEventPublisher eventPublisher;
 
     @GetMapping("/{grupoId}/participantes")
-    public ResponseEntity<?> listarParticipantes(
+    public ResponseEntity<Set<UsuarioResponseDTO>> listarParticipantes(
             @RequestParam Long usuarioId,
             @RequestParam String codigoUsuario,
             @PathVariable Long grupoId) {
@@ -40,7 +45,7 @@ public class GrupoParticipanteController {
     }
 
     @DeleteMapping("/{grupoId}/participantes/{participanteId}")
-    public ResponseEntity<?> removerParticipante(
+    public ResponseEntity<Void> removerParticipante(
             @RequestParam Long usuarioId,
             @RequestParam String codigoUsuario,
             @PathVariable Long grupoId,
@@ -53,7 +58,7 @@ public class GrupoParticipanteController {
     }
 
     @PostMapping("/{grupoId}/entrar")
-    public ResponseEntity<?> entrarEmGrupoPublico(
+    public ResponseEntity<GrupoResponseDTO> entrarEmGrupoPublico(
                 @RequestParam Long usuarioId,
                 @RequestParam String codigoUsuario,
                 @PathVariable Long grupoId) {

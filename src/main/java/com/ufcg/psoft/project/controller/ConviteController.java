@@ -110,5 +110,4 @@ public class ConviteController {
         usuarioRepository.findByCodigoIgnoreCase(codigo)
                 .ifPresent(u -> eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(u.getId())));
     }
-
 }

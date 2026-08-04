@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ufcg.psoft.project.dto.ranking.RankingResponseDTO;
 import com.ufcg.psoft.project.service.premium.RequisicaoAutenticadaEvent;
 import com.ufcg.psoft.project.service.ranking.RankingService;
 
@@ -23,11 +24,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 @RequiredArgsConstructor
 public class RankingController {
     private final RankingService rankingService;
-
     private final ApplicationEventPublisher eventPublisher;
 
     @GetMapping
-    public ResponseEntity<?> rankingGlobal(
+    public ResponseEntity<RankingResponseDTO> rankingGlobal(
             @RequestParam Long usuarioId,
             @RequestParam String codigoUsuario) {
         var resultado = rankingService.rankingGlobal(usuarioId, codigoUsuario);
@@ -38,7 +38,7 @@ public class RankingController {
     }
 
     @GetMapping("/grupo/{grupoId}")
-    public ResponseEntity<?> rankingDoGrupo(
+    public ResponseEntity<RankingResponseDTO> rankingDoGrupo(
             @PathVariable Long grupoId,
             @RequestParam Long usuarioId,
             @RequestParam String codigoUsuario) {

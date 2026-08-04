@@ -1,8 +1,12 @@
 package com.ufcg.psoft.project.controller;
 
+import com.ufcg.psoft.project.dto.estatisticas.EstatisticasResponseDTO;
 import com.ufcg.psoft.project.service.estatisticas.EstatisticasService;
 import com.ufcg.psoft.project.service.premium.RequisicaoAutenticadaEvent;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -19,7 +23,7 @@ public class EstatisticasController {
     private final ApplicationEventPublisher eventPublisher;
 
     @GetMapping("/{usuarioId}/estatisticas")
-    public ResponseEntity<?> obterEstatisticas(@PathVariable Long usuarioId, @RequestParam String codigoUsuario) {
+    public ResponseEntity<EstatisticasResponseDTO> obterEstatisticas(@PathVariable Long usuarioId, @RequestParam String codigoUsuario) {
         var resultado = estatisticasService.obterEstatisticaMaisRecente(usuarioId, codigoUsuario);
         eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
@@ -28,7 +32,7 @@ public class EstatisticasController {
     }
 
     @GetMapping("/{usuarioId}/estatisticas/evolucao")
-    public ResponseEntity<?> obterEvolucao(@PathVariable Long usuarioId, @RequestParam String codigoUsuario) {
+    public ResponseEntity<List<EstatisticasResponseDTO>> obterEvolucao(@PathVariable Long usuarioId, @RequestParam String codigoUsuario) {
         var resultado = estatisticasService.obterEvolucaoEstatisticas(usuarioId, codigoUsuario);
         eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity

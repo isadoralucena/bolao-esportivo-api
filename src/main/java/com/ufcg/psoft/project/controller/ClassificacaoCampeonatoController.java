@@ -1,7 +1,11 @@
 package com.ufcg.psoft.project.controller;
 
+import com.ufcg.psoft.project.dto.campeonato.ClassificacaoCampeonatoResponseDTO;
 import com.ufcg.psoft.project.service.campeonato.ClassificacaoCampeonatoService;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +22,7 @@ public class ClassificacaoCampeonatoController {
     private final ClassificacaoCampeonatoService classificacaoCampeonatoService;
 
     @GetMapping("/{campeonatoId}/classificacao")
-    public ResponseEntity<?> listarClassificacao(@PathVariable Long campeonatoId) {
+    public ResponseEntity<List<ClassificacaoCampeonatoResponseDTO>> listarClassificacao(@PathVariable Long campeonatoId) {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(classificacaoCampeonatoService.listarPorCampeonato(campeonatoId));

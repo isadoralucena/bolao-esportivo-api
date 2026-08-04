@@ -39,7 +39,7 @@ import org.springframework.http.MediaType;
 @DisplayName("Testes das operações CRUD de grupos de bolão")
 @RequiredArgsConstructor
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
-public class GrupoCrudControllerTest {
+class GrupoCrudControllerTest {
     final String URI_GRUPOS = "/grupos";
 
     final MockMvc driver;

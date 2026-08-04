@@ -34,7 +34,7 @@ import com.ufcg.psoft.project.service.campeonato.ClassificacaoCampeonatoServiceI
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("Testes da service de classificação de campeonato")
-public class ClassificacaoCampeonatoServiceImplTest {
+class ClassificacaoCampeonatoServiceImplTest {
     @Mock
     private ClassificacaoCampeonatoRepository classificacaoCampeonatoRepository;
 

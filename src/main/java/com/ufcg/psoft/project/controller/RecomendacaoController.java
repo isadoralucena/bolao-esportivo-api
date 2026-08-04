@@ -1,5 +1,6 @@
 package com.ufcg.psoft.project.controller;
 
+import com.ufcg.psoft.project.dto.recomendacao.RecomendacaoResponseDTO;
 import com.ufcg.psoft.project.service.premium.RequisicaoAutenticadaEvent;
 import com.ufcg.psoft.project.service.recomendacao.RecomendacaoService;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ public class RecomendacaoController {
     private final ApplicationEventPublisher eventPublisher;
 
     @GetMapping("/grupos/{grupoId}/partidas/{partidaId}/recomendacao")
-    public ResponseEntity<?> recomendarPalpite(
+    public ResponseEntity<RecomendacaoResponseDTO> recomendarPalpite(
             @PathVariable Long grupoId,
             @PathVariable Long partidaId,
             @RequestParam Long usuarioId,

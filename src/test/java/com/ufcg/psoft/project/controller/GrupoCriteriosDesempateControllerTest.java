@@ -50,7 +50,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("Testes sobre os critérios de desempate do controlador de grupos de bolão")
 @RequiredArgsConstructor
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
-public class GrupoCriteriosDesempateControllerTest {
+class GrupoCriteriosDesempateControllerTest {
 
     private static final String URI_GRUPOS = "/grupos";
 

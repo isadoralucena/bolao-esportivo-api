@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("Testes do controlador de classificação de campeonato")
 @RequiredArgsConstructor
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
-public class ClassificacaoCampeonatoControllerTest {
+class ClassificacaoCampeonatoControllerTest {
 
     final MockMvc mockMvc;
 

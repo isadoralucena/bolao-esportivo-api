@@ -25,7 +25,6 @@ import com.ufcg.psoft.project.model.Usuario;
 import com.ufcg.psoft.project.repository.ConviteRepository;
 import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
-import com.ufcg.psoft.project.service.grupo.GrupoService;
 import com.ufcg.psoft.project.service.grupo.participante.GrupoParticipanteService;
 
 @Service

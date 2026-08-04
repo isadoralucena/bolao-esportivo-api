@@ -31,7 +31,7 @@ import com.ufcg.psoft.project.repository.UsuarioRepository;
 @DisplayName("Testes sobre o gerenciamento de participantes de grupos de bolão")
 @RequiredArgsConstructor
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
-public class GrupoParticipantesControllerTest {
+class GrupoParticipantesControllerTest {
 
     final String URI_GRUPOS = "/grupos";
  

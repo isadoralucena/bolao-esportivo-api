@@ -1,7 +1,12 @@
 package com.ufcg.psoft.project.controller;
 
+import com.ufcg.psoft.project.dto.ranking.HistoricoRankingResponseDTO;
+import com.ufcg.psoft.project.dto.ranking.RankingSnapshotResponseDTO;
 import com.ufcg.psoft.project.service.ranking.RankingHistoricoService;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -14,11 +19,10 @@ import org.springframework.web.bind.annotation.*;
 )
 @RequiredArgsConstructor
 public class RankingHistoricoController {
-
     private final RankingHistoricoService rankingHistoricoService;
 
     @GetMapping
-    public ResponseEntity<?> obterHistorico(
+    public ResponseEntity<HistoricoRankingResponseDTO> obterHistorico(
             @PathVariable Long grupoId) {
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -26,7 +30,7 @@ public class RankingHistoricoController {
     }
 
     @GetMapping("/{usuarioId}")
-    public ResponseEntity<?> obterHistoricoPorParticipante(
+    public ResponseEntity<HistoricoRankingResponseDTO> obterHistoricoPorParticipante(
             @PathVariable Long grupoId,
             @PathVariable Long usuarioId) {
         return ResponseEntity
@@ -35,7 +39,7 @@ public class RankingHistoricoController {
     }
 
     @GetMapping("/lideres")
-    public ResponseEntity<?> obterLideresHistoricos(
+    public ResponseEntity<List<RankingSnapshotResponseDTO>> obterLideresHistoricos(
             @PathVariable Long grupoId) {
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -43,7 +47,7 @@ public class RankingHistoricoController {
     }
 
     @GetMapping("/recente")
-    public ResponseEntity<?> obterDesempenhoRecente(
+    public ResponseEntity<List<RankingSnapshotResponseDTO>> obterDesempenhoRecente(
             @PathVariable Long grupoId) {
         return ResponseEntity
                 .status(HttpStatus.OK)

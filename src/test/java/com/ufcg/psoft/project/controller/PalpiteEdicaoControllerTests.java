@@ -23,7 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("Testes de edição e exclusão de palpites - US8")
 @RequiredArgsConstructor
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
-public class PalpiteEdicaoControllerTests {
+class PalpiteEdicaoControllerTests {
 
     final MockMvc mockMvc;
 

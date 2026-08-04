@@ -1,10 +1,15 @@
 package com.ufcg.psoft.project.controller;
 
+import com.ufcg.psoft.project.dto.usuario.PromocaoPremiumResponseDTO;
 import com.ufcg.psoft.project.dto.usuario.UsuarioPostPutRequestDTO;
+import com.ufcg.psoft.project.dto.usuario.UsuarioResponseDTO;
 import com.ufcg.psoft.project.service.premium.RequisicaoAutenticadaEvent;
 import com.ufcg.psoft.project.service.usuario.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -24,7 +29,7 @@ public class UsuarioController {
     private final ApplicationEventPublisher eventPublisher;
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> recuperarUsuario(
+    public ResponseEntity<UsuarioResponseDTO> recuperarUsuario(
             @PathVariable Long id) {
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -32,7 +37,7 @@ public class UsuarioController {
     }
 
     @GetMapping("")
-    public ResponseEntity<?> listarUsuarios(
+    public ResponseEntity<List<UsuarioResponseDTO>> listarUsuarios(
             @RequestParam(required = false, defaultValue = "") String nome) {
 
         if (nome != null && !nome.isEmpty()) {
@@ -46,7 +51,7 @@ public class UsuarioController {
     }
 
     @PostMapping()
-    public ResponseEntity<?> criarUsuario(
+    public ResponseEntity<UsuarioResponseDTO> criarUsuario(
             @RequestBody @Valid UsuarioPostPutRequestDTO usuarioPostPutRequestDto) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -54,7 +59,7 @@ public class UsuarioController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> atualizarUsuario(
+    public ResponseEntity<UsuarioResponseDTO> atualizarUsuario(
             @PathVariable Long id,
             @RequestParam String codigoUsuario,
             @RequestBody @Valid UsuarioPostPutRequestDTO usuarioPostPutRequestDto) {
@@ -66,7 +71,7 @@ public class UsuarioController {
     }
 
     @GetMapping("/{id}/promocao-premium")
-    public ResponseEntity<?> obterPromocaoPremium(
+    public ResponseEntity<PromocaoPremiumResponseDTO> obterPromocaoPremium(
             @PathVariable Long id) {
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -74,13 +79,13 @@ public class UsuarioController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> excluirUsuario(
+    public ResponseEntity<Void> excluirUsuario(
             @PathVariable Long id,
             @RequestParam String codigoUsuario) {
         usuarioService.remover(id, codigoUsuario);
         eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(id));
         return ResponseEntity
-                .status(HttpStatus.NO_CONTENT)
-                .body("");
+				.status(HttpStatus.NO_CONTENT)
+				.build();
     }
 }

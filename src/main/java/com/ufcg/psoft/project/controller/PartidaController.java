@@ -1,9 +1,13 @@
 package com.ufcg.psoft.project.controller;
 
+import com.ufcg.psoft.project.dto.partida.PartidaResponseDTO;
 import com.ufcg.psoft.project.service.partida.PartidaService;
 import com.ufcg.psoft.project.service.premium.RequisicaoAutenticadaEvent;
 import com.ufcg.psoft.project.service.recomendacao.RecomendacaoService;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -22,21 +26,21 @@ public class PartidaController {
     private final ApplicationEventPublisher eventPublisher;
 
     @GetMapping("/campeonatos/{campeonatoId}/partidas")
-    public ResponseEntity<?> listarPartidasDoCampeonato(@PathVariable Long campeonatoId) {
+    public ResponseEntity<List<PartidaResponseDTO>> listarPartidasDoCampeonato(@PathVariable Long campeonatoId) {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(partidaService.listarPorCampeonato(campeonatoId));
     }
 
     @GetMapping("/grupos/{grupoId}/partidas")
-    public ResponseEntity<?> listarPartidasDoGrupo(@PathVariable Long grupoId) {
+    public ResponseEntity<List<PartidaResponseDTO>> listarPartidasDoGrupo(@PathVariable Long grupoId) {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(partidaService.listarPorGrupo(grupoId));
     }
 
     @GetMapping("/partidas/futuras")
-    public ResponseEntity<?> listarPartidasFuturas(
+    public ResponseEntity<List<PartidaResponseDTO>> listarPartidasFuturas(
             @RequestParam Long usuarioId,
             @RequestParam String codigoUsuario) {
         var resultado = recomendacaoService.listarPartidasFuturasComRecomendacao(usuarioId, codigoUsuario);

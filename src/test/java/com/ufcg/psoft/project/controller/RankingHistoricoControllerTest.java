@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("Testes do controlador de Historico de Rankings - US18")
 @RequiredArgsConstructor
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
-public class RankingHistoricoControllerTest {
+class RankingHistoricoControllerTest {
 
     final String URI_HISTORICO = "/grupos/{grupoId}/ranking/historico";
 

@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("Testes do controlador de Convites - US4")
 @RequiredArgsConstructor
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
-public class ConviteControllerTest {
+class ConviteControllerTest {
 
     final String URI_CONVITES = "/convites";
 

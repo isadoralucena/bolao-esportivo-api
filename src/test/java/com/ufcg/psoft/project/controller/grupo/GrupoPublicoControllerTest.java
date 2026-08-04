@@ -38,7 +38,7 @@ import java.time.LocalDateTime;
 @DisplayName("Testes das regras de entrada em grupos públicos de bolão")
 @RequiredArgsConstructor
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
-public class GrupoPublicoControllerTest {
+class GrupoPublicoControllerTest {
 
     final String URI_GRUPOS = "/grupos";
 

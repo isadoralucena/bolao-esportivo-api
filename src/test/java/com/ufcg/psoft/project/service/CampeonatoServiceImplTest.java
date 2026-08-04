@@ -39,7 +39,7 @@ import com.ufcg.psoft.project.service.partida.PartidaService;
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("Testes de service de campeonato")
-public class CampeonatoServiceImplTest {
+class CampeonatoServiceImplTest {
     @Mock
     private CampeonatoRepository campeonatoRepository;
 

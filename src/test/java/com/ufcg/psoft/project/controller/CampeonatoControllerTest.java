@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("CampeonatoController combined tests")
 @RequiredArgsConstructor
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
-public class CampeonatoControllerTest {
+class CampeonatoControllerTest {
 
 	private static final String URI_CAMPEONATOS = "/campeonatos";
 

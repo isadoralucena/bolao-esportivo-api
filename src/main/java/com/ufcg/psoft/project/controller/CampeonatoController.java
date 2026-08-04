@@ -1,10 +1,14 @@
 package com.ufcg.psoft.project.controller;
 
 import com.ufcg.psoft.project.dto.campeonato.CampeonatoPostPutRequestDTO;
+import com.ufcg.psoft.project.dto.campeonato.CampeonatoResponseDTO;
 import com.ufcg.psoft.project.service.campeonato.CampeonatoService;
 import com.ufcg.psoft.project.service.premium.RequisicaoAutenticadaEvent;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -24,14 +28,14 @@ public class CampeonatoController {
 	private final ApplicationEventPublisher eventPublisher;
 
 	@GetMapping("/{id}")
-	public ResponseEntity<?> recuperarCampeonato(@PathVariable Long id) {
+	public ResponseEntity<CampeonatoResponseDTO> recuperarCampeonato(@PathVariable Long id) {
 		return ResponseEntity
 			.status(HttpStatus.OK)
 			.body(campeonatoService.recuperar(id));
 	}
 
 	@GetMapping("")
-	public ResponseEntity<?> listarCampeonatos() {
+	public ResponseEntity<List<CampeonatoResponseDTO>> listarCampeonatos() {
 
 		return ResponseEntity
 			.status(HttpStatus.OK)
@@ -39,14 +43,14 @@ public class CampeonatoController {
 	}
 
 	@GetMapping("/buscar")
-	public ResponseEntity<?> buscarCampeonatoPorNome(@RequestParam String nome) {
+	public ResponseEntity<List<CampeonatoResponseDTO>> buscarCampeonatoPorNome(@RequestParam String nome) {
 		return ResponseEntity
 			.status(HttpStatus.OK)
 			.body(campeonatoService.recuperarNome(nome));
 	}
 
 	@PostMapping("")
-	public ResponseEntity<?> criarCampeonato(
+	public ResponseEntity<CampeonatoResponseDTO> criarCampeonato(
 		@RequestParam Long userId,
 		@RequestParam String senha,
 		@RequestBody @Valid CampeonatoPostPutRequestDTO dto) {
@@ -59,7 +63,7 @@ public class CampeonatoController {
 	}
 
 	@PutMapping("/{id}/ativar")
-	public ResponseEntity<?> ativarCampeonato(
+	public ResponseEntity<CampeonatoResponseDTO> ativarCampeonato(
 		@PathVariable Long id,
 		@RequestParam Long userId,
 		@RequestParam String senha) {
@@ -72,7 +76,7 @@ public class CampeonatoController {
 	}
 
 	@PutMapping("/{id}/desativar")
-	public ResponseEntity<?> desativarCampeonato(
+	public ResponseEntity<CampeonatoResponseDTO> desativarCampeonato(
 		@PathVariable Long id,
 		@RequestParam Long userId,
 		@RequestParam String senha) {
@@ -85,7 +89,7 @@ public class CampeonatoController {
 	}
 
 	@DeleteMapping("/{id}")
-	public ResponseEntity<?> excluirCampeonato(
+	public ResponseEntity<Void> excluirCampeonato(
 		@PathVariable Long id,
 		@RequestParam Long userId,
 		@RequestParam String senha) {
@@ -95,11 +99,11 @@ public class CampeonatoController {
 
 		return ResponseEntity
 			.status(HttpStatus.NO_CONTENT)
-			.body("");
+			.build();
 	}
 
     @PostMapping("/{campeonatoId}/sincronizar")
-    public ResponseEntity<?> sincronizarCampeonato(
+    public ResponseEntity<CampeonatoResponseDTO> sincronizarCampeonato(
             @PathVariable Long campeonatoId,
             @RequestParam Long userId,
             @RequestParam String senha) {

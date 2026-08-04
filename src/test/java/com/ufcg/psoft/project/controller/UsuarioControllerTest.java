@@ -35,7 +35,7 @@ import java.nio.charset.StandardCharsets;
 @DisplayName("Testes do controlador de Usuários")
 @RequiredArgsConstructor
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
-public class UsuarioControllerTest {
+class UsuarioControllerTest {
 
     final String URI_USUARIOS = "/usuarios";
 

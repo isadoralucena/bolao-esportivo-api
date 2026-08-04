@@ -34,7 +34,7 @@ import java.util.List;
 @DisplayName("Testes do controlador de Partidas")
 @RequiredArgsConstructor
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
-public class PartidaControllerTests {
+class PartidaControllerTests {
 
     final MockMvc mockMvc;
 

@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("Testes do controlador de Recomendacoes - US20")
 @RequiredArgsConstructor
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
-public class RecomendacaoControllerTest {
+class RecomendacaoControllerTest {
 
     final String URI_RECOMENDACAO = "/grupos/{grupoId}/partidas/{partidaId}/recomendacao";
 

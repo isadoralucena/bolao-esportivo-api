@@ -35,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("Testes de pontuação automática")
 @RequiredArgsConstructor
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
-public class GrupoPontuacaoControllerTest {
+class GrupoPontuacaoControllerTest {
 
     final String URI_GRUPOS = "/grupos";
 

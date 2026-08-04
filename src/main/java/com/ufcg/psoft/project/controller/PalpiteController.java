@@ -1,10 +1,14 @@
 package com.ufcg.psoft.project.controller;
 
 import com.ufcg.psoft.project.dto.palpite.PalpitePostPutRequestDTO;
+import com.ufcg.psoft.project.dto.palpite.PalpiteResponseDTO;
 import com.ufcg.psoft.project.service.palpite.PalpiteService;
 import com.ufcg.psoft.project.service.premium.RequisicaoAutenticadaEvent;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -22,7 +26,7 @@ public class PalpiteController {
     private final ApplicationEventPublisher eventPublisher;
 
     @PostMapping("/grupos/{grupoId}/partidas/{partidaId}/palpites")
-    public ResponseEntity<?> criarPalpite(
+    public ResponseEntity<PalpiteResponseDTO> criarPalpite(
             @PathVariable Long grupoId,
             @PathVariable Long partidaId,
             @RequestParam Long usuarioId,
@@ -36,7 +40,7 @@ public class PalpiteController {
     }
 
     @GetMapping("/grupos/{grupoId}/partidas/{partidaId}/palpites")
-    public ResponseEntity<?> listarPalpitesDaPartida(
+    public ResponseEntity<List<PalpiteResponseDTO>> listarPalpitesDaPartida(
             @PathVariable Long grupoId,
             @PathVariable Long partidaId) {
         return ResponseEntity
@@ -45,21 +49,21 @@ public class PalpiteController {
     }
 
     @GetMapping("/grupos/{grupoId}/palpites")
-    public ResponseEntity<?> listarPalpitesDoGrupo(@PathVariable Long grupoId) {
+    public ResponseEntity<List<PalpiteResponseDTO>> listarPalpitesDoGrupo(@PathVariable Long grupoId) {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(palpiteService.listarPorGrupo(grupoId));
     }
 
     @GetMapping("/usuarios/{usuarioId}/palpites")
-    public ResponseEntity<?> listarPalpitesDoUsuario(@PathVariable Long usuarioId) {
+    public ResponseEntity<List<PalpiteResponseDTO>> listarPalpitesDoUsuario(@PathVariable Long usuarioId) {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(palpiteService.listarPorUsuario(usuarioId));
     }
 
     @PutMapping("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}")
-    public ResponseEntity<?> editarPalpite(
+    public ResponseEntity<PalpiteResponseDTO> editarPalpite(
             @PathVariable Long grupoId,
             @PathVariable Long partidaId,
             @PathVariable Long palpiteId,
@@ -74,7 +78,7 @@ public class PalpiteController {
     }
 
     @DeleteMapping("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}")
-    public ResponseEntity<?> deletarPalpite(
+    public ResponseEntity<Void> deletarPalpite(
             @PathVariable Long grupoId,
             @PathVariable Long partidaId,
             @PathVariable Long palpiteId,

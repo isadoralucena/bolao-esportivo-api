@@ -13,7 +13,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @DisplayName("Testes do builder de comparador de critérios de desempate")
-public class ComparadorCriterioDesempateBuilderTest {
+class ComparadorCriterioDesempateBuilderTest {
 
     private PontuacaoParticipanteResponseDTO participante(
             String nome, int placaresExatos, int erros, int acertosVencedor, int acertosEmpate) {
