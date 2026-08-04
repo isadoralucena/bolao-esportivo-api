@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,7 +50,7 @@ public class PalpiteServiceImpl implements PalpiteService {
         Partida partida = partidaRepository.findById(partidaId)
                 .orElseThrow(PartidaNaoExisteException::new);
         
-        if (!partida.estaAbertaParaPalpite(grupo.getJanelaDePalpites(), LocalDateTime.now())) {
+        if (!partida.estaAbertaParaPalpite(grupo.getJanelaDePalpites(), LocalDateTime.now(ZoneOffset.UTC))) {
             throw new PalpiteForaDoTempoException();
         }
 
@@ -71,7 +72,7 @@ public class PalpiteServiceImpl implements PalpiteService {
                 .grupo(grupo)
                 .golsMandante(dto.getGolsMandante())
                 .golsVisitante(dto.getGolsVisitante())
-                .data(LocalDateTime.now())
+                .data(LocalDateTime.now(ZoneOffset.UTC))
                 .build();
 
         palpiteRepository.save(palpite);
@@ -131,7 +132,7 @@ public class PalpiteServiceImpl implements PalpiteService {
             throw new UsuarioInvalidoException();
         }
 
-        if (!palpite.getPartida().estaAbertaParaPalpite(palpite.getGrupo().getJanelaDePalpites(), LocalDateTime.now())) {
+        if (!palpite.getPartida().estaAbertaParaPalpite(palpite.getGrupo().getJanelaDePalpites(), LocalDateTime.now(ZoneOffset.UTC))) {
             throw new PalpiteForaDoTempoException();
         }
 

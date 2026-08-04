@@ -1,6 +1,7 @@
 package com.ufcg.psoft.project.dto.partida;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.ufcg.psoft.project.model.Grupo;
 import com.ufcg.psoft.project.model.Partida;
 import com.ufcg.psoft.project.model.PartidaStatus;
 import lombok.AllArgsConstructor;
@@ -37,8 +38,8 @@ public class PartidaResponseDTO {
     @JsonProperty("status")
     private PartidaStatus status;
 
-    @JsonProperty("rodada")
-    private Integer rodada;
+    @JsonProperty("mataMata")
+    private boolean mataMata;
 
     public PartidaResponseDTO(Partida partida) {
         this.id = partida.getId();
@@ -48,6 +49,11 @@ public class PartidaResponseDTO {
         this.golsVisitante = partida.getGolsVisitante();
         this.data = partida.getData();
         this.status = partida.getStatus();
-        this.rodada = partida.getRodada();
+        this.mataMata = partida.isMataMata();
+    }
+
+    public PartidaResponseDTO(Partida partida, Grupo grupo, LocalDateTime agora) {
+        this(partida);
+        this.status = partida.statusEfetivoParaGrupo(grupo, agora);
     }
 }

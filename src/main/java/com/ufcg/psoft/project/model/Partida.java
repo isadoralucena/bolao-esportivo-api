@@ -52,8 +52,10 @@ public class Partida {
     @Column(nullable = false)
     private PartidaStatus status;
 
-    @JsonProperty("rodada")
-    private Integer rodada;
+    @JsonProperty("mataMata")
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean mataMata = false;
 
     public boolean estaAbertaParaPalpite(JanelaDePalpites janela, LocalDateTime horaAtual) {
         if (this.status != PartidaStatus.ABERTO) {
@@ -64,5 +66,15 @@ public class Partida {
         LocalDateTime horarioFechamento = this.data.minusMinutes(janela.minutosFechamento());
 
         return !horaAtual.isBefore(horarioAbertura) && horaAtual.isBefore(horarioFechamento);
+    }
+
+    public PartidaStatus statusEfetivoParaGrupo(Grupo grupo, LocalDateTime agora) {
+        if (this.status != PartidaStatus.ABERTO) {
+            return this.status;
+        }
+        if (!estaAbertaParaPalpite(grupo.getJanelaDePalpites(), agora)) {
+            return PartidaStatus.EM_ANDAMENTO;
+        }
+        return PartidaStatus.ABERTO;
     }
 }

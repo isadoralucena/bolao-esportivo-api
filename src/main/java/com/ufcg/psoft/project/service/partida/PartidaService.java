@@ -11,7 +11,7 @@ public interface PartidaService {
 
     List<PartidaResponseDTO> listarPorGrupo(Long grupoId);
 
-    void sincronizarPartidas(Campeonato campeonato);
+    List<PartidaResponseDTO> sincronizarPartidas(Campeonato campeonato);
 
     void deleteByCampeonatoId(Long campeonatoId);
 }
