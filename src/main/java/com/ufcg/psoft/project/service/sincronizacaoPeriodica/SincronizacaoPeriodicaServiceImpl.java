@@ -5,6 +5,8 @@ import java.util.Comparator;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,6 +17,7 @@ import com.ufcg.psoft.project.service.campeonato.CampeonatoService;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SincronizacaoPeriodicaServiceImpl implements SincronizacaoPeriodicaService {
 
     private final CampeonatoService campeonatoService;
@@ -40,7 +43,7 @@ public class SincronizacaoPeriodicaServiceImpl implements SincronizacaoPeriodica
             try {
                 campeonatoService.sincronizarCampeonato(campeonato);
             } catch (Exception e) {
-                System.err.println("Warning: Erro ao sincronizar campeonato " + campeonato.getUrl() + " - " + e.getMessage());
+                log.warn("Erro ao sincronizar campeonato {} - {}", campeonato.getUrl(), e.getMessage(), e);
             }
 
             sincronizacoesChamadas++;
