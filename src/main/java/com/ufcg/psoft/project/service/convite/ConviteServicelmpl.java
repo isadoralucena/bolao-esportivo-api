@@ -2,7 +2,7 @@ package com.ufcg.psoft.project.service.convite;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import com.ufcg.psoft.project.dto.convite.ConvitePostPutRequestDTO;
@@ -29,19 +29,16 @@ import com.ufcg.psoft.project.service.grupo.GrupoService;
 import com.ufcg.psoft.project.service.grupo.participante.GrupoParticipanteService;
 
 @Service
+@RequiredArgsConstructor
 public class ConviteServicelmpl implements ConviteService {
 
-    @Autowired
-    private ConviteRepository conviteRepository;
+    private final ConviteRepository conviteRepository;
 
-    @Autowired
-    private GrupoRepository grupoRepository;
+    private final GrupoRepository grupoRepository;
 
-    @Autowired 
-    private UsuarioRepository usuarioRepository;
+    private final UsuarioRepository usuarioRepository;
 
-    @Autowired
-    private GrupoParticipanteService grupoParticipanteService;
+    private final GrupoParticipanteService grupoParticipanteService;
 
     @Override
     public ConviteResponseDTO criar(String codigoAcessoOrganizador, ConvitePostPutRequestDTO convitePostPutRequestDTO) {

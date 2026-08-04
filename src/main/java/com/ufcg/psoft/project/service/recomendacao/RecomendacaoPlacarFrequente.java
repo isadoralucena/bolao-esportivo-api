@@ -2,6 +2,7 @@ package com.ufcg.psoft.project.service.recomendacao;
 
 import com.ufcg.psoft.project.dto.recomendacao.RecomendacaoResponseDTO;
 import com.ufcg.psoft.project.model.Partida;
+import com.ufcg.psoft.project.repository.PartidaRepository;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -11,6 +12,10 @@ import java.util.stream.Collectors;
 
 @Component("PLACAR_FREQUENTE")
 public class RecomendacaoPlacarFrequente extends RecomendacaoStrategyBase {
+
+    public RecomendacaoPlacarFrequente(PartidaRepository partidaRepository) {
+        super(partidaRepository);
+    }
 
     private record Placar(int mandante, int visitante) {}
 

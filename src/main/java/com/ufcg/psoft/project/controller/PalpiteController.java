@@ -4,7 +4,7 @@ import com.ufcg.psoft.project.dto.palpite.PalpitePostPutRequestDTO;
 import com.ufcg.psoft.project.service.palpite.PalpiteService;
 import com.ufcg.psoft.project.service.premium.RequisicaoAutenticadaEvent;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -14,13 +14,12 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+@RequiredArgsConstructor
 public class PalpiteController {
 
-    @Autowired
-    private PalpiteService palpiteService;
+    private final PalpiteService palpiteService;
 
-    @Autowired
-    private ApplicationEventPublisher eventPublisher;
+    private final ApplicationEventPublisher eventPublisher;
 
     @PostMapping("/grupos/{grupoId}/partidas/{partidaId}/palpites")
     public ResponseEntity<?> criarPalpite(

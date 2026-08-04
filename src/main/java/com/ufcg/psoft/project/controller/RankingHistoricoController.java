@@ -1,7 +1,7 @@
 package com.ufcg.psoft.project.controller;
 
 import com.ufcg.psoft.project.service.ranking.RankingHistoricoService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.*;
         value = "/grupos/{grupoId}/ranking/historico",
         produces = MediaType.APPLICATION_JSON_VALUE
 )
+@RequiredArgsConstructor
 public class RankingHistoricoController {
 
-    @Autowired
-    private RankingHistoricoService rankingHistoricoService;
+    private final RankingHistoricoService rankingHistoricoService;
 
     @GetMapping
     public ResponseEntity<?> obterHistorico(

@@ -1,6 +1,6 @@
 package com.ufcg.psoft.project.controller.grupo;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,12 +24,11 @@ import jakarta.validation.Valid;
     value = "/grupos",
     produces = MediaType.APPLICATION_JSON_VALUE
 )
+@RequiredArgsConstructor
 public class CriterioDesempateController {
-    @Autowired
-    CriterioDesempateService criterioDesempateService;
+    final CriterioDesempateService criterioDesempateService;
 
-    @Autowired
-    private ApplicationEventPublisher eventPublisher;
+    private final ApplicationEventPublisher eventPublisher;
     
     @PutMapping("/{grupoId}/criterios-desempate")
 	public ResponseEntity<?> configurarCriteriosDesempate(

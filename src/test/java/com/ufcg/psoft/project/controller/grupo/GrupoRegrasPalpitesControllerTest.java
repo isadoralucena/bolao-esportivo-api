@@ -8,7 +8,8 @@ import com.ufcg.psoft.project.exception.CustomErrorType;
 import com.ufcg.psoft.project.model.*;
 import com.ufcg.psoft.project.repository.*;
 import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.test.context.TestConstructor;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -28,33 +29,27 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("Testes de configuração de regras de palpites - US10")
+@RequiredArgsConstructor
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 public class GrupoRegrasPalpitesControllerTest {
 
     final String URI_GRUPOS = "/grupos";
 
-    @Autowired
     MockMvc driver;
 
-    @Autowired
-    WebApplicationContext webApplicationContext;
+    final WebApplicationContext webApplicationContext;
 
-    @Autowired
-    GrupoRepository grupoRepository;
+    final GrupoRepository grupoRepository;
 
-    @Autowired
-    UsuarioRepository usuarioRepository;
+    final UsuarioRepository usuarioRepository;
 
-    @Autowired
-    CampeonatoRepository campeonatoRepository;
+    final CampeonatoRepository campeonatoRepository;
 
-    @Autowired
-    PartidaRepository partidaRepository;
+    final PartidaRepository partidaRepository;
 
-    @Autowired
-    PalpiteRepository palpiteRepository;
+    final PalpiteRepository palpiteRepository;
 
-    @Autowired
-    ObjectMapper objectMapper;
+    final ObjectMapper objectMapper;
 
     Usuario organizador;
     Usuario participante;

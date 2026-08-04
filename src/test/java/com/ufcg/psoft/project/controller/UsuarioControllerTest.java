@@ -12,7 +12,8 @@ import com.ufcg.psoft.project.model.Usuario;
 import com.ufcg.psoft.project.repository.PromocaoPremiumRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
 import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.test.context.TestConstructor;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -32,21 +33,19 @@ import java.nio.charset.StandardCharsets;
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("Testes do controlador de Usuários")
+@RequiredArgsConstructor
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 public class UsuarioControllerTest {
 
     final String URI_USUARIOS = "/usuarios";
 
-    @Autowired
     MockMvc driver;
 
-    @Autowired
-    UsuarioRepository usuarioRepository;
+    final UsuarioRepository usuarioRepository;
 
-    @Autowired
-    PromocaoPremiumRepository promocaoPremiumRepository;
+    final PromocaoPremiumRepository promocaoPremiumRepository;
 
-    @Autowired
-    WebApplicationContext webApplicationContext;
+    final WebApplicationContext webApplicationContext;
 
     ObjectMapper objectMapper = new ObjectMapper();
 

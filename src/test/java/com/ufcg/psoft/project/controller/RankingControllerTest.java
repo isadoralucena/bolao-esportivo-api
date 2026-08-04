@@ -6,7 +6,8 @@ import com.ufcg.psoft.project.dto.ranking.RankingResponseDTO;
 import com.ufcg.psoft.project.model.*;
 import com.ufcg.psoft.project.repository.*;
 import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.test.context.TestConstructor;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -26,39 +27,31 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("Testes do controlador de Rankings - US13")
+@RequiredArgsConstructor
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 public class RankingControllerTest {
 
     final String URI_RANKING = "/ranking";
 
-    @Autowired
     MockMvc driver;
 
-    @Autowired
-    WebApplicationContext webApplicationContext;
+    final WebApplicationContext webApplicationContext;
 
-    @Autowired
-    UsuarioRepository usuarioRepository;
+    final UsuarioRepository usuarioRepository;
 
-    @Autowired
-    CampeonatoRepository campeonatoRepository;
+    final CampeonatoRepository campeonatoRepository;
 
-    @Autowired
-    GrupoRepository grupoRepository;
+    final GrupoRepository grupoRepository;
 
-    @Autowired
-    PartidaRepository partidaRepository;
+    final PartidaRepository partidaRepository;
 
-    @Autowired
-    PalpiteRepository palpiteRepository;
+    final PalpiteRepository palpiteRepository;
 
-    @Autowired
-    PontuacaoPalpiteRepository pontuacaoPalpiteRepository;
+    final PontuacaoPalpiteRepository pontuacaoPalpiteRepository;
 
-    @Autowired
-    RegraPontuacaoRepository regraPontuacaoRepository;
+    final RegraPontuacaoRepository regraPontuacaoRepository;
 
-    @Autowired
-    ObjectMapper objectMapper;
+    final ObjectMapper objectMapper;
 
     Usuario organizador;
     Usuario participante1;

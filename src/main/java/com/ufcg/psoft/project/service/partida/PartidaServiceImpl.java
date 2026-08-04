@@ -16,7 +16,7 @@ import com.ufcg.psoft.project.repository.PartidaRepository;
 
 import jakarta.transaction.Transactional;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpEntity;
@@ -37,15 +37,13 @@ import java.util.stream.Collectors;
 
 
 @Service
+@RequiredArgsConstructor
 public class PartidaServiceImpl implements PartidaService {
-    @Autowired
-    private PartidaRepository partidaRepository;
+    private final PartidaRepository partidaRepository;
 
-    @Autowired
-    private GrupoRepository grupoRepository;
+    private final GrupoRepository grupoRepository;
 
-    @Autowired 
-    private ApplicationEventPublisher eventPublisher;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Value("${project.football-data.api-token:}")
     private String apiToken;

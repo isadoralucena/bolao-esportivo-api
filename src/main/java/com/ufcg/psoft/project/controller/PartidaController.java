@@ -3,7 +3,7 @@ package com.ufcg.psoft.project.controller;
 import com.ufcg.psoft.project.service.partida.PartidaService;
 import com.ufcg.psoft.project.service.premium.RequisicaoAutenticadaEvent;
 import com.ufcg.psoft.project.service.recomendacao.RecomendacaoService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -12,16 +12,14 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+@RequiredArgsConstructor
 public class PartidaController {
 
-    @Autowired
-    private PartidaService partidaService;
+    private final PartidaService partidaService;
 
-    @Autowired
-    private RecomendacaoService recomendacaoService;
+    private final RecomendacaoService recomendacaoService;
 
-    @Autowired
-    private ApplicationEventPublisher eventPublisher;
+    private final ApplicationEventPublisher eventPublisher;
 
     @GetMapping("/campeonatos/{campeonatoId}/partidas")
     public ResponseEntity<?> listarPartidasDoCampeonato(@PathVariable Long campeonatoId) {

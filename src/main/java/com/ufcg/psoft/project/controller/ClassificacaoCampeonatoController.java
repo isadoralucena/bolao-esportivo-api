@@ -1,7 +1,7 @@
 package com.ufcg.psoft.project.controller;
 
 import com.ufcg.psoft.project.service.campeonato.ClassificacaoCampeonatoService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.*;
     value = "/campeonatos",
     produces = MediaType.APPLICATION_JSON_VALUE
 )
+@RequiredArgsConstructor
 public class ClassificacaoCampeonatoController {
 
-    @Autowired
-    private ClassificacaoCampeonatoService classificacaoCampeonatoService;
+    private final ClassificacaoCampeonatoService classificacaoCampeonatoService;
 
     @GetMapping("/{campeonatoId}/classificacao")
     public ResponseEntity<?> listarClassificacao(@PathVariable Long campeonatoId) {

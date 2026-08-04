@@ -20,7 +20,7 @@ import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.PalpiteRepository;
 import com.ufcg.psoft.project.repository.PartidaRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -29,19 +29,16 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class PalpiteServiceImpl implements PalpiteService {
 
-    @Autowired
-    private PalpiteRepository palpiteRepository;
+    private final PalpiteRepository palpiteRepository;
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
+    private final UsuarioRepository usuarioRepository;
 
-    @Autowired
-    private GrupoRepository grupoRepository;
+    private final GrupoRepository grupoRepository;
 
-    @Autowired
-    private PartidaRepository partidaRepository;
+    private final PartidaRepository partidaRepository;
 
     @Override
     public PalpiteResponseDTO criar(Long usuarioId, String codigo, Long grupoId, Long partidaId, PalpitePostPutRequestDTO dto) {

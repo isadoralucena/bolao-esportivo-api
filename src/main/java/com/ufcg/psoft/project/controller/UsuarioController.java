@@ -4,7 +4,7 @@ import com.ufcg.psoft.project.dto.usuario.UsuarioPostPutRequestDTO;
 import com.ufcg.psoft.project.service.premium.RequisicaoAutenticadaEvent;
 import com.ufcg.psoft.project.service.usuario.UsuarioService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -16,13 +16,12 @@ import org.springframework.web.bind.annotation.*;
         value = "/usuarios",
         produces = MediaType.APPLICATION_JSON_VALUE
 )
+@RequiredArgsConstructor
 public class UsuarioController {
 
-    @Autowired
-    UsuarioService usuarioService;
+    final UsuarioService usuarioService;
 
-    @Autowired
-    private ApplicationEventPublisher eventPublisher;
+    private final ApplicationEventPublisher eventPublisher;
 
     @GetMapping("/{id}")
     public ResponseEntity<?> recuperarUsuario(

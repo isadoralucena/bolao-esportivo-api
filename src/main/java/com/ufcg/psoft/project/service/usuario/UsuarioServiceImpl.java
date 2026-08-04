@@ -10,21 +10,19 @@ import com.ufcg.psoft.project.model.Usuario;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
 import com.ufcg.psoft.project.service.premium.PromocaoPremiumService;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class UsuarioServiceImpl implements UsuarioService {
 
-    @Autowired
-    UsuarioRepository usuarioRepository;
-    @Autowired
-    ModelMapper modelMapper;
-    @Autowired
-    PromocaoPremiumService promocaoPremiumService;
+    final UsuarioRepository usuarioRepository;
+    final ModelMapper modelMapper;
+    final PromocaoPremiumService promocaoPremiumService;
 
     @Override
     public UsuarioResponseDTO alterar(Long id, String codigoAcesso, UsuarioPostPutRequestDTO usuarioPostPutRequestDTO) {

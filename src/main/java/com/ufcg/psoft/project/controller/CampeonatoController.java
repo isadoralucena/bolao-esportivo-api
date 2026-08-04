@@ -4,7 +4,7 @@ import com.ufcg.psoft.project.dto.campeonato.CampeonatoPostPutRequestDTO;
 import com.ufcg.psoft.project.service.campeonato.CampeonatoService;
 import com.ufcg.psoft.project.service.premium.RequisicaoAutenticadaEvent;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -16,13 +16,12 @@ import org.springframework.web.bind.annotation.*;
 value = "/campeonatos",
 produces = MediaType.APPLICATION_JSON_VALUE
 )
+@RequiredArgsConstructor
 public class CampeonatoController {
 
-	@Autowired
-	private CampeonatoService campeonatoService;
+	private final CampeonatoService campeonatoService;
 
-	@Autowired
-	private ApplicationEventPublisher eventPublisher;
+	private final ApplicationEventPublisher eventPublisher;
 
 	@GetMapping("/{id}")
 	public ResponseEntity<?> recuperarCampeonato(@PathVariable Long id) {

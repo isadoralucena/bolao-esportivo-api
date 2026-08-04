@@ -16,7 +16,8 @@ import com.ufcg.psoft.project.repository.PartidaRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
 
 import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.test.context.TestConstructor;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -35,27 +36,23 @@ import java.time.LocalDateTime;
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("Testes das regras de entrada em grupos públicos de bolão")
+@RequiredArgsConstructor
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 public class GrupoPublicoControllerTest {
 
     final String URI_GRUPOS = "/grupos";
 
-    @Autowired
     MockMvc driver;
 
-    @Autowired
-    GrupoRepository grupoRepository;
+    final GrupoRepository grupoRepository;
 
-    @Autowired
-    UsuarioRepository usuarioRepository;
+    final UsuarioRepository usuarioRepository;
 
-    @Autowired
-    CampeonatoRepository campeonatoRepository;
+    final CampeonatoRepository campeonatoRepository;
 
-    @Autowired
-    PartidaRepository partidaRepository;
+    final PartidaRepository partidaRepository;
 
-    @Autowired
-    WebApplicationContext webApplicationContext;
+    final WebApplicationContext webApplicationContext;
 
     ObjectMapper objectMapper = new ObjectMapper();
 

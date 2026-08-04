@@ -2,6 +2,7 @@ package com.ufcg.psoft.project.service.recomendacao;
 
 import com.ufcg.psoft.project.dto.recomendacao.RecomendacaoResponseDTO;
 import com.ufcg.psoft.project.model.Partida;
+import com.ufcg.psoft.project.repository.PartidaRepository;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -9,6 +10,10 @@ import java.util.Optional;
 
 @Component("MEDIA_GOLS")
 public class RecomendacaoMediaGols extends RecomendacaoStrategyBase {
+
+    public RecomendacaoMediaGols(PartidaRepository partidaRepository) {
+        super(partidaRepository);
+    }
 
     @Override
     public String getNome() {

@@ -8,7 +8,7 @@ import com.ufcg.psoft.project.exception.partida.PartidaNaoExisteException;
 import com.ufcg.psoft.project.model.*;
 import com.ufcg.psoft.project.repository.*;
 import com.ufcg.psoft.project.service.pontuacao.PontuacaoService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,22 +19,18 @@ import java.util.List;
 import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class RankingHistoricoServiceImpl implements RankingHistoricoService {
 
-    @Autowired
-    private RankingSnapshotRepository rankingSnapshotRepository;
+    private final RankingSnapshotRepository rankingSnapshotRepository;
 
-    @Autowired
-    private GrupoRepository grupoRepository;
+    private final GrupoRepository grupoRepository;
 
-    @Autowired
-    private PartidaRepository partidaRepository;
+    private final PartidaRepository partidaRepository;
 
-    @Autowired
-    private PontuacaoService pontuacaoService;
+    private final PontuacaoService pontuacaoService;
 
-    @Autowired
-    private RankingCalculator rankingCalculator;
+    private final RankingCalculator rankingCalculator;
 
     @Value("${project.ranking.historico.desempenho-recente-partidas:5}")
     private int desempenhoRecentePartidas;

@@ -25,7 +25,7 @@ import com.ufcg.psoft.project.service.ranking.RankingService;
 
 import jakarta.validation.Valid;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -36,15 +36,12 @@ import org.springframework.http.ResponseEntity;
     value = "/grupos",
     produces = MediaType.APPLICATION_JSON_VALUE
 )
+@RequiredArgsConstructor
 public class GrupoController {
-    @Autowired
-    GrupoService grupoService;
-    @Autowired
-    private PontuacaoService pontuacaoService;
-    @Autowired
-    private RankingService rankingService;
-    @Autowired
-    private ApplicationEventPublisher eventPublisher;
+    final GrupoService grupoService;
+    private final PontuacaoService pontuacaoService;
+    private final RankingService rankingService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @PostMapping("")
     public ResponseEntity<?> criarGrupo(

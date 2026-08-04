@@ -11,7 +11,8 @@ import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
 import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.test.context.TestConstructor;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -29,27 +30,23 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("Testes do controlador de Convites - US4")
+@RequiredArgsConstructor
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 public class ConviteControllerTest {
 
     final String URI_CONVITES = "/convites";
 
-    @Autowired
     MockMvc driver;
 
-    @Autowired
-    WebApplicationContext webApplicationContext;
+    final WebApplicationContext webApplicationContext;
 
-    @Autowired
-    ConviteRepository conviteRepository;
+    final ConviteRepository conviteRepository;
 
-    @Autowired
-    GrupoRepository grupoRepository;
+    final GrupoRepository grupoRepository;
 
-    @Autowired
-    UsuarioRepository usuarioRepository;
+    final UsuarioRepository usuarioRepository;
 
-    @Autowired
-    CampeonatoRepository campeonatoRepository;
+    final CampeonatoRepository campeonatoRepository;
 
     ObjectMapper objectMapper = new ObjectMapper();
 

@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -41,33 +41,25 @@ import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class PontuacaoServiceImpl implements PontuacaoService {
-    @Autowired
-    private PartidaRepository partidaRepository;
+    private final PartidaRepository partidaRepository;
 
-    @Autowired
-    private PalpiteRepository palpiteRepository;
+    private final PalpiteRepository palpiteRepository;
 
-    @Autowired
-    private GrupoRepository grupoRepository;
+    private final GrupoRepository grupoRepository;
     
-    @Autowired
-    private RegraPontuacaoRepository regraPontuacaoRepository;
+    private final RegraPontuacaoRepository regraPontuacaoRepository;
 
-    @Autowired
-    private PontuacaoPalpiteRepository pontuacaoPalpiteRepository;
+    private final PontuacaoPalpiteRepository pontuacaoPalpiteRepository;
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
+    private final UsuarioRepository usuarioRepository;
 
-    @Autowired
-    private ApplicationEventPublisher eventPublisher;
+    private final ApplicationEventPublisher eventPublisher;
 
-    @Autowired
-    private List<Pontuador> pontuadoresDisponiveis;
+    private final List<Pontuador> pontuadoresDisponiveis;
 
-    @Autowired
-    private RankingCalculator rankingCalculator;
+    private final RankingCalculator rankingCalculator;
 
     private Map<TipoRegraPontuacao, Pontuador> pontuadores;
 

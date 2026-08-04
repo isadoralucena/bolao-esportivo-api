@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,13 +14,12 @@ import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.service.campeonato.CampeonatoService;
 
 @Service
+@RequiredArgsConstructor
 public class SincronizacaoPeriodicaServiceImpl implements SincronizacaoPeriodicaService {
 
-    @Autowired
-    private CampeonatoService campeonatoService;
+    private final CampeonatoService campeonatoService;
 
-    @Autowired
-    private CampeonatoRepository campeonatoRepository;
+    private final CampeonatoRepository campeonatoRepository;
 
     @Value("${project.sync.max-sincronizacoes-por-ciclo}")
     private int maxSincronizacoesPorCiclo;

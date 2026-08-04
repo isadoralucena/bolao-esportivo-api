@@ -1,6 +1,6 @@
 package com.ufcg.psoft.project.controller.grupo;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,12 +21,11 @@ import com.ufcg.psoft.project.service.premium.RequisicaoAutenticadaEvent;
     value = "/grupos",
     produces = MediaType.APPLICATION_JSON_VALUE
 )
+@RequiredArgsConstructor
 public class GrupoParticipanteController {
-    @Autowired
-    GrupoParticipanteService grupoParticipanteService;
+    final GrupoParticipanteService grupoParticipanteService;
 
-    @Autowired
-    private ApplicationEventPublisher eventPublisher;
+    private final ApplicationEventPublisher eventPublisher;
 
     @GetMapping("/{grupoId}/participantes")
     public ResponseEntity<?> listarParticipantes(

@@ -10,7 +10,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.test.context.TestConstructor;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -31,28 +32,23 @@ import java.util.List;
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("Testes do controlador de Partidas")
+@RequiredArgsConstructor
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 public class PartidaControllerTests {
 
-    @Autowired
-    MockMvc mockMvc;
+    final MockMvc mockMvc;
 
-    @Autowired
-    ObjectMapper objectMapper;
+    final ObjectMapper objectMapper;
 
-    @Autowired
-    UsuarioRepository usuarioRepository;
+    final UsuarioRepository usuarioRepository;
 
-    @Autowired
-    CampeonatoRepository campeonatoRepository;
+    final CampeonatoRepository campeonatoRepository;
 
-    @Autowired
-    GrupoRepository grupoRepository;
+    final GrupoRepository grupoRepository;
 
-    @Autowired
-    PartidaRepository partidaRepository;
+    final PartidaRepository partidaRepository;
 
-    @Autowired
-    PalpiteRepository palpiteRepository;
+    final PalpiteRepository palpiteRepository;
 
     @MockBean
     CampeonatoService campeonatoService;

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import com.ufcg.psoft.project.dto.pontuacao.PontuacaoParticipanteResponseDTO;
@@ -22,19 +22,16 @@ import com.ufcg.psoft.project.repository.UsuarioRepository;
 import com.ufcg.psoft.project.service.pontuacao.PontuacaoService;
 
 @Service
+@RequiredArgsConstructor
 public class RankingServiceImpl implements RankingService {
 
-    @Autowired
-    private PontuacaoService pontuacaoService;
+    private final PontuacaoService pontuacaoService;
 
-    @Autowired
-    private GrupoRepository grupoRepository;
+    private final GrupoRepository grupoRepository;
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
+    private final UsuarioRepository usuarioRepository;
 
-    @Autowired
-    private RankingCalculator rankingCalculator;
+    private final RankingCalculator rankingCalculator;
 
     private static final List<TipoCriterioDesempate> CRITERIOS_DESEMPATE = List.of(
         TipoCriterioDesempate.PLACAR_EXATO,

@@ -14,7 +14,8 @@ import com.ufcg.psoft.project.repository.*;
 import com.ufcg.psoft.project.service.pontuacao.PontuacaoService;
 
 import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.test.context.TestConstructor;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -32,36 +33,29 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("Testes de pontuação automática")
+@RequiredArgsConstructor
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 public class GrupoPontuacaoControllerTest {
 
     final String URI_GRUPOS = "/grupos";
 
-    @Autowired
-    MockMvc driver;
+    final MockMvc driver;
 
-    @Autowired
-    ObjectMapper objectMapper;
+    final ObjectMapper objectMapper;
 
-    @Autowired
-    UsuarioRepository usuarioRepository;
+    final UsuarioRepository usuarioRepository;
 
-    @Autowired
-    CampeonatoRepository campeonatoRepository;
+    final CampeonatoRepository campeonatoRepository;
 
-    @Autowired
-    GrupoRepository grupoRepository;
+    final GrupoRepository grupoRepository;
 
-    @Autowired
-    PartidaRepository partidaRepository;
+    final PartidaRepository partidaRepository;
 
-    @Autowired
-    PalpiteRepository palpiteRepository;
+    final PalpiteRepository palpiteRepository;
 
-    @Autowired
-    PontuacaoPalpiteRepository pontuacaoPalpiteRepository;
+    final PontuacaoPalpiteRepository pontuacaoPalpiteRepository;
 
-    @Autowired
-    PontuacaoService pontuacaoService;
+    final PontuacaoService pontuacaoService;
 
     Usuario organizador;
     Usuario participante;

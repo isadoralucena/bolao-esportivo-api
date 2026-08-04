@@ -1,7 +1,7 @@
 package com.ufcg.psoft.project.service.consolidacao;
 
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -18,16 +18,14 @@ import com.ufcg.psoft.project.repository.PartidaRepository;
 import com.ufcg.psoft.project.service.pontuacao.PontuacaoService;
 
 @Service
+@RequiredArgsConstructor
 public class ConsolidacaoPartidaServiceImpl implements ConsolidacaoPartidaService {
 
-    @Autowired
-    private PontuacaoService pontuacaoService;
+    private final PontuacaoService pontuacaoService;
 
-    @Autowired
-    private PartidaRepository partidaRepository;
+    private final PartidaRepository partidaRepository;
 
-    @Autowired 
-    private ApplicationEventPublisher eventPublisher;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public void consolidar(Partida partida) {

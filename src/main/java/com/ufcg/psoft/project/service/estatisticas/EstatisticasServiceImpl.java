@@ -9,7 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,30 +37,23 @@ import com.ufcg.psoft.project.service.ranking.RankingService;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class EstatisticasServiceImpl implements EstatisticasService {
-    @Autowired
-    CampeonatoController campeonatoController;
+    final CampeonatoController campeonatoController;
 
-    @Autowired
-    private GrupoRepository grupoRepository;
+    private final GrupoRepository grupoRepository;
 
-    @Autowired
-    private PalpiteRepository palpiteRepository;
+    private final PalpiteRepository palpiteRepository;
 
-    @Autowired
-    private EstatisticasRepository estatisticasRepository;
+    private final EstatisticasRepository estatisticasRepository;
 
-    @Autowired
-    private GrupoAutorizacaoService grupoAutorizacaoService;
+    private final GrupoAutorizacaoService grupoAutorizacaoService;
 
-    @Autowired
-    private PontuacaoService pontuacaoService;
+    private final PontuacaoService pontuacaoService;
 
-    @Autowired
-    private RankingService rankingService;
+    private final RankingService rankingService;
 
-    @Autowired
-    private PontuacaoPalpiteRepository pontuacaoPalpiteRepository;
+    private final PontuacaoPalpiteRepository pontuacaoPalpiteRepository;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)

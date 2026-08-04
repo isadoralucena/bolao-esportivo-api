@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -24,13 +24,12 @@ import com.ufcg.psoft.project.repository.ClassificacaoCampeonatoRepository;
 import jakarta.transaction.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class ClassificacaoCampeonatoServiceImpl implements ClassificacaoCampeonatoService {
 
-    @Autowired
-    private ClassificacaoCampeonatoRepository classificacaoCampeonatoRepository;
+    private final ClassificacaoCampeonatoRepository classificacaoCampeonatoRepository;
 
-    @Autowired
-    private CampeonatoRepository campeonatoRepository;
+    private final CampeonatoRepository campeonatoRepository;
 
     @Value("${project.football-data.api-token:}")
     private String apiToken;

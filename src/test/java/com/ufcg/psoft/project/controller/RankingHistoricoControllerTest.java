@@ -5,7 +5,8 @@ import com.ufcg.psoft.project.dto.ranking.HistoricoRankingResponseDTO;
 import com.ufcg.psoft.project.model.*;
 import com.ufcg.psoft.project.repository.*;
 import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.test.context.TestConstructor;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -24,18 +25,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("Testes do controlador de Historico de Rankings - US18")
+@RequiredArgsConstructor
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 public class RankingHistoricoControllerTest {
 
     final String URI_HISTORICO = "/grupos/{grupoId}/ranking/historico";
 
-    @Autowired MockMvc driver;
-    @Autowired WebApplicationContext webApplicationContext;
-    @Autowired UsuarioRepository usuarioRepository;
-    @Autowired CampeonatoRepository campeonatoRepository;
-    @Autowired GrupoRepository grupoRepository;
-    @Autowired PartidaRepository partidaRepository;
-    @Autowired RankingSnapshotRepository rankingSnapshotRepository;
-    @Autowired ObjectMapper objectMapper;
+    MockMvc driver;
+    final WebApplicationContext webApplicationContext;
+    final UsuarioRepository usuarioRepository;
+    final CampeonatoRepository campeonatoRepository;
+    final GrupoRepository grupoRepository;
+    final PartidaRepository partidaRepository;
+    final RankingSnapshotRepository rankingSnapshotRepository;
+    final ObjectMapper objectMapper;
 
     Usuario usuario;
     Campeonato campeonato;

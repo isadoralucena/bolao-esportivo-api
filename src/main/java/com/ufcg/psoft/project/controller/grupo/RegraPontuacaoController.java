@@ -1,6 +1,6 @@
 package com.ufcg.psoft.project.controller.grupo;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,12 +25,11 @@ import jakarta.validation.Valid;
     value = "/grupos",
     produces = MediaType.APPLICATION_JSON_VALUE
 )
+@RequiredArgsConstructor
 public class RegraPontuacaoController {
-    @Autowired
-    RegraPontuacaoService regraPontuacaoService;
+    final RegraPontuacaoService regraPontuacaoService;
 
-    @Autowired
-    private ApplicationEventPublisher eventPublisher;
+    private final ApplicationEventPublisher eventPublisher;
     
     @PostMapping("/{grupoId}/regras-pontuacao")
 	public ResponseEntity<?> inserirRegraPontuacao(

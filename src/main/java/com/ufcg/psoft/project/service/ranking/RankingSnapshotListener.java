@@ -4,7 +4,7 @@ import com.ufcg.psoft.project.event.PartidaFinalizadaEvent;
 import com.ufcg.psoft.project.model.Grupo;
 import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.PalpiteRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,13 +14,12 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import java.util.List;
 
 @Component
+@RequiredArgsConstructor
 public class RankingSnapshotListener {
 
-    @Autowired
-    private RankingHistoricoService rankingHistoricoService;
+    private final RankingHistoricoService rankingHistoricoService;
 
-    @Autowired
-    private PalpiteRepository palpiteRepository;
+    private final PalpiteRepository palpiteRepository;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)

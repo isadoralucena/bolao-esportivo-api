@@ -1,6 +1,6 @@
 package com.ufcg.psoft.project.service.grupo;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import com.ufcg.psoft.project.exception.CodigoDeAcessoInvalidoException;
@@ -12,9 +12,9 @@ import com.ufcg.psoft.project.model.Usuario;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
 
 @Service
+@RequiredArgsConstructor
 public class GrupoAutorizacaoService {
-    @Autowired
-    private UsuarioRepository usuarioRepository;
+    private final UsuarioRepository usuarioRepository;
 
     public Usuario obterUsuarioValido(Long usuarioId, String codigo) {
         Usuario usuario = usuarioRepository.findById(usuarioId)

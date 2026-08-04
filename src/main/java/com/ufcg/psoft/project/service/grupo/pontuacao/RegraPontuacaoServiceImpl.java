@@ -4,7 +4,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import com.ufcg.psoft.project.dto.grupo.RegraPontuacaoPostPutRequestDTO;
@@ -22,17 +22,13 @@ import com.ufcg.psoft.project.service.grupo.GrupoAutorizacaoService;
 import com.ufcg.psoft.project.service.pontuacao.PontuacaoService;
 
 @Service
+@RequiredArgsConstructor
 public class RegraPontuacaoServiceImpl implements RegraPontuacaoService {
-    @Autowired
-    GrupoRepository grupoRepository;
-    @Autowired
-    GrupoAutorizacaoService grupoAutorizacaoService;
-    @Autowired
-    RegraPontuacaoRepository regraPontuacaoRepository;
-    @Autowired
-    private PontuacaoService pontuacaoService;
-    @Autowired
-    ModelMapper modelMapper;
+    final GrupoRepository grupoRepository;
+    final GrupoAutorizacaoService grupoAutorizacaoService;
+    final RegraPontuacaoRepository regraPontuacaoRepository;
+    private final PontuacaoService pontuacaoService;
+    final ModelMapper modelMapper;
 
     public RegraPontuacaoResponseDTO inserirRegraPontuacao(Long usuarioId, String codigoAcesso, Long grupoId, RegraPontuacaoPostPutRequestDTO regraPontuacaoPostPutRequestDto) {
         Grupo grupo = grupoRepository.findById(grupoId).orElseThrow(GrupoNaoExisteException::new);

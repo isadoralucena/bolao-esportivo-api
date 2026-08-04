@@ -4,7 +4,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import com.ufcg.psoft.project.dto.grupo.GrupoPostRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.GrupoPutRequestDTO;
@@ -22,15 +22,12 @@ import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.repository.GrupoRepository;
 
 @Service
+@RequiredArgsConstructor
 public class GrupoServiceImpl implements GrupoService {
-    @Autowired
-    GrupoRepository grupoRepository;
-    @Autowired
-    private CampeonatoRepository campeonatoRepository;
-    @Autowired
-    ModelMapper modelMapper;
-    @Autowired
-    GrupoAutorizacaoService grupoAutorizacaoService;
+    final GrupoRepository grupoRepository;
+    private final CampeonatoRepository campeonatoRepository;
+    final ModelMapper modelMapper;
+    final GrupoAutorizacaoService grupoAutorizacaoService;
 
     public GrupoResponseDTO criar(Long usuarioId, String codigoAcesso, GrupoPostRequestDTO grupoPostRequestDto) {
         Usuario usuarioLogado = grupoAutorizacaoService.obterUsuarioValido(usuarioId, codigoAcesso);

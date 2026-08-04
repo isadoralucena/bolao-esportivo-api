@@ -16,7 +16,7 @@ import jakarta.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -31,22 +31,18 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class CampeonatoServiceImpl implements CampeonatoService {
 
-	@Autowired
-	private CampeonatoRepository campeonatoRepository;
+	private final CampeonatoRepository campeonatoRepository;
 
-	@Autowired
-	private UsuarioRepository usuarioRepository;
+	private final UsuarioRepository usuarioRepository;
 
-	@Autowired
-	private PartidaService partidaService;
+	private final PartidaService partidaService;
 
-    @Autowired
-	private ClassificacaoCampeonatoService classificacaoCampeonatoService;
+	private final ClassificacaoCampeonatoService classificacaoCampeonatoService;
 
-	@Autowired
-	private ModelMapper modelMapper;
+	private final ModelMapper modelMapper;
 
 	@Value("${project.football-data.api-token:}")
 	private String apiToken;
