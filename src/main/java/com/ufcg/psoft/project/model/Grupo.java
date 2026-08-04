@@ -1,6 +1,8 @@
 package com.ufcg.psoft.project.model;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -59,12 +61,17 @@ public class Grupo {
 	@Builder.Default
 	private Set<RegraPontuacao> regrasPontuacao = new HashSet<>();
 
-	@JsonProperty("minutosAberturaPalpite")
+	@OneToMany(mappedBy = "grupo", cascade = CascadeType.ALL, orphanRemoval = true)
+	@OrderBy("prioridade ASC")
+	@Builder.Default
+	private List<CriterioDesempate> criteriosDesempate = new ArrayList<>();
+
+	@JsonProperty("minutosAberturaPalpites")
 	@Column(nullable = false)
 	@Builder.Default
 	private Integer minutosAberturaPalpites = 120;
 
-	@JsonProperty("minutosFechamentoPalpite")
+	@JsonProperty("minutosFechamentoPalpites")
 	@Column(nullable = false)
 	@Builder.Default
 	private Integer minutosFechamentoPalpites = 0;

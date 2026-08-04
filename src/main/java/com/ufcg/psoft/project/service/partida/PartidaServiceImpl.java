@@ -7,9 +7,10 @@ import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.model.Grupo;
 import com.ufcg.psoft.project.model.Partida;
 import com.ufcg.psoft.project.model.PartidaStatus;
-import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.PartidaRepository;
+import com.ufcg.psoft.project.service.pontuacao.PontuacaoService;
+import com.ufcg.psoft.project.service.notificacao.NotificacaoService;
 
 import jakarta.transaction.Transactional;
 
@@ -22,11 +23,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
+
 
 @Service
 public class PartidaServiceImpl implements PartidaService {
@@ -35,6 +40,12 @@ public class PartidaServiceImpl implements PartidaService {
 
     @Autowired
     private GrupoRepository grupoRepository;
+
+    @Autowired
+    private PontuacaoService pontuacaoService;
+
+    @Autowired
+    private NotificacaoService notificacaoService;
 
     @Value("${project.football-data.api-token:}")
     private String apiToken;
@@ -52,14 +63,15 @@ public class PartidaServiceImpl implements PartidaService {
     public List<PartidaResponseDTO> listarPorGrupo(Long grupoId) {
         Grupo grupo = grupoRepository.findById(grupoId)
                 .orElseThrow(GrupoNaoExisteException::new);
+        LocalDateTime agora = LocalDateTime.now(ZoneOffset.UTC);
         return partidaRepository.findByCampeonatoId(grupo.getCampeonato().getId()).stream()
-                .map(PartidaResponseDTO::new)
+                .map(p -> new PartidaResponseDTO(p, grupo, agora))
                 .collect(Collectors.toList());
     }
 
     @Override
     @Transactional
-    public void sincronizarPartidas(Campeonato campeonato) {
+    public List<PartidaResponseDTO> sincronizarPartidas(Campeonato campeonato) {
         HttpHeaders headers = new HttpHeaders();
         
         if (apiToken != null && !apiToken.isEmpty()) {
@@ -89,9 +101,13 @@ public class PartidaServiceImpl implements PartidaService {
             throw new PartidaSyncException("Resposta da API sem campo matches.");
         }
 
+        List<PartidaResponseDTO> resultado = new ArrayList<>();
+
         for (Map<String, Object> match : matches) {
-            salvarOuAtualizarPartida(campeonato, match);
+            resultado.add(salvarOuAtualizarPartida(campeonato, match));
         }
+
+        return resultado;
     }
 
     @Override
@@ -99,7 +115,7 @@ public class PartidaServiceImpl implements PartidaService {
         partidaRepository.deleteByCampeonatoId(campeonatoId);
     }
 
-    private void salvarOuAtualizarPartida(Campeonato campeonato, Map<String, Object> match) {
+    private PartidaResponseDTO salvarOuAtualizarPartida(Campeonato campeonato, Map<String, Object> match) {
         Long codigoExterno = Long.valueOf(match.get("id").toString());
         Map<String, Object> homeTeam = (Map<String, Object>) match.get("homeTeam");
         Map<String, Object> awayTeam = (Map<String, Object>) match.get("awayTeam");
@@ -113,8 +129,9 @@ public class PartidaServiceImpl implements PartidaService {
                         .codigoExterno(codigoExterno)
                         .build());
 
-        partida.setMandante((String) homeTeam.get("name"));
-        partida.setVisitante((String) awayTeam.get("name"));
+        PartidaStatus statusAnterior = partida.getStatus();
+        Integer golsMandanteAnterior = partida.getGolsMandante();
+        Integer golsVisitanteAnterior = partida.getGolsVisitante();
 
         if (fullTime != null) {
             if (fullTime.get("home") != null) {
@@ -126,17 +143,43 @@ public class PartidaServiceImpl implements PartidaService {
         }
 
         String utcDate = (String) match.get("utcDate");
+        PartidaStatus novoStatus = PartidaServiceImpl.converterStatus((String) match.get("status"));
+        boolean mataMata = ehMataMata((String) match.get("stage"));
+        boolean statusMudou = statusAnterior != novoStatus;
+        boolean placarMudou = !Objects.equals(golsMandanteAnterior, partida.getGolsMandante()) ||
+                            !Objects.equals(golsVisitanteAnterior, partida.getGolsVisitante());
+
+        partida.setMandante((String) homeTeam.get("name"));
+        partida.setVisitante((String) awayTeam.get("name"));
+
         if (utcDate != null) {
-            partida.setData(LocalDateTime.parse(utcDate, DateTimeFormatter.ISO_DATE_TIME));
+            partida.setData(LocalDateTime.ofInstant(Instant.parse(utcDate), ZoneOffset.UTC));
         }
 
-        partida.setStatus(PartidaServiceImpl.converterStatus((String) match.get("status")));
-
-        if (match.get("matchday") != null) {
-            partida.setRodada((Integer) match.get("matchday"));
-        }
+        partida.setStatus(novoStatus);
+        partida.setMataMata(mataMata);
 
         partidaRepository.save(partida);
+
+        boolean precisaAtualizarPontuacao = novoStatus == PartidaStatus.FINALIZADO && (statusMudou || placarMudou);
+        if (precisaAtualizarPontuacao) {
+            pontuacaoService.calcularPontuacoesAssociadasAPartida(partida.getId());
+        }
+
+        if (statusMudou) {
+            if (novoStatus == PartidaStatus.ABERTO && statusAnterior == null) {
+                notificacaoService.notificarAberturaPalpites(partida);
+            } else if (novoStatus == PartidaStatus.EM_ANDAMENTO) {
+                if (statusAnterior == PartidaStatus.ABERTO) {
+                    notificacaoService.notificarFechamentoPalpites(partida);
+                }
+                notificacaoService.notificarInicioPartida(partida);
+            } else if (novoStatus == PartidaStatus.FINALIZADO) {
+                notificacaoService.notificarPartidaFinalizada(partida);
+            }
+        }
+
+        return new PartidaResponseDTO(partida);
     }
 
     private static PartidaStatus converterStatus(String statusApi) {
@@ -148,5 +191,34 @@ public class PartidaServiceImpl implements PartidaService {
             case "CANCELLED" -> PartidaStatus.CANCELADO;
             default -> PartidaStatus.ABERTO;
         };
+    }
+
+    private boolean ehMataMata(String stage) {
+        boolean ehMataMata = false;
+        
+        if (stage == null) {
+            return ehMataMata;
+        }
+
+        ehMataMata = switch (stage) {
+            case "FINAL",
+                "THIRD_PLACE",
+                "SEMI_FINALS",
+                "QUARTER_FINALS",
+                "LAST_16",
+                "LAST_32",
+                "LAST_64",
+                "ROUND_4",
+                "ROUND_3",
+                "ROUND_2",
+                "ROUND_1",
+                "PLAYOFF_ROUND_1",
+                "PLAYOFF_ROUND_2",
+                "PLAYOFFS" -> true;
+
+            default -> false;
+        };
+
+        return ehMataMata;
     }
 }

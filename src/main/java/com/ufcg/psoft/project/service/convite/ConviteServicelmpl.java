@@ -2,12 +2,12 @@ package com.ufcg.psoft.project.service.convite;
 
 import java.util.List;
 
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.ufcg.psoft.project.dto.convite.ConvitePostPutRequestDTO;
 import com.ufcg.psoft.project.dto.convite.ConviteResponseDTO;
+import com.ufcg.psoft.project.exception.CampeonatoInativoException;
 import com.ufcg.psoft.project.exception.ConviteDuplicadoException;
 import com.ufcg.psoft.project.exception.ConviteNaoExisteException;
 import com.ufcg.psoft.project.exception.ConviteJaProcessadoException;
@@ -15,6 +15,7 @@ import com.ufcg.psoft.project.exception.GrupoNaoExisteException;
 import com.ufcg.psoft.project.exception.OrganizadorInvalidoException;
 import com.ufcg.psoft.project.exception.PrivacidadeInvalidaException;
 import com.ufcg.psoft.project.exception.UsuarioInvalidoException;
+import com.ufcg.psoft.project.exception.UsuarioJaParticipanteException;
 import com.ufcg.psoft.project.exception.UsuarioNaoExisteException;
 import com.ufcg.psoft.project.model.Convite;
 import com.ufcg.psoft.project.model.Grupo;
@@ -24,6 +25,7 @@ import com.ufcg.psoft.project.model.Usuario;
 import com.ufcg.psoft.project.repository.ConviteRepository;
 import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
+import com.ufcg.psoft.project.service.grupo.GrupoService;
 
 @Service
 public class ConviteServicelmpl implements ConviteService {
@@ -38,7 +40,7 @@ public class ConviteServicelmpl implements ConviteService {
     private UsuarioRepository usuarioRepository;
 
     @Autowired
-    private ModelMapper modelMapper;
+    private GrupoService grupoService;
 
     @Override
     public ConviteResponseDTO criar(String codigoAcessoOrganizador, ConvitePostPutRequestDTO convitePostPutRequestDTO) {
@@ -49,14 +51,24 @@ public class ConviteServicelmpl implements ConviteService {
         Usuario convidado = obterUsuario(convitePostPutRequestDTO.getConvidado());
         Grupo grupo = obterGrupo(convitePostPutRequestDTO.getGrupo());
 
-        if (!organizador.equals(grupo.getOrganizador())) throw new OrganizadorInvalidoException();
+        if (!organizador.equals(grupo.getOrganizador())) {
+            throw new OrganizadorInvalidoException();
+        }
 
-        if (grupo.getPrivacidade() == PrivacidadeGrupo.PUBLICA) throw new PrivacidadeInvalidaException();
+        if (grupo.getPrivacidade() == PrivacidadeGrupo.PUBLICA) {
+            throw new PrivacidadeInvalidaException();
+        }
 
-        if (grupo.getParticipantes().contains(convidado)) throw new ConviteDuplicadoException();
+        if (grupo.getParticipantes().contains(convidado)) {
+            throw new UsuarioJaParticipanteException();
+        }
 
         if (conviteRepository.existsByGrupoAndConvidadoAndStatus(grupo, convidado, StatusConvite.PENDENTE)) {
             throw new ConviteDuplicadoException();
+        }
+
+        if (!grupo.getCampeonato().getAtivo()) {
+            throw new CampeonatoInativoException();
         }
 
         Convite convite = Convite.builder()
@@ -79,7 +91,6 @@ public class ConviteServicelmpl implements ConviteService {
         
         validarUsuário(organizador, codigoAcessoOrganizador);
 
-
         this.conviteRepository.delete(convite);
     }
 
@@ -91,16 +102,15 @@ public class ConviteServicelmpl implements ConviteService {
             throw new ConviteJaProcessadoException();
         }
 
-        convite.setStatus(StatusConvite.ACEITO);
-        
         Usuario convidado = convite.getConvidado();
-
         validarUsuário(convidado, codigoAcesso);
 
         Grupo grupo = convite.getGrupo();
-        
+        grupoService.validarEntradaGrupo(grupo, convidado);
+
         grupo.getParticipantes().add(convidado);
-        
+        convite.setStatus(StatusConvite.ACEITO);
+
         this.conviteRepository.save(convite);
         this.grupoRepository.save(grupo);
         notificarConvidado(convite, "aceito");

@@ -100,6 +100,8 @@ public class ConviteControllerTest {
                 .campeonato(campeonato)
                 .organizador(organizador)
                 .build());
+        grupoPrivado.getParticipantes().add(organizador);
+        grupoRepository.save(grupoPrivado);
 
         grupoPublico = grupoRepository.save(Grupo.builder()
                 .nome("Grupo Publico")
@@ -109,6 +111,8 @@ public class ConviteControllerTest {
                 .campeonato(campeonato)
                 .organizador(organizador)
                 .build());
+        grupoPublico.getParticipantes().add(organizador);
+        grupoRepository.save(grupoPublico);
 
         conviteDTO = ConvitePostPutRequestDTO.builder()
                 .grupo(grupoPrivado.getId())
@@ -133,9 +137,9 @@ public class ConviteControllerTest {
         @DisplayName("Quando um organizador cria um convite válido")
         void quandoOrganizadorCriaConviteValido() throws Exception {
             String responseJsonString = driver.perform(post(URI_CONVITES)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoAcesso", organizador.getCodigo())
-                            .content(objectMapper.writeValueAsString(conviteDTO)))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("codigoAcesso", organizador.getCodigo())
+                    .content(objectMapper.writeValueAsString(conviteDTO)))
                     .andExpect(status().isCreated())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -151,12 +155,58 @@ public class ConviteControllerTest {
         }
 
         @Test
+        @DisplayName("Quando cria convite para grupo privado sem vagas")
+        void quandoCriaConviteParaGrupoPrivadoSemVagas() throws Exception {
+            Grupo grupoPrivadoAtualizado = grupoRepository.findById(grupoPrivado.getId()).orElseThrow();
+            grupoPrivadoAtualizado.setLimiteParticipantes(1);
+            grupoRepository.save(grupoPrivadoAtualizado);
+
+            String responseJsonString = driver.perform(post(URI_CONVITES)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("codigoAcesso", organizador.getCodigo())
+                    .content(objectMapper.writeValueAsString(conviteDTO)))
+                    .andExpect(status().isCreated())
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString();
+
+            ConviteResponseDTO resultado = objectMapper.readValue(responseJsonString, ConviteResponseDTO.class);
+
+            assertAll(
+                    () -> assertNotNull(resultado.getId()),
+                    () -> assertEquals(StatusConvite.PENDENTE, resultado.getStatus()),
+                    () -> assertEquals(grupoPrivado.getId(), resultado.getGrupo()),
+                    () -> assertEquals(convidado.getId(), resultado.getConvidado())
+            );
+        }
+
+        @Test
+        @DisplayName("Quando tenta criar convite para grupo com campeonato inativo")
+        void quandoCriaConviteParaGrupoComCampeonatoInativo() throws Exception {
+            campeonato.setAtivo(false);
+            campeonatoRepository.save(campeonato);
+
+            String responseJsonString = driver.perform(post(URI_CONVITES)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("codigoAcesso", organizador.getCodigo())
+                    .content(objectMapper.writeValueAsString(conviteDTO)))
+                    .andExpect(status().isBadRequest())
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString();
+
+            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
+
+            assertAll(
+                    () -> assertEquals("O campeonato associado a este grupo não está ativo!", resultado.getMessage())
+            );
+        }
+
+        @Test
         @DisplayName("Quando tenta criar convite com código de acesso inválido")
         void quandoCriaConviteComCodigoInvalido() throws Exception {
             String responseJsonString = driver.perform(post(URI_CONVITES)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoAcesso", "999999")
-                            .content(objectMapper.writeValueAsString(conviteDTO)))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("codigoAcesso", "999999")
+                    .content(objectMapper.writeValueAsString(conviteDTO)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -174,9 +224,9 @@ public class ConviteControllerTest {
             conviteDTO.setGrupo(grupoPublico.getId());
 
             String responseJsonString = driver.perform(post(URI_CONVITES)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoAcesso", organizador.getCodigo())
-                            .content(objectMapper.writeValueAsString(conviteDTO)))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("codigoAcesso", organizador.getCodigo())
+                    .content(objectMapper.writeValueAsString(conviteDTO)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -185,19 +235,20 @@ public class ConviteControllerTest {
 
             assertAll(
                     () -> assertEquals("Privacidade inválida!", resultado.getMessage())
-            );
+                );
         }
 
         @Test
         @DisplayName("Quando tenta criar convite para usuário que já é participante")
         void quandoCriaConviteParaParticipanteExistente() throws Exception {
-            grupoPrivado.getParticipantes().add(convidado);
-            grupoRepository.save(grupoPrivado);
+            Grupo grupoAtualizado = grupoRepository.findById(grupoPrivado.getId()).orElseThrow();
+            grupoAtualizado.getParticipantes().add(convidado);
+            grupoRepository.save(grupoAtualizado);
 
             String responseJsonString = driver.perform(post(URI_CONVITES)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoAcesso", organizador.getCodigo())
-                            .content(objectMapper.writeValueAsString(conviteDTO)))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("codigoAcesso", organizador.getCodigo())
+                    .content(objectMapper.writeValueAsString(conviteDTO)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -205,7 +256,7 @@ public class ConviteControllerTest {
             CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
 
             assertAll(
-                    () -> assertEquals("O convidado já participa desse grupo!", resultado.getMessage())
+                    () -> assertEquals("O usuário já é participante deste grupo!", resultado.getMessage())
             );
         }
 
@@ -213,15 +264,15 @@ public class ConviteControllerTest {
         @DisplayName("Quando tenta criar convite duplicado para o mesmo convidado no mesmo grupo")
         void quandoCriaConviteDuplicado() throws Exception {
             driver.perform(post(URI_CONVITES)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoAcesso", organizador.getCodigo())
-                            .content(objectMapper.writeValueAsString(conviteDTO)))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("codigoAcesso", organizador.getCodigo())
+                    .content(objectMapper.writeValueAsString(conviteDTO)))
                     .andExpect(status().isCreated());
 
             String responseJsonString = driver.perform(post(URI_CONVITES)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoAcesso", organizador.getCodigo())
-                            .content(objectMapper.writeValueAsString(conviteDTO)))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("codigoAcesso", organizador.getCodigo())
+                    .content(objectMapper.writeValueAsString(conviteDTO)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -229,7 +280,7 @@ public class ConviteControllerTest {
             CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
 
             assertAll(
-                    () -> assertEquals("O convidado já participa desse grupo!", resultado.getMessage())
+                    () -> assertEquals("Já existe um convite pendente para esse usuário nesse grupo!", resultado.getMessage())
             );
         }
 
@@ -239,9 +290,9 @@ public class ConviteControllerTest {
             conviteDTO.setOrganizador(convidado.getId());
 
             String responseJsonString = driver.perform(post(URI_CONVITES)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoAcesso", convidado.getCodigo())
-                            .content(objectMapper.writeValueAsString(conviteDTO)))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("codigoAcesso", convidado.getCodigo())
+                    .content(objectMapper.writeValueAsString(conviteDTO)))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -259,9 +310,9 @@ public class ConviteControllerTest {
             conviteDTO.setGrupo(null);
 
             driver.perform(post(URI_CONVITES)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoAcesso", organizador.getCodigo())
-                            .content(objectMapper.writeValueAsString(conviteDTO)))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("codigoAcesso", organizador.getCodigo())
+                    .content(objectMapper.writeValueAsString(conviteDTO)))
                     .andExpect(status().isBadRequest());
         }
 
@@ -271,9 +322,9 @@ public class ConviteControllerTest {
             conviteDTO.setConvidado(null);
 
             driver.perform(post(URI_CONVITES)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoAcesso", organizador.getCodigo())
-                            .content(objectMapper.writeValueAsString(conviteDTO)))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("codigoAcesso", organizador.getCodigo())
+                    .content(objectMapper.writeValueAsString(conviteDTO)))
                     .andExpect(status().isBadRequest());
         }
     }
@@ -287,9 +338,9 @@ public class ConviteControllerTest {
         @BeforeEach
         void setupConvite() throws Exception {
             String responseJsonString = driver.perform(post(URI_CONVITES)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoAcesso", organizador.getCodigo())
-                            .content(objectMapper.writeValueAsString(conviteDTO)))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("codigoAcesso", organizador.getCodigo())
+                    .content(objectMapper.writeValueAsString(conviteDTO)))
                     .andExpect(status().isCreated())
                     .andReturn().getResponse().getContentAsString();
 
@@ -300,29 +351,75 @@ public class ConviteControllerTest {
         @Test
         @DisplayName("Quando convidado aceita um convite pendente")
         void quandoConvidadoAceitaConvite() throws Exception {
-        String responseJsonString = driver.perform(post(URI_CONVITES + "/" + convite.getId() + "/aceitar")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .param("codigoAcessoConvidado", convidado.getCodigo()))
-                .andExpect(status().isOk())
-                .andDo(print())
-                .andReturn().getResponse().getContentAsString();
+            String responseJsonString = driver.perform(post(URI_CONVITES + "/" + convite.getId() + "/aceitar")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("codigoAcessoConvidado", convidado.getCodigo()))
+                    .andExpect(status().isOk())
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString();
 
-        ConviteResponseDTO resultado = objectMapper.readValue(responseJsonString, ConviteResponseDTO.class);
-        Grupo grupoAtualizado = grupoRepository.findById(grupoPrivado.getId()).orElseThrow();
+            ConviteResponseDTO resultado = objectMapper.readValue(responseJsonString, ConviteResponseDTO.class);
+            Grupo grupoAtualizado = grupoRepository.findById(grupoPrivado.getId()).orElseThrow();
 
-        assertAll(
-                () -> assertEquals(StatusConvite.ACEITO, resultado.getStatus()),
-                () -> assertTrue(grupoAtualizado.getParticipantes().stream()
-                        .anyMatch(p -> p.getId().equals(convidado.getId())))
-        );
+            assertAll(
+                    () -> assertEquals(StatusConvite.ACEITO, resultado.getStatus()),
+                    () -> assertTrue(grupoAtualizado.getParticipantes().stream()
+                            .anyMatch(p -> p.getId().equals(convidado.getId())))
+            );
+        }
+
+        @Test
+        @DisplayName("Quando tenta aceitar convite para grupo sem vagas")
+        void quandoTentaAceitarConviteParaGrupoSemVagas() throws Exception {
+            Grupo grupoPrivadoAtualizado = grupoRepository.findById(grupoPrivado.getId()).orElseThrow();
+            grupoPrivadoAtualizado.setLimiteParticipantes(1);
+            grupoRepository.save(grupoPrivadoAtualizado);
+
+            String responseJsonString = driver.perform(post(URI_CONVITES + "/" + convite.getId() + "/aceitar")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("codigoAcessoConvidado", convidado.getCodigo()))
+                    .andExpect(status().isBadRequest())
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString();
+
+            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
+            Convite conviteAtualizado = conviteRepository.findById(convite.getId()).orElseThrow();
+
+            assertAll(
+                    () -> assertEquals("O limite de participantes para este grupo já foi atingido!", resultado.getMessage()),
+                    () -> assertEquals(StatusConvite.PENDENTE, conviteAtualizado.getStatus())
+            );
+        }
+
+        @Test
+        @DisplayName("Quando tenta aceitar convite com campeonato inativo")
+        void quandoTentaAceitarConviteComCampeonatoInativo() throws Exception {
+            campeonato.setAtivo(false);
+            campeonatoRepository.save(campeonato);
+
+            String responseJsonString = driver.perform(post(URI_CONVITES + "/" + convite.getId() + "/aceitar")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("codigoAcessoConvidado", convidado.getCodigo()))
+                    .andExpect(status().isBadRequest())
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString();
+
+            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
+            Convite conviteAtualizado = conviteRepository.findById(convite.getId()).orElseThrow();
+            Grupo grupoAtualizado = grupoRepository.findById(grupoPrivado.getId()).orElseThrow();
+
+            assertAll(
+                    () -> assertEquals("O campeonato associado a este grupo não está ativo!", resultado.getMessage()),
+                    () -> assertEquals(StatusConvite.PENDENTE, conviteAtualizado.getStatus()),
+                    () -> assertFalse(grupoAtualizado.getParticipantes().stream().anyMatch(p -> p.getId().equals(convidado.getId()))));
         }
 
         @Test
         @DisplayName("Quando convidado recusa um convite pendente")
         void quandoConvidadoRecusaConvite() throws Exception {
             String responseJsonString = driver.perform(post(URI_CONVITES + "/" + convite.getId() + "/recusar")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoAcessoConvidado", convidado.getCodigo()))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("codigoAcessoConvidado", convidado.getCodigo()))
                     .andExpect(status().isOk())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -338,8 +435,8 @@ public class ConviteControllerTest {
         @DisplayName("Quando convidado ignora um convite pendente")
         void quandoConvidadoIgnoraConvite() throws Exception {
             String responseJsonString = driver.perform(post(URI_CONVITES + "/" + convite.getId() + "/ignorar")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoAcessoConvidado", convidado.getCodigo()))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("codigoAcessoConvidado", convidado.getCodigo()))
                     .andExpect(status().isOk())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -355,13 +452,13 @@ public class ConviteControllerTest {
         @DisplayName("Quando tenta aceitar convite já processado")
         void quandoTentaAceitarConviteJaProcessado() throws Exception {
             driver.perform(post(URI_CONVITES + "/" + convite.getId() + "/recusar")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoAcessoConvidado", convidado.getCodigo()))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("codigoAcessoConvidado", convidado.getCodigo()))
                     .andExpect(status().isOk());
 
             String responseJsonString = driver.perform(post(URI_CONVITES + "/" + convite.getId() + "/aceitar")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoAcessoConvidado", convidado.getCodigo()))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .param("codigoAcessoConvidado", convidado.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();

@@ -133,6 +133,22 @@ public class CampeonatoControllerTest {
 	}
 
 	@Test
+	@DisplayName("Recuperar campeonato por id")
+	void recuperarCampeonatoPorId() throws Exception {
+		Campeonato campeonato = campeonatoRepository.save(Campeonato.builder()
+				.nome("Campeonato Brasileiro")
+				.url("https://api.football-data.org/v4/competitions/2013")
+				.codigo("BSA")
+				.ativo(false)
+				.build());
+
+		mockMvc.perform(get(URI_CAMPEONATOS + "/" + campeonato.getId()))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.id").value(campeonato.getId()))
+			.andExpect(jsonPath("$.nome").value("Campeonato Brasileiro"));
+	}
+
+	@Test
 	@DisplayName("Buscar campeonato por nome")
 	void buscarCampeonatoPorNomeEmpty() throws Exception {
 		mockMvc.perform(get(URI_CAMPEONATOS + "/buscar").param("nome", "Teste"))

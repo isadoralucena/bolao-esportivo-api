@@ -18,6 +18,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -109,6 +110,7 @@ public class GrupoRegrasPalpitesControllerTest {
                 .organizador(organizador)
                 .build());
 
+        grupo.getParticipantes().add(organizador);
         grupo.getParticipantes().add(participante);
         grupoRepository.save(grupo);
 
@@ -143,8 +145,8 @@ public class GrupoRegrasPalpitesControllerTest {
             GrupoResponseDTO resultado = objectMapper.readValue(responseJsonString, GrupoResponseDTO.class);
 
             assertAll(
-                    () -> assertEquals(120, resultado.getMinutosAberturaPalpite()),
-                    () -> assertEquals(0, resultado.getMinutosFechamentoPalpite())
+                    () -> assertEquals(120, resultado.getMinutosAberturaPalpites()),
+                    () -> assertEquals(0, resultado.getMinutosFechamentoPalpites())
             );
         }
 
@@ -165,8 +167,8 @@ public class GrupoRegrasPalpitesControllerTest {
             GrupoResponseDTO resultado = objectMapper.readValue(responseJsonString, GrupoResponseDTO.class);
 
             assertAll(
-                    () -> assertEquals(60, resultado.getMinutosAberturaPalpite()),
-                    () -> assertEquals(30, resultado.getMinutosFechamentoPalpite())
+                    () -> assertEquals(60, resultado.getMinutosAberturaPalpites()),
+                    () -> assertEquals(30, resultado.getMinutosFechamentoPalpites())
             );
         }
 
@@ -319,9 +321,8 @@ public class GrupoRegrasPalpitesControllerTest {
                     .codigoExterno(1L)
                     .mandante("Time A")
                     .visitante("Time B")
-                    .data(LocalDateTime.now().plusMinutes(60))
+                    .data(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(60))
                     .status(PartidaStatus.ABERTO)
-                    .rodada(1)
                     .build());
 
             driver.perform(post("/grupos/{grupoId}/partidas/{partidaId}/palpites",
@@ -343,9 +344,8 @@ public class GrupoRegrasPalpitesControllerTest {
                     .codigoExterno(2L)
                     .mandante("Time C")
                     .visitante("Time D")
-                    .data(LocalDateTime.now().plusMinutes(180))
+                    .data(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(180))
                     .status(PartidaStatus.ABERTO)
-                    .rodada(2)
                     .build());
 
             String responseJsonString = driver.perform(post("/grupos/{grupoId}/partidas/{partidaId}/palpites",
@@ -370,9 +370,8 @@ public class GrupoRegrasPalpitesControllerTest {
                     .codigoExterno(3L)
                     .mandante("Time E")
                     .visitante("Time F")
-                    .data(LocalDateTime.now().plusMinutes(180))
+                    .data(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(180))
                     .status(PartidaStatus.ABERTO)
-                    .rodada(3)
                     .build());
 
             // reconfigura janela para 240min de abertura
