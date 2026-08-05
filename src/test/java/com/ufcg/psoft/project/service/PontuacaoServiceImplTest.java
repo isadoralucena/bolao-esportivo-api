@@ -5,6 +5,7 @@ import static com.ufcg.psoft.project.config.TestClockConfig.FIXED_CLOCK;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -287,6 +288,7 @@ class PontuacaoServiceImplTest {
 
         verify(eventPublisher).publishEvent(eventoCaptor.capture());
         assertEquals(1L, eventoCaptor.getValue().getGrupoId());
+        assertEquals(1L, eventoCaptor.getValue().getPartidaId());
         verify(eventPublisher, never())
                 .publishEvent(any(MudancaGrupoPosicaoEvent.class));
     }
@@ -309,5 +311,11 @@ class PontuacaoServiceImplTest {
         var resultado = pontuacaoService.calcularPontuacoesDoGrupo(1L);
         assertNotNull(resultado);
         assertTrue(resultado.isEmpty());
+
+        ArgumentCaptor<RankingAtualizadoEvent> eventoCaptor =
+                ArgumentCaptor.forClass(RankingAtualizadoEvent.class);
+        verify(eventPublisher).publishEvent(eventoCaptor.capture());
+        assertEquals(1L, eventoCaptor.getValue().getGrupoId());
+        assertNull(eventoCaptor.getValue().getPartidaId());
     }
 }

@@ -71,12 +71,14 @@ public class RankingHistoricoServiceImpl implements RankingHistoricoService {
                 .findByGrupoIdOrderByDataSnapshotDescPosicaoAsc(grupoId);
 
         List<Long> partidasRecentes = todos.stream()
+                .filter(s -> s.getPartida() != null)
                 .map(s -> s.getPartida().getId())
                 .distinct()
                 .limit(desempenhoRecentePartidas)
                 .toList();
 
         return todos.stream()
+                .filter(s -> s.getPartida() != null)
                 .filter(s -> partidasRecentes.contains(s.getPartida().getId()))
                 .map(RankingSnapshotResponseDTO::new)
                 .toList();
@@ -85,15 +87,13 @@ public class RankingHistoricoServiceImpl implements RankingHistoricoService {
     @Override
     @Transactional
     public void gerarSnapshot(Long grupoId, Long partidaId) {
-        if (rankingSnapshotRepository.existsByGrupoIdAndPartidaId(grupoId, partidaId)) {
-            return;
-        }
-
         Grupo grupo = grupoRepository.findById(grupoId)
                 .orElseThrow(GrupoNaoExisteException::new);
 
-        Partida partida = partidaRepository.findById(partidaId)
-                .orElseThrow(PartidaNaoExisteException::new);
+        Partida partida = partidaId == null
+                ? null
+                : partidaRepository.findById(partidaId)
+                        .orElseThrow(PartidaNaoExisteException::new);
 
         List<PontuacaoParticipanteResponseDTO> pontuacoes = pontuacaoService
                 .listarPontuacoesParticipantesDoGrupo(grupoId, grupo.getOrganizador().getId(), grupo.getOrganizador().getCodigo());
@@ -105,6 +105,7 @@ public class RankingHistoricoServiceImpl implements RankingHistoricoService {
         Map<Long, Integer> posicoes = rankingCalculator.calcularPosicoes(pontuacoes, criterios);
 
         List<RankingSnapshot> snapshots = new ArrayList<>();
+        LocalDateTime dataSnapshot = LocalDateTime.now(clock);
         for (PontuacaoParticipanteResponseDTO pontuacao : pontuacoes) {
             snapshots.add(RankingSnapshot.builder()
                     .grupo(grupo)
@@ -117,7 +118,7 @@ public class RankingHistoricoServiceImpl implements RankingHistoricoService {
                     .partida(partida)
                     .posicao(posicoes.get(pontuacao.getUsuarioId()))
                     .pontuacao(pontuacao.getPontuacao())
-                    .dataSnapshot(LocalDateTime.now(clock))
+                    .dataSnapshot(dataSnapshot)
                     .build());
         }
 

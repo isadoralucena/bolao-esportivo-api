@@ -7,6 +7,7 @@ import com.ufcg.psoft.project.exception.CustomErrorType;
 import com.ufcg.psoft.project.model.*;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.repository.GrupoRepository;
+import com.ufcg.psoft.project.repository.RankingSnapshotRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
 
 import org.junit.jupiter.api.*;
@@ -36,6 +37,8 @@ class GrupoRegraPontuacaoControllerTest {
 
     final MockMvc driver;
     final GrupoRepository grupoRepository;
+
+    final RankingSnapshotRepository rankingSnapshotRepository;
     final UsuarioRepository usuarioRepository;
     final CampeonatoRepository campeonatoRepository;
     final ObjectMapper objectMapper;
@@ -103,6 +106,7 @@ class GrupoRegraPontuacaoControllerTest {
 
     @AfterEach
     void tearDown() {
+        rankingSnapshotRepository.deleteAll();
         grupoRepository.deleteAll();
         campeonatoRepository.deleteAll();
         usuarioRepository.deleteAll();

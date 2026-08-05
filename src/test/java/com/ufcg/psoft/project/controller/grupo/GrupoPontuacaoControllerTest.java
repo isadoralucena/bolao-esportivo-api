@@ -57,6 +57,8 @@ class GrupoPontuacaoControllerTest {
 
     final PontuacaoPalpiteRepository pontuacaoPalpiteRepository;
 
+    final RankingSnapshotRepository rankingSnapshotRepository;
+
     final PontuacaoService pontuacaoService;
 
     Usuario organizador;
@@ -129,6 +131,7 @@ class GrupoPontuacaoControllerTest {
 
     @AfterEach
     void tearDown() {
+        rankingSnapshotRepository.deleteAll();
         pontuacaoPalpiteRepository.deleteAll();
         palpiteRepository.deleteAll();
         grupoRepository.deleteAll();

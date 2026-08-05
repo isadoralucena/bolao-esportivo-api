@@ -29,7 +29,7 @@ public class RankingSnapshot {
     private Usuario usuario;
 
     @ManyToOne
-    @JoinColumn(name = "partida_id", nullable = false)
+    @JoinColumn(name = "partida_id")
     private Partida partida;
 
     @JsonProperty("posicao")

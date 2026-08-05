@@ -112,7 +112,7 @@ public class PontuacaoServiceImpl implements PontuacaoService {
                 .map(p -> p.getPalpite().getGrupo().getId())
                 .distinct()
                 .forEach(grupoId -> {
-                    eventPublisher.publishEvent(new RankingAtualizadoEvent(this, grupoId));
+                    eventPublisher.publishEvent(new RankingAtualizadoEvent(this, grupoId, partidaId));
                     notificarMudancasDePosicao(grupoId, posicoesAntesPorGrupo.get(grupoId));
                 });
 
