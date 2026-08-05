@@ -6,7 +6,8 @@ import com.ufcg.psoft.project.dto.ranking.RankingResponseDTO;
 import com.ufcg.psoft.project.model.*;
 import com.ufcg.psoft.project.repository.*;
 import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.test.context.TestConstructor;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -15,6 +16,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -26,39 +28,33 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("Testes do controlador de Rankings - US13")
-public class RankingControllerTest {
+@RequiredArgsConstructor
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+class RankingControllerTest {
 
     final String URI_RANKING = "/ranking";
 
-    @Autowired
     MockMvc driver;
 
-    @Autowired
-    WebApplicationContext webApplicationContext;
+    final WebApplicationContext webApplicationContext;
 
-    @Autowired
-    UsuarioRepository usuarioRepository;
+    final UsuarioRepository usuarioRepository;
 
-    @Autowired
-    CampeonatoRepository campeonatoRepository;
+    final CampeonatoRepository campeonatoRepository;
 
-    @Autowired
-    GrupoRepository grupoRepository;
+    final GrupoRepository grupoRepository;
 
-    @Autowired
-    PartidaRepository partidaRepository;
+    final PartidaRepository partidaRepository;
 
-    @Autowired
-    PalpiteRepository palpiteRepository;
+    final PalpiteRepository palpiteRepository;
 
-    @Autowired
-    PontuacaoPalpiteRepository pontuacaoPalpiteRepository;
+    final PontuacaoPalpiteRepository pontuacaoPalpiteRepository;
 
-    @Autowired
-    RegraPontuacaoRepository regraPontuacaoRepository;
+    final RegraPontuacaoRepository regraPontuacaoRepository;
 
-    @Autowired
-    ObjectMapper objectMapper;
+    final ObjectMapper objectMapper;
+
+    final Clock clock;
 
     Usuario organizador;
     Usuario participante1;
@@ -138,7 +134,7 @@ public class RankingControllerTest {
                 .visitante("Time B")
                 .golsMandante(2)
                 .golsVisitante(1)
-                .data(LocalDateTime.now().minusDays(1))
+                .data(LocalDateTime.now(clock).minusDays(1))
                 .status(PartidaStatus.FINALIZADO)
                 .build());
     }
@@ -150,7 +146,7 @@ public class RankingControllerTest {
                 .grupo(grupo)
                 .golsMandante(golsMandante)
                 .golsVisitante(golsVisitante)
-                .data(LocalDateTime.now())
+                .data(LocalDateTime.now(clock))
                 .build());
     }
 
@@ -213,11 +209,11 @@ public class RankingControllerTest {
 
             assertAll(
                     () -> assertTrue(entry.getPosicao() > 0),
-                    () -> assertNotNull(entry.getPontuacaoParticipante().getPontuacao()),
-                    () -> assertNotNull(entry.getPontuacaoParticipante().getAcertosVencedor()),
-                    () -> assertNotNull(entry.getPontuacaoParticipante().getAcertosEmpate()),
-                    () -> assertNotNull(entry.getPontuacaoParticipante().getTotalPalpitesAvaliados()),
-                    () -> assertNotNull(entry.getPontuacaoParticipante().getPlacaresExatos())
+                    () -> assertEquals(10, entry.getPontuacaoParticipante().getPontuacao()),
+                    () -> assertEquals(1, entry.getPontuacaoParticipante().getAcertosVencedor()),
+                    () -> assertEquals(0, entry.getPontuacaoParticipante().getAcertosEmpate()),
+                    () -> assertEquals(1, entry.getPontuacaoParticipante().getTotalPalpitesAvaliados()),
+                    () -> assertEquals(1, entry.getPontuacaoParticipante().getPlacaresExatos())
             );
         }
 
@@ -375,10 +371,10 @@ public class RankingControllerTest {
 
             assertAll(
                     () -> assertTrue(entry.getPosicao() > 0),
-                    () -> assertNotNull(entry.getPontuacaoParticipante().getPontuacao()),
-                    () -> assertNotNull(entry.getPontuacaoParticipante().getAcertosVencedor()),
-                    () -> assertNotNull(entry.getPontuacaoParticipante().getAcertosEmpate()),
-                    () -> assertNotNull(entry.getPontuacaoParticipante().getPlacaresExatos())
+                    () -> assertEquals(10, entry.getPontuacaoParticipante().getPontuacao()),
+                    () -> assertEquals(1, entry.getPontuacaoParticipante().getAcertosVencedor()),
+                    () -> assertEquals(0, entry.getPontuacaoParticipante().getAcertosEmpate()),
+                    () -> assertEquals(1, entry.getPontuacaoParticipante().getPlacaresExatos())
             );
         }
 

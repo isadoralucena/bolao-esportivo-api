@@ -1,5 +1,7 @@
 package com.ufcg.psoft.project.service;
 
+import static com.ufcg.psoft.project.config.TestClockConfig.FIXED_CLOCK;
+
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -19,6 +21,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,7 +31,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEvent;
@@ -55,7 +57,7 @@ import com.ufcg.psoft.project.service.partida.PartidaServiceImpl;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Testes de service de partida")
-public class PartidaServiceImplTest {
+class PartidaServiceImplTest {
     @Mock
     private PartidaRepository partidaRepository;
 
@@ -65,17 +67,28 @@ public class PartidaServiceImplTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
-    @InjectMocks
     private PartidaServiceImpl partidaService;
 
     private MockRestServiceServer server;
 
     @BeforeEach
     void setup() {
+        partidaService = new PartidaServiceImpl(
+                partidaRepository,
+                grupoRepository,
+                eventPublisher,
+                FIXED_CLOCK
+        );
         RestTemplate restTemplate = (RestTemplate) ReflectionTestUtils.getField(partidaService, "restTemplate");
         server = MockRestServiceServer.createServer(restTemplate);
         lenient().when(partidaRepository.save(any(Partida.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+                .thenAnswer(invocation -> {
+                    Partida partidaSalva = invocation.getArgument(0);
+                    if (partidaSalva.getId() == null) {
+                        partidaSalva.setId(partidaSalva.getCodigoExterno());
+                    }
+                    return partidaSalva;
+                });
     }
 
     @Test
@@ -121,7 +134,7 @@ public class PartidaServiceImplTest {
         assertEquals("Time B", partida.getVisitante());
         assertEquals(2, partida.getGolsMandante());
         assertEquals(1, partida.getGolsVisitante());
-        assertEquals(LocalDateTime.of(2026, 7, 5, 18, 0), partida.getData());
+        assertEquals(LocalDateTime.of(2026, Month.JULY, 5, 18, 0), partida.getData());
         assertEquals(PartidaStatus.FINALIZADO, partida.getStatus());
     }
 
@@ -248,7 +261,7 @@ public class PartidaServiceImplTest {
                 .id(10L).campeonato(campeonato)
                 .mandante("A").visitante("B")
                 .golsMandante(2).golsVisitante(1)
-                .data(LocalDateTime.of(2026, 7, 5, 18, 0))
+                .data(LocalDateTime.of(2026, Month.JULY, 5, 18, 0))
                 .status(PartidaStatus.FINALIZADO)
                 .codigoExterno(100L)
                 .mataMata(false)
@@ -310,14 +323,14 @@ public class PartidaServiceImplTest {
                 .andExpect(method(GET))
                 .andRespond(withSuccess(resposta, MediaType.APPLICATION_JSON));
 
-        partidaService.sincronizarPartidas(campeonato);
+        List<PartidaResponseDTO> resultado = partidaService.sincronizarPartidas(campeonato);
 
         ArgumentCaptor<PalpitesAbertosEvent> eventoCaptor =
                 ArgumentCaptor.forClass(PalpitesAbertosEvent.class);
 
         verify(eventPublisher).publishEvent(eventoCaptor.capture());
-        assertEquals(30L, eventoCaptor.getValue().getPartida().getCodigoExterno());
-        assertEquals(PartidaStatus.ABERTO, eventoCaptor.getValue().getPartida().getStatus());
+        assertEquals(30L, eventoCaptor.getValue().getPartidaId());
+        assertEquals(PartidaStatus.ABERTO, resultado.get(0).getStatus());
     }
 
     @Test
@@ -341,7 +354,7 @@ public class PartidaServiceImplTest {
                 .id(100L).campeonato(campeonato).codigoExterno(40L)
                 .mandante("C").visitante("D")
                 .status(PartidaStatus.ABERTO)
-                .data(LocalDateTime.of(2026, 7, 6, 18, 0))
+                .data(LocalDateTime.of(2026, Month.JULY, 6, 18, 0))
                 .build();
 
         when(partidaRepository.findByCampeonatoIdAndCodigoExterno(1L, 40L))
@@ -377,11 +390,11 @@ public class PartidaServiceImplTest {
         assertAll(
                 () -> assertEquals(
                         100L,
-                        eventoFechamento.getPartida().getId()
+                        eventoFechamento.getPartidaId()
                 ),
                 () -> assertEquals(
                         100L,
-                        eventoInicio.getPartida().getId()
+                        eventoInicio.getPartidaId()
                 )
         );
     }
@@ -408,7 +421,7 @@ public class PartidaServiceImplTest {
                 .id(101L).campeonato(campeonato).codigoExterno(50L)
                 .mandante("E").visitante("F")
                 .status(PartidaStatus.EM_ANDAMENTO)
-                .data(LocalDateTime.of(2026, 7, 6, 18, 0))
+                .data(LocalDateTime.of(2026, Month.JULY, 6, 18, 0))
                 .build();
 
         when(partidaRepository.findByCampeonatoIdAndCodigoExterno(1L, 50L))
@@ -424,8 +437,8 @@ public class PartidaServiceImplTest {
                 ArgumentCaptor.forClass(PartidaFinalizadaEvent.class);
 
         verify(eventPublisher).publishEvent(eventoCaptor.capture());
-        assertEquals(101L, eventoCaptor.getValue().getPartida().getId());
-        assertEquals(PartidaStatus.FINALIZADO, eventoCaptor.getValue().getPartida().getStatus());
+        assertEquals(101L, eventoCaptor.getValue().getPartidaId());
+        assertEquals(PartidaStatus.FINALIZADO, existente.getStatus());
     }
 
     @Test
@@ -451,7 +464,7 @@ public class PartidaServiceImplTest {
                 .mandante("G").visitante("H")
                 .golsMandante(1).golsVisitante(0)
                 .status(PartidaStatus.FINALIZADO)
-                .data(LocalDateTime.of(2026, 7, 6, 18, 0))
+                .data(LocalDateTime.of(2026, Month.JULY, 6, 18, 0))
                 .build();
 
         when(partidaRepository.findByCampeonatoIdAndCodigoExterno(1L, 60L))
@@ -505,7 +518,7 @@ public class PartidaServiceImplTest {
 				.visitante("Time B")
 				.status(PartidaStatus.EM_ANDAMENTO)
 				.consolidada(false)
-				.data(LocalDateTime.of(2026, 7, 6, 18, 0))
+				.data(LocalDateTime.of(2026, Month.JULY, 6, 18, 0))
 				.build();
 
 		when(partidaRepository.findByCampeonatoIdAndCodigoExterno(1L, 100L))
@@ -526,18 +539,16 @@ public class PartidaServiceImplTest {
 
 		verify(eventPublisher).publishEvent(eventoCaptor.capture());
 
-		Partida partidaPublicada = eventoCaptor.getValue().getPartida();
-
 		assertEquals(1, resultado.size());
 		assertEquals(PartidaStatus.FINALIZADO, resultado.get(0).getStatus());
 		assertEquals(3, resultado.get(0).getGolsMandante());
 		assertEquals(0, resultado.get(0).getGolsVisitante());
 
-		assertEquals(200L, partidaPublicada.getId());
-		assertEquals(PartidaStatus.FINALIZADO, partidaPublicada.getStatus());
-		assertEquals(3, partidaPublicada.getGolsMandante());
-		assertEquals(0, partidaPublicada.getGolsVisitante());
-		assertFalse(partidaPublicada.isConsolidada());
+		assertEquals(200L, eventoCaptor.getValue().getPartidaId());
+		assertEquals(PartidaStatus.FINALIZADO, existente.getStatus());
+		assertEquals(3, existente.getGolsMandante());
+		assertEquals(0, existente.getGolsVisitante());
+		assertFalse(existente.isConsolidada());
 
 		verify(partidaRepository).save(existente);
 	}
@@ -566,7 +577,7 @@ public class PartidaServiceImplTest {
                 .golsMandante(1).golsVisitante(0)
                 .status(PartidaStatus.FINALIZADO)
                 .consolidada(true)
-                .data(LocalDateTime.of(2026, 7, 6, 18, 0))
+                .data(LocalDateTime.of(2026, Month.JULY, 6, 18, 0))
                 .build();
 
         when(partidaRepository.findByCampeonatoIdAndCodigoExterno(1L, 61L))
@@ -582,10 +593,10 @@ public class PartidaServiceImplTest {
                 ArgumentCaptor.forClass(PartidaFinalizadaEvent.class);
         verify(eventPublisher).publishEvent(eventoCaptor.capture());
 
-        Partida partidaAtualizada = eventoCaptor.getValue().getPartida();
-        assertEquals(2, partidaAtualizada.getGolsMandante());
-        assertEquals(0, partidaAtualizada.getGolsVisitante());
-        assertFalse(partidaAtualizada.isConsolidada());
+        assertEquals(103L, eventoCaptor.getValue().getPartidaId());
+        assertEquals(2, existente.getGolsMandante());
+        assertEquals(0, existente.getGolsVisitante());
+        assertFalse(existente.isConsolidada());
     }
 
     @Test
@@ -773,7 +784,7 @@ public class PartidaServiceImplTest {
                     .minutosAberturaPalpites(120)
                     .minutosFechamentoPalpites(30)
                     .build();
-            dataPartida = LocalDateTime.of(2026, 7, 15, 18, 0);
+            dataPartida = LocalDateTime.of(2026, Month.JULY, 15, 18, 0);
             partidaBuilder = Partida.builder()
                     .id(100L).codigoExterno(1L)
                     .mandante("A").visitante("B")
@@ -808,7 +819,7 @@ public class PartidaServiceImplTest {
         @DisplayName("ABERTO dentro da janela retorna ABERTO")
         void quandoAbertoDentroDaJanela() {
             Partida partida = partidaBuilder.status(PartidaStatus.ABERTO).build();
-            LocalDateTime agora = LocalDateTime.of(2026, 7, 15, 17, 0);
+            LocalDateTime agora = LocalDateTime.of(2026, Month.JULY, 15, 17, 0);
             assertEquals(PartidaStatus.ABERTO,
                     partida.statusEfetivoParaGrupo(grupo, agora));
         }
@@ -817,7 +828,7 @@ public class PartidaServiceImplTest {
         @DisplayName("ABERTO antes da abertura retorna EM_ANDAMENTO")
         void quandoAbertoAntesDaAbertura() {
             Partida partida = partidaBuilder.status(PartidaStatus.ABERTO).build();
-            LocalDateTime agora = LocalDateTime.of(2026, 7, 15, 15, 0);
+            LocalDateTime agora = LocalDateTime.of(2026, Month.JULY, 15, 15, 0);
             assertEquals(PartidaStatus.EM_ANDAMENTO,
                     partida.statusEfetivoParaGrupo(grupo, agora));
         }
@@ -826,7 +837,7 @@ public class PartidaServiceImplTest {
         @DisplayName("ABERTO depois do fechamento retorna EM_ANDAMENTO")
         void quandoAbertoDepoisDoFechamento() {
             Partida partida = partidaBuilder.status(PartidaStatus.ABERTO).build();
-            LocalDateTime agora = LocalDateTime.of(2026, 7, 15, 17, 45);
+            LocalDateTime agora = LocalDateTime.of(2026, Month.JULY, 15, 17, 45);
             assertEquals(PartidaStatus.EM_ANDAMENTO,
                     partida.statusEfetivoParaGrupo(grupo, agora));
         }

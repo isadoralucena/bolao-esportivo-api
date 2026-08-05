@@ -16,7 +16,7 @@ import jakarta.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -25,28 +25,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class CampeonatoServiceImpl implements CampeonatoService {
 
-	@Autowired
-	private CampeonatoRepository campeonatoRepository;
-
-	@Autowired
-	private UsuarioRepository usuarioRepository;
-
-	@Autowired
-	private PartidaService partidaService;
-
-    @Autowired
-	private ClassificacaoCampeonatoService classificacaoCampeonatoService;
-
-	@Autowired
-	private ModelMapper modelMapper;
+	private final CampeonatoRepository campeonatoRepository;
+	private final UsuarioRepository usuarioRepository;
+	private final PartidaService partidaService;
+	private final ClassificacaoCampeonatoService classificacaoCampeonatoService;
+	private final ModelMapper modelMapper;
+	private final Clock clock;
 
 	@Value("${project.football-data.api-token:}")
 	private String apiToken;
@@ -69,7 +62,7 @@ public class CampeonatoServiceImpl implements CampeonatoService {
         partidaService.sincronizarPartidas(campeonato);
         classificacaoCampeonatoService.sincronizarClassificacao(campeonato.getId());
 
-        campeonato.setUltimaSincronizacao(LocalDateTime.now());
+        campeonato.setUltimaSincronizacao(LocalDateTime.now(clock));
         campeonatoRepository.save(campeonato);
 
         return modelMapper.map(campeonato, CampeonatoResponseDTO.class);
@@ -102,7 +95,7 @@ public class CampeonatoServiceImpl implements CampeonatoService {
 		List<Campeonato> campeonatos = campeonatoRepository.findAll();
 		return campeonatos.stream()
 			.map(CampeonatoResponseDTO::new)
-			.collect(Collectors.toList());
+			.toList();
 	}
 
 	@Override
@@ -116,7 +109,7 @@ public class CampeonatoServiceImpl implements CampeonatoService {
 		List<Campeonato> campeonatos = campeonatoRepository.findByNomeContaining(nome);
 		return campeonatos.stream()
 			.map(CampeonatoResponseDTO::new)
-			.collect(Collectors.toList());
+			.toList();
 	}
 
 	@Override

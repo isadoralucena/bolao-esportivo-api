@@ -1,10 +1,9 @@
 package com.ufcg.psoft.project.service.grupo;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import com.ufcg.psoft.project.dto.grupo.GrupoPostRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.GrupoPutRequestDTO;
@@ -22,15 +21,12 @@ import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.repository.GrupoRepository;
 
 @Service
+@RequiredArgsConstructor
 public class GrupoServiceImpl implements GrupoService {
-    @Autowired
-    GrupoRepository grupoRepository;
-    @Autowired
-    private CampeonatoRepository campeonatoRepository;
-    @Autowired
-    ModelMapper modelMapper;
-    @Autowired
-    GrupoAutorizacaoService grupoAutorizacaoService;
+    final GrupoRepository grupoRepository;
+    private final CampeonatoRepository campeonatoRepository;
+    final ModelMapper modelMapper;
+    final GrupoAutorizacaoService grupoAutorizacaoService;
 
     public GrupoResponseDTO criar(Long usuarioId, String codigoAcesso, GrupoPostRequestDTO grupoPostRequestDto) {
         Usuario usuarioLogado = grupoAutorizacaoService.obterUsuarioValido(usuarioId, codigoAcesso);
@@ -38,7 +34,7 @@ public class GrupoServiceImpl implements GrupoService {
         Campeonato campeonato = campeonatoRepository.findById(grupoPostRequestDto.getCampeonatoId())
                 .orElseThrow(CampeonatoNaoExisteException::new);
 
-        if (!campeonato.getAtivo()) {
+        if (!Boolean.TRUE.equals(campeonato.getAtivo())) {
             throw new CampeonatoInativoException();
         }
 
@@ -66,7 +62,7 @@ public class GrupoServiceImpl implements GrupoService {
         return grupos.stream()
                 .filter((g -> grupoAutorizacaoService.temAcessoLeitura(g, usuarioLogado)))
                 .map(GrupoResponseDTO::new)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public GrupoResponseDTO alterar(Long usuarioId, String codigoAcesso, Long id, GrupoPutRequestDTO grupoPutRequestDto) {

@@ -1,18 +1,20 @@
 package com.ufcg.psoft.project.controller;
 
+import static com.ufcg.psoft.project.config.TestClockConfig.FIXED_CLOCK;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ufcg.psoft.project.dto.palpite.PalpitePostPutRequestDTO;
 import com.ufcg.psoft.project.model.*;
 import com.ufcg.psoft.project.repository.*;
 import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.test.context.TestConstructor;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -20,28 +22,23 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("Testes de edição e exclusão de palpites - US8")
-public class PalpiteEdicaoControllerTests {
+@RequiredArgsConstructor
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+class PalpiteEdicaoControllerTests {
 
-    @Autowired
-    MockMvc mockMvc;
+    final MockMvc mockMvc;
 
-    @Autowired
-    ObjectMapper objectMapper;
+    final ObjectMapper objectMapper;
 
-    @Autowired
-    UsuarioRepository usuarioRepository;
+    final UsuarioRepository usuarioRepository;
 
-    @Autowired
-    CampeonatoRepository campeonatoRepository;
+    final CampeonatoRepository campeonatoRepository;
 
-    @Autowired
-    GrupoRepository grupoRepository;
+    final GrupoRepository grupoRepository;
 
-    @Autowired
-    PartidaRepository partidaRepository;
+    final PartidaRepository partidaRepository;
 
-    @Autowired
-    PalpiteRepository palpiteRepository;
+    final PalpiteRepository palpiteRepository;
 
     private Usuario usuario;
     private Usuario outroUsuario;
@@ -53,7 +50,7 @@ public class PalpiteEdicaoControllerTests {
     private PalpitePostPutRequestDTO dto;
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp() {
         usuario = usuarioRepository.save(Usuario.builder()
                 .nome("Jogador")
                 .email("jogador@teste.com")
@@ -95,7 +92,7 @@ public class PalpiteEdicaoControllerTests {
                 .codigoExterno(1L)
                 .mandante("Time A")
                 .visitante("Time B")
-                .data(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(60))
+                .data(LocalDateTime.now(FIXED_CLOCK).plusMinutes(60))
                 .status(PartidaStatus.ABERTO)
                 .build());
 
@@ -104,7 +101,7 @@ public class PalpiteEdicaoControllerTests {
                 .codigoExterno(2L)
                 .mandante("Time C")
                 .visitante("Time D")
-                .data(LocalDateTime.now(ZoneOffset.UTC).minusDays(1))
+                .data(LocalDateTime.now(FIXED_CLOCK).minusDays(1))
                 .status(PartidaStatus.FINALIZADO)
                 .build());
 
@@ -114,7 +111,7 @@ public class PalpiteEdicaoControllerTests {
                 .grupo(grupo)
                 .golsMandante(2)
                 .golsVisitante(1)
-                .data(LocalDateTime.now(ZoneOffset.UTC))
+                .data(LocalDateTime.now(FIXED_CLOCK))
                 .build());
 
         dto = PalpitePostPutRequestDTO.builder()
@@ -197,7 +194,7 @@ public class PalpiteEdicaoControllerTests {
                     .grupo(grupo)
                     .golsMandante(1)
                     .golsVisitante(1)
-                    .data(LocalDateTime.now(ZoneOffset.UTC))
+                    .data(LocalDateTime.now(FIXED_CLOCK))
                     .build());
 
             mockMvc.perform(put("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",
@@ -278,7 +275,7 @@ public class PalpiteEdicaoControllerTests {
                     .grupo(grupo)
                     .golsMandante(1)
                     .golsVisitante(1)
-                    .data(LocalDateTime.now(ZoneOffset.UTC))
+                    .data(LocalDateTime.now(FIXED_CLOCK))
                     .build());
 
             mockMvc.perform(delete("/grupos/{grupoId}/partidas/{partidaId}/palpites/{palpiteId}",

@@ -7,10 +7,12 @@ import com.ufcg.psoft.project.exception.CustomErrorType;
 import com.ufcg.psoft.project.model.*;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.repository.GrupoRepository;
+import com.ufcg.psoft.project.repository.RankingSnapshotRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
 
 import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.test.context.TestConstructor;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -27,20 +29,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("Testes sobre as regras de pontuação do controlador de grupos de bolão")
-public class GrupoRegraPontuacaoControllerTest {
+@RequiredArgsConstructor
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+class GrupoRegraPontuacaoControllerTest {
 
     final String URI_GRUPOS = "/grupos";
 
-    @Autowired
-    MockMvc driver;
-    @Autowired
-    GrupoRepository grupoRepository;
-    @Autowired
-    UsuarioRepository usuarioRepository;
-    @Autowired
-    CampeonatoRepository campeonatoRepository;
-    @Autowired
-    ObjectMapper objectMapper;
+    final MockMvc driver;
+    final GrupoRepository grupoRepository;
+
+    final RankingSnapshotRepository rankingSnapshotRepository;
+    final UsuarioRepository usuarioRepository;
+    final CampeonatoRepository campeonatoRepository;
+    final ObjectMapper objectMapper;
 
     Usuario organizador;
     Usuario outroUsuario;
@@ -105,6 +106,7 @@ public class GrupoRegraPontuacaoControllerTest {
 
     @AfterEach
     void tearDown() {
+        rankingSnapshotRepository.deleteAll();
         grupoRepository.deleteAll();
         campeonatoRepository.deleteAll();
         usuarioRepository.deleteAll();

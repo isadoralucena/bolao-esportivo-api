@@ -2,7 +2,8 @@ package com.ufcg.psoft.project.service.convite;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import com.ufcg.psoft.project.dto.convite.ConvitePostPutRequestDTO;
@@ -25,23 +26,20 @@ import com.ufcg.psoft.project.model.Usuario;
 import com.ufcg.psoft.project.repository.ConviteRepository;
 import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
-import com.ufcg.psoft.project.service.grupo.GrupoService;
 import com.ufcg.psoft.project.service.grupo.participante.GrupoParticipanteService;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class ConviteServicelmpl implements ConviteService {
 
-    @Autowired
-    private ConviteRepository conviteRepository;
+    private final ConviteRepository conviteRepository;
 
-    @Autowired
-    private GrupoRepository grupoRepository;
+    private final GrupoRepository grupoRepository;
 
-    @Autowired 
-    private UsuarioRepository usuarioRepository;
+    private final UsuarioRepository usuarioRepository;
 
-    @Autowired
-    private GrupoParticipanteService grupoParticipanteService;
+    private final GrupoParticipanteService grupoParticipanteService;
 
     @Override
     public ConviteResponseDTO criar(String codigoAcessoOrganizador, ConvitePostPutRequestDTO convitePostPutRequestDTO) {
@@ -68,7 +66,7 @@ public class ConviteServicelmpl implements ConviteService {
             throw new ConviteDuplicadoException();
         }
 
-        if (!grupo.getCampeonato().getAtivo()) {
+        if (!Boolean.TRUE.equals(grupo.getCampeonato().getAtivo())) {
             throw new CampeonatoInativoException();
         }
 
@@ -182,11 +180,7 @@ public class ConviteServicelmpl implements ConviteService {
     }
 
     private void notificarConvidado(Convite convite, String status) {
-        String mensagem = String.format("Notificação: O convite para %s participar do grupo %s foi %s.", 
-                convite.getConvidado().getNome(), 
-                convite.getGrupo().getNome(), 
-                status);
-        System.out.println(mensagem);
+        log.info("Convite para o grupo {} foi {}.", convite.getGrupo().getId(), status);
     }
 
     private void validarUsuário(Usuario usuario, String codigoAcesso) {

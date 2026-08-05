@@ -1,7 +1,7 @@
 package com.ufcg.psoft.project.service.consolidacao;
 
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -11,27 +11,30 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.ufcg.psoft.project.event.PartidaConsolidadaEvent;
 import com.ufcg.psoft.project.event.PartidaFinalizadaEvent;
+import com.ufcg.psoft.project.exception.partida.PartidaNaoExisteException;
 import com.ufcg.psoft.project.exception.partida.PartidaSyncException;
 import com.ufcg.psoft.project.model.Partida;
-import com.ufcg.psoft.project.model.PartidaStatus;
 import com.ufcg.psoft.project.repository.PartidaRepository;
 import com.ufcg.psoft.project.service.pontuacao.PontuacaoService;
 
 @Service
+@RequiredArgsConstructor
 public class ConsolidacaoPartidaServiceImpl implements ConsolidacaoPartidaService {
 
-    @Autowired
-    private PontuacaoService pontuacaoService;
+    private final PontuacaoService pontuacaoService;
 
-    @Autowired
-    private PartidaRepository partidaRepository;
+    private final PartidaRepository partidaRepository;
 
-    @Autowired 
-    private ApplicationEventPublisher eventPublisher;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
-    public void consolidar(Partida partida) {
-        if (partida.getStatus() != PartidaStatus.FINALIZADO || partida.isConsolidada()) {
+    public void consolidar(Long partidaId) {
+        Partida partida = partidaRepository.findById(partidaId)
+                .orElseThrow(PartidaNaoExisteException::new);
+
+        partida.validarConsolidacao();
+
+        if (partida.isConsolidada()) {
             return; 
         }
 
@@ -42,13 +45,13 @@ public class ConsolidacaoPartidaServiceImpl implements ConsolidacaoPartidaServic
         pontuacaoService.calcularPontuacoesAssociadasAPartida(partida.getId());
         partida.setConsolidada(true);
         partidaRepository.save(partida);
-        eventPublisher.publishEvent(new PartidaConsolidadaEvent(this, partida));
+        eventPublisher.publishEvent(new PartidaConsolidadaEvent(this, partida.getId()));
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void aoFinalizarPartida(PartidaFinalizadaEvent event) {
-        consolidar(event.getPartida());
+        consolidar(event.getPartidaId());
     }
 
     private boolean resultadoValido(Partida partida) {

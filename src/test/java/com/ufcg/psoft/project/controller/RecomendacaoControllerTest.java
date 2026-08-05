@@ -1,12 +1,15 @@
 package com.ufcg.psoft.project.controller;
 
+import static com.ufcg.psoft.project.config.TestClockConfig.FIXED_CLOCK;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ufcg.psoft.project.dto.recomendacao.RecomendacaoResponseDTO;
 import com.ufcg.psoft.project.exception.CustomErrorType;
 import com.ufcg.psoft.project.model.*;
 import com.ufcg.psoft.project.repository.*;
 import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.test.context.TestConstructor;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -25,17 +28,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("Testes do controlador de Recomendacoes - US20")
-public class RecomendacaoControllerTest {
+@RequiredArgsConstructor
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+class RecomendacaoControllerTest {
 
     final String URI_RECOMENDACAO = "/grupos/{grupoId}/partidas/{partidaId}/recomendacao";
 
-    @Autowired MockMvc driver;
-    @Autowired WebApplicationContext webApplicationContext;
-    @Autowired UsuarioRepository usuarioRepository;
-    @Autowired CampeonatoRepository campeonatoRepository;
-    @Autowired GrupoRepository grupoRepository;
-    @Autowired PartidaRepository partidaRepository;
-    @Autowired ObjectMapper objectMapper;
+    MockMvc driver;
+    final WebApplicationContext webApplicationContext;
+    final UsuarioRepository usuarioRepository;
+    final CampeonatoRepository campeonatoRepository;
+    final GrupoRepository grupoRepository;
+    final PartidaRepository partidaRepository;
+    final ObjectMapper objectMapper;
 
     Usuario usuarioPremium;
     Usuario usuarioPadrao;
@@ -77,7 +82,7 @@ public class RecomendacaoControllerTest {
         partida = partidaRepository.save(Partida.builder()
                 .campeonato(campeonato).codigoExterno(1L)
                 .mandante("Time A").visitante("Time B")
-                .data(LocalDateTime.now().plusDays(1))
+                .data(LocalDateTime.now(FIXED_CLOCK).plusDays(1))
                 .status(PartidaStatus.ABERTO).build());
     }
 
@@ -143,7 +148,7 @@ public class RecomendacaoControllerTest {
                     .campeonato(campeonato).codigoExterno(99L)
                     .mandante("Time X").visitante("Time Y")
                     .golsMandante(2).golsVisitante(1)
-                    .data(LocalDateTime.now().minusDays(1))
+                    .data(LocalDateTime.now(FIXED_CLOCK).minusDays(1))
                     .status(PartidaStatus.FINALIZADO).consolidada(true).build());
 
             String responseJsonString = driver.perform(get(URI_RECOMENDACAO, grupo.getId(), partida.getId())
@@ -238,7 +243,7 @@ public class RecomendacaoControllerTest {
             Partida partidaOutroCampeonato = partidaRepository.save(Partida.builder()
                     .campeonato(outroCampeonato).codigoExterno(2L)
                     .mandante("Time C").visitante("Time D")
-                    .data(LocalDateTime.now().plusDays(1))
+                    .data(LocalDateTime.now(FIXED_CLOCK).plusDays(1))
                     .status(PartidaStatus.ABERTO).build());
 
             driver.perform(get(URI_RECOMENDACAO, grupo.getId(), partidaOutroCampeonato.getId())

@@ -1,5 +1,7 @@
 package com.ufcg.psoft.project.service;
 
+import static com.ufcg.psoft.project.config.TestClockConfig.FIXED_CLOCK;
+
 import com.ufcg.psoft.project.dto.recomendacao.RecomendacaoResponseDTO;
 import com.ufcg.psoft.project.model.*;
 import com.ufcg.psoft.project.repository.PartidaRepository;
@@ -49,7 +51,7 @@ class RecomendacaoEstrategiasTest {
                 .id(1L).campeonato(campeonato)
                 .codigoExterno(1L).mandante("Time A")
                 .visitante("Time B").status(PartidaStatus.ABERTO)
-                .data(LocalDateTime.now().plusDays(1)).build();
+                .data(LocalDateTime.now(FIXED_CLOCK).plusDays(1)).build();
 
         ReflectionTestUtils.setField(placarFrequente, "partidaRepository", partidaRepository);
         ReflectionTestUtils.setField(mediaGols, "partidaRepository", partidaRepository);
@@ -62,7 +64,7 @@ class RecomendacaoEstrategiasTest {
                 .mandante("Time X").visitante("Time Y")
                 .golsMandante(golsMandante).golsVisitante(golsVisitante)
                 .status(PartidaStatus.FINALIZADO)
-                .data(LocalDateTime.now().minusDays(1)).build();
+                .data(LocalDateTime.now(FIXED_CLOCK).minusDays(1)).build();
     }
 
     @Nested
@@ -102,12 +104,25 @@ class RecomendacaoEstrategiasTest {
         }
 
         @Test
+        @DisplayName("Deve permitir a estrategia de media quando nenhum placar se repete")
+        void deveRetornarVazioSemPlacarPredominante() {
+            List<Partida> finalizadas = List.of(
+                    criarPartidaFinalizada(2L, 2L, 2, 1),
+                    criarPartidaFinalizada(3L, 3L, 1, 0)
+            );
+            when(partidaRepository.findByCampeonatoId(1L)).thenReturn(finalizadas);
+
+            assertTrue(placarFrequente.recomendar(partida).isEmpty());
+            assertTrue(mediaGols.recomendar(partida).isPresent());
+        }
+
+        @Test
         @DisplayName("Deve ignorar partidas sem gols definidos")
         void deveIgnorarPartidasSemGols() {
             Partida semGols = Partida.builder()
                     .id(5L).campeonato(campeonato)
                     .codigoExterno(5L).status(PartidaStatus.FINALIZADO)
-                    .data(LocalDateTime.now().minusDays(1)).build();
+                    .data(LocalDateTime.now(FIXED_CLOCK).minusDays(1)).build();
 
             when(partidaRepository.findByCampeonatoId(1L)).thenReturn(List.of(semGols));
 

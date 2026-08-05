@@ -1,5 +1,7 @@
 package com.ufcg.psoft.project.controller.grupo;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,22 +12,21 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ufcg.psoft.project.dto.grupo.CriteriosDesempatePutRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.GrupoPostRequestDTO;
 import com.ufcg.psoft.project.dto.grupo.GrupoPutRequestDTO;
-import com.ufcg.psoft.project.dto.grupo.RegraPontuacaoPostPutRequestDTO;
+import com.ufcg.psoft.project.dto.grupo.GrupoResponseDTO;
 import com.ufcg.psoft.project.dto.palpite.RegrasPalpitesRequestDTO;
+import com.ufcg.psoft.project.dto.pontuacao.PontuacaoParticipanteResponseDTO;
 import com.ufcg.psoft.project.service.grupo.GrupoService;
-import com.ufcg.psoft.project.service.grupo.desempate.CriterioDesempateService;
-import com.ufcg.psoft.project.service.grupo.participante.GrupoParticipanteService;
-import com.ufcg.psoft.project.service.grupo.pontuacao.RegraPontuacaoService;
 import com.ufcg.psoft.project.service.pontuacao.PontuacaoService;
 import com.ufcg.psoft.project.service.premium.RequisicaoAutenticadaEvent;
-import com.ufcg.psoft.project.service.ranking.RankingService;
 
 import jakarta.validation.Valid;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+
+import java.util.List;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -36,18 +37,16 @@ import org.springframework.http.ResponseEntity;
     value = "/grupos",
     produces = MediaType.APPLICATION_JSON_VALUE
 )
+@RequiredArgsConstructor
+@Tag(name = "Grupos", description = "Cadastro, configuração e consulta de grupos")
 public class GrupoController {
-    @Autowired
-    GrupoService grupoService;
-    @Autowired
-    private PontuacaoService pontuacaoService;
-    @Autowired
-    private RankingService rankingService;
-    @Autowired
-    private ApplicationEventPublisher eventPublisher;
+    final GrupoService grupoService;
+    private final PontuacaoService pontuacaoService;
+    private final ApplicationEventPublisher eventPublisher;
 
+    @Operation(summary = "Criar grupo")
     @PostMapping("")
-    public ResponseEntity<?> criarGrupo(
+    public ResponseEntity<GrupoResponseDTO> criarGrupo(
             @RequestParam Long usuarioId,
             @RequestParam String codigoUsuario,
             @RequestBody @Valid GrupoPostRequestDTO grupoPostRequestDto) {
@@ -58,8 +57,9 @@ public class GrupoController {
                 .body(resultado);
     }
 
+    @Operation(summary = "Buscar grupo por ID")
     @GetMapping("/{id}")
-    public ResponseEntity<?> recuperarGrupo(
+    public ResponseEntity<GrupoResponseDTO> recuperarGrupo(
             @RequestParam Long usuarioId,
             @RequestParam String codigoUsuario,
             @PathVariable Long id) {
@@ -70,11 +70,11 @@ public class GrupoController {
                 .body(resultado);
     }
 
+    @Operation(summary = "Listar grupos acessíveis ao usuário")
     @GetMapping("")
-    public ResponseEntity<?> listarGrupos(
+    public ResponseEntity<List<GrupoResponseDTO>> listarGrupos(
             @RequestParam Long usuarioId,
-            @RequestParam String codigoUsuario
-        ) {
+            @RequestParam String codigoUsuario) {
         var resultado = grupoService.listar(usuarioId, codigoUsuario);
         eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
@@ -82,8 +82,9 @@ public class GrupoController {
                 .body(resultado);
     }
 
+    @Operation(summary = "Atualizar grupo")
     @PutMapping("/{id}")
-    public ResponseEntity<?> atualizarGrupo(
+    public ResponseEntity<GrupoResponseDTO> atualizarGrupo(
             @RequestParam Long usuarioId,
             @RequestParam String codigoUsuario,
             @PathVariable Long id,
@@ -95,8 +96,9 @@ public class GrupoController {
                 .body(resultado);
     }
 
+    @Operation(summary = "Excluir grupo")
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> removerGrupo(
+    public ResponseEntity<Void> removerGrupo(
             @RequestParam Long usuarioId,
             @RequestParam String codigoUsuario,
             @PathVariable Long id) {
@@ -107,8 +109,9 @@ public class GrupoController {
                 .build();
     }
 
+	@Operation(summary = "Configurar regras de palpites do grupo")
 	@PutMapping("/{grupoId}/regras-palpites")
-    public ResponseEntity<?> configurarRegrasPalpites(
+    public ResponseEntity<GrupoResponseDTO> configurarRegrasPalpites(
             @PathVariable Long grupoId,
             @RequestParam Long usuarioId,
             @RequestParam String codigoUsuario,
@@ -120,24 +123,13 @@ public class GrupoController {
                 .body(resultado);
     }
 
+    @Operation(summary = "Listar pontuações dos participantes")
     @GetMapping("/{grupoId}/pontuacoes")
-    public ResponseEntity<?> listarPontuacoesDoGrupo(
+    public ResponseEntity<List<PontuacaoParticipanteResponseDTO>> listarPontuacoesDoGrupo(
             @RequestParam Long usuarioId,
             @RequestParam String codigoUsuario,
             @PathVariable Long grupoId) {
         var resultado = pontuacaoService.listarPontuacoesParticipantesDoGrupo(grupoId, usuarioId, codigoUsuario);
-        eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(resultado);
-    }
-
-    @GetMapping("{grupoId}/ranking")
-    public ResponseEntity<?> rankingDoGrupo(
-            @RequestParam Long usuarioId,
-            @RequestParam String codigoUsuario,
-            @PathVariable Long grupoId) {
-        var resultado = rankingService.rankingDoGrupo(grupoId, usuarioId, codigoUsuario);
         eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.OK)

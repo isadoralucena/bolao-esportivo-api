@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import com.ufcg.psoft.project.dto.grupo.GrupoResponseDTO;
@@ -26,15 +26,12 @@ import com.ufcg.psoft.project.repository.UsuarioRepository;
 import com.ufcg.psoft.project.service.grupo.GrupoAutorizacaoService;
 
 @Service
+@RequiredArgsConstructor
 public class GrupoParticipanteServiceImpl implements GrupoParticipanteService {
-    @Autowired
-    GrupoRepository grupoRepository;
-    @Autowired
-    GrupoAutorizacaoService grupoAutorizacaoService;
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-    @Autowired
-    private PartidaRepository partidaRepository;
+    final GrupoRepository grupoRepository;
+    final GrupoAutorizacaoService grupoAutorizacaoService;
+    private final UsuarioRepository usuarioRepository;
+    private final PartidaRepository partidaRepository;
 
     public GrupoResponseDTO entrarEmGrupoPublico(Long grupoId, Long usuarioId, String codigoAcesso) {
         Grupo grupo = grupoRepository.findById(grupoId).orElseThrow(GrupoNaoExisteException::new);
@@ -78,7 +75,7 @@ public class GrupoParticipanteServiceImpl implements GrupoParticipanteService {
     }
 
     public void validarEntradaGrupo(Grupo grupo, Usuario usuario) {
-        if (!grupo.getCampeonato().getAtivo()) {
+        if (!Boolean.TRUE.equals(grupo.getCampeonato().getAtivo())) {
             throw new CampeonatoInativoException();
         }
 

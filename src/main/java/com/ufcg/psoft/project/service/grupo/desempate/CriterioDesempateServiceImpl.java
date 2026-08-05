@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import com.ufcg.psoft.project.dto.grupo.CriterioDesempateResponseDTO;
@@ -23,11 +23,10 @@ import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.service.grupo.GrupoAutorizacaoService;
 
 @Service
+@RequiredArgsConstructor
 public class CriterioDesempateServiceImpl implements CriterioDesempateService {
-    @Autowired
-    GrupoRepository grupoRepository;
-    @Autowired
-    GrupoAutorizacaoService grupoAutorizacaoService;
+    final GrupoRepository grupoRepository;
+    final GrupoAutorizacaoService grupoAutorizacaoService;
 
     public GrupoResponseDTO configurarCriteriosDesempate(Long grupoId, Long usuarioId, String codigoAcesso, CriteriosDesempatePutRequestDTO criteriosDesempatePutRequestDTO) {
         Grupo grupo = grupoRepository.findById(grupoId).orElseThrow(GrupoNaoExisteException::new);

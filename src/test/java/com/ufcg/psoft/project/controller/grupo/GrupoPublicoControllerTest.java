@@ -1,5 +1,7 @@
 package com.ufcg.psoft.project.controller.grupo;
 
+import static com.ufcg.psoft.project.config.TestClockConfig.FIXED_CLOCK;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.ufcg.psoft.project.dto.grupo.GrupoResponseDTO;
@@ -16,7 +18,8 @@ import com.ufcg.psoft.project.repository.PartidaRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
 
 import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.test.context.TestConstructor;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -35,27 +38,23 @@ import java.time.LocalDateTime;
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("Testes das regras de entrada em grupos públicos de bolão")
-public class GrupoPublicoControllerTest {
+@RequiredArgsConstructor
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+class GrupoPublicoControllerTest {
 
     final String URI_GRUPOS = "/grupos";
 
-    @Autowired
     MockMvc driver;
 
-    @Autowired
-    GrupoRepository grupoRepository;
+    final GrupoRepository grupoRepository;
 
-    @Autowired
-    UsuarioRepository usuarioRepository;
+    final UsuarioRepository usuarioRepository;
 
-    @Autowired
-    CampeonatoRepository campeonatoRepository;
+    final CampeonatoRepository campeonatoRepository;
 
-    @Autowired
-    PartidaRepository partidaRepository;
+    final PartidaRepository partidaRepository;
 
-    @Autowired
-    WebApplicationContext webApplicationContext;
+    final WebApplicationContext webApplicationContext;
 
     ObjectMapper objectMapper = new ObjectMapper();
 
@@ -249,7 +248,7 @@ public class GrupoPublicoControllerTest {
                     .codigoExterno(123L)
                     .mandante("Time A")
                     .visitante("Time B")
-                    .data(LocalDateTime.now().minusDays(1))
+                    .data(LocalDateTime.now(FIXED_CLOCK).minusDays(1))
                     .status(PartidaStatus.FINALIZADO)
                     .build());
  
@@ -258,7 +257,7 @@ public class GrupoPublicoControllerTest {
                     .codigoExterno(125L)
                     .mandante("Time E")
                     .visitante("Time F")
-                    .data(LocalDateTime.now().plusDays(1))
+                    .data(LocalDateTime.now(FIXED_CLOCK).plusDays(1))
                     .status(PartidaStatus.ABERTO)
                     .build());
  
@@ -357,7 +356,7 @@ public class GrupoPublicoControllerTest {
                     .codigoExterno(123L)
                     .mandante("Time A")
                     .visitante("Time B")
-                    .data(LocalDateTime.now().plusDays(1))
+                    .data(LocalDateTime.now(FIXED_CLOCK).plusDays(1))
                     .status(PartidaStatus.FINALIZADO)
                     .build());
  
@@ -384,7 +383,7 @@ public class GrupoPublicoControllerTest {
                     .codigoExterno(123L)
                     .mandante("Time A")
                     .visitante("Time B")
-                    .data(LocalDateTime.now().minusDays(1))
+                    .data(LocalDateTime.now(FIXED_CLOCK).minusDays(1))
                     .status(PartidaStatus.FINALIZADO)
                     .build());
  
@@ -393,7 +392,7 @@ public class GrupoPublicoControllerTest {
                     .codigoExterno(124L)
                     .mandante("Time C")
                     .visitante("Time D")
-                    .data(LocalDateTime.now().minusDays(2))
+                    .data(LocalDateTime.now(FIXED_CLOCK).minusDays(2))
                     .status(PartidaStatus.FINALIZADO)
                     .build());
  

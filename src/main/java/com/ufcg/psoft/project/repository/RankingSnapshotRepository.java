@@ -15,5 +15,4 @@ public interface RankingSnapshotRepository extends JpaRepository<RankingSnapshot
 
     List<RankingSnapshot> findByGrupoIdOrderByDataSnapshotDescPosicaoAsc(Long grupoId);
 
-    boolean existsByGrupoIdAndPartidaId(Long grupoId, Long partidaId);
 }

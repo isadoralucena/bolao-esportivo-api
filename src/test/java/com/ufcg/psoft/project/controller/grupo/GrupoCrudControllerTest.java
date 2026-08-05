@@ -5,7 +5,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.test.context.TestConstructor;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
@@ -36,19 +37,16 @@ import org.springframework.http.MediaType;
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("Testes das operações CRUD de grupos de bolão")
-public class GrupoCrudControllerTest {
+@RequiredArgsConstructor
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+class GrupoCrudControllerTest {
     final String URI_GRUPOS = "/grupos";
 
-    @Autowired
-    MockMvc driver;
-    @Autowired
-    ObjectMapper objectMapper;
-    @Autowired
-    GrupoRepository grupoRepository;
-    @Autowired
-    UsuarioRepository usuarioRepository;
-    @Autowired
-    CampeonatoRepository campeonatoRepository;
+    final MockMvc driver;
+    final ObjectMapper objectMapper;
+    final GrupoRepository grupoRepository;
+    final UsuarioRepository usuarioRepository;
+    final CampeonatoRepository campeonatoRepository;
 
     Usuario organizador;
     Usuario participante;

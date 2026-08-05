@@ -30,8 +30,7 @@ public class PromocaoPremium {
 
     @JsonProperty("data")
     @Column(nullable = false)
-    @Builder.Default
-    private LocalDateTime data = LocalDateTime.now();
+    private LocalDateTime data;
 
     @JsonProperty("motivo")
     @Column(nullable = false)

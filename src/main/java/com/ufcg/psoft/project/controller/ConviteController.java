@@ -1,8 +1,10 @@
 package com.ufcg.psoft.project.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,17 +31,17 @@ import jakarta.validation.Valid;
     value = "/convites",
     produces = MediaType.APPLICATION_JSON_VALUE
 )
+@RequiredArgsConstructor
+@Tag(name = "Convites", description = "Envio e gerenciamento de convites para grupos")
 public class ConviteController {
     
-    @Autowired
-    private ConviteService conviteService;
+    private final ConviteService conviteService;
 
-    @Autowired
-    private ApplicationEventPublisher eventPublisher;
+    private final ApplicationEventPublisher eventPublisher;
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
+    private final UsuarioRepository usuarioRepository;
 
+    @Operation(summary = "Enviar convite para um grupo")
     @PostMapping("")
     public ResponseEntity<ConviteResponseDTO> criarConvite(
         @RequestParam String codigoUsuario,
@@ -53,6 +55,7 @@ public class ConviteController {
 
     }
 
+    @Operation(summary = "Aceitar convite")
     @PostMapping("/{id}/aceitar")
     public ResponseEntity<ConviteResponseDTO> aceitarConvite(
             @RequestParam String codigoUsuario,
@@ -64,6 +67,7 @@ public class ConviteController {
                 .body(resultado);
     }
 
+    @Operation(summary = "Recusar convite")
     @PostMapping("/{id}/recusar")
     public ResponseEntity<ConviteResponseDTO> recusarConvite(
             @RequestParam String codigoUsuario,
@@ -75,6 +79,7 @@ public class ConviteController {
                 .body(resultado);
     }
 
+    @Operation(summary = "Ignorar convite")
     @PostMapping("/{id}/ignorar")
     public ResponseEntity<ConviteResponseDTO> ignorarConvite(
             @RequestParam String codigoUsuario,
@@ -86,6 +91,7 @@ public class ConviteController {
                 .body(resultado);
     }
 
+    @Operation(summary = "Remover convite")
     @DeleteMapping("/{id}/remover")
     public ResponseEntity<Void> removerConvite(
             @RequestParam String codigoUsuario,
@@ -97,6 +103,7 @@ public class ConviteController {
                 .build();
     }
 
+    @Operation(summary = "Listar convites pendentes do usuário")
     @GetMapping("/usuario/{convidadoId}/pendentes")
     public ResponseEntity<List<ConviteResponseDTO>> listarConvitesPendentes(
             @RequestParam String codigoUsuario,
@@ -112,5 +119,4 @@ public class ConviteController {
         usuarioRepository.findByCodigoIgnoreCase(codigo)
                 .ifPresent(u -> eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(u.getId())));
     }
-
 }

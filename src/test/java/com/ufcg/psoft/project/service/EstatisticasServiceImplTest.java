@@ -1,11 +1,12 @@
 package com.ufcg.psoft.project.service;
 
+import static com.ufcg.psoft.project.config.TestClockConfig.FIXED_CLOCK;
+
 import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.PalpiteRepository;
 import com.ufcg.psoft.project.repository.PontuacaoPalpiteRepository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -14,11 +15,12 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.mockito.InjectMocks;
 
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -69,8 +71,22 @@ class EstatisticasServiceImplTest {
     @Mock
     PontuacaoPalpiteRepository pontuacaoPalpiteRepository;
 
-    @InjectMocks
     EstatisticasServiceImpl estatisticasService;
+
+    @BeforeEach
+    void setUp() {
+        estatisticasService = new EstatisticasServiceImpl(
+                campeonatoController,
+                grupoRepository,
+                palpiteRepository,
+                estatisticasRepository,
+                grupoAutorizacaoService,
+                pontuacaoService,
+                rankingService,
+                pontuacaoPalpiteRepository,
+                FIXED_CLOCK
+        );
+    }
 
     @Test
     @DisplayName("Calcula taxa de acerto")
@@ -107,11 +123,11 @@ class EstatisticasServiceImplTest {
                 .thenReturn(pontuacao);
 
         // Act
-        EstatisticasResponseDTO resultado = estatisticasService.calcularEstatisticasAssociadasAPartida(partida2).get(0);
+        EstatisticasResponseDTO resultado = estatisticasService.calcularEstatisticasAssociadasAPartida(partida2.getId()).get(0);
 
         // Assert: um acerto entre dois palpites corresponde a uma taxa de 50%.
         assertEquals(0.5f, resultado.getTaxaAcerto(), 0.0001f);
-        assertNotNull(resultado.getDataRegistro());
+        assertEquals(LocalDateTime.now(FIXED_CLOCK), resultado.getDataRegistro());
     }
 
     @Test
@@ -150,7 +166,7 @@ class EstatisticasServiceImplTest {
 
         // Act
         EstatisticasResponseDTO resultado =
-                estatisticasService.calcularEstatisticasAssociadasAPartida(partida4).get(0);
+                estatisticasService.calcularEstatisticasAssociadasAPartida(partida4.getId()).get(0);
 
         // Assert
         assertEquals(3, resultado.getTotalPalpitesCorretos());
@@ -206,7 +222,7 @@ class EstatisticasServiceImplTest {
 
         // Act
         List<EstatisticasResponseDTO> resultado =
-                estatisticasService.calcularEstatisticasAssociadasAPartida(partida1);
+                estatisticasService.calcularEstatisticasAssociadasAPartida(partida1.getId());
 
         EstatisticasResponseDTO estatisticaUsuario2 = resultado.stream()
                 .filter(e -> e.getUsuarioId().equals(2L))
@@ -253,7 +269,7 @@ class EstatisticasServiceImplTest {
                 .thenReturn(pontuacao);
 
         // Act
-        EstatisticasResponseDTO resultado = estatisticasService.calcularEstatisticasAssociadasAPartida(partida2).get(0);
+        EstatisticasResponseDTO resultado = estatisticasService.calcularEstatisticasAssociadasAPartida(partida2.getId()).get(0);
 
         // Assert
         assertEquals(2, resultado.getPlacaresExatos());
@@ -318,7 +334,7 @@ class EstatisticasServiceImplTest {
             ));
 
         // Act
-        EstatisticasResponseDTO resultado = estatisticasService.calcularEstatisticasAssociadasAPartida(partida5).get(0);
+        EstatisticasResponseDTO resultado = estatisticasService.calcularEstatisticasAssociadasAPartida(partida5.getId()).get(0);
 
         // Assert
         assertEquals(3, resultado.getMaiorSequenciaAcertos());
@@ -389,7 +405,7 @@ class EstatisticasServiceImplTest {
                 .thenReturn(rankingGrupo2);
 
         // Act
-        EstatisticasResponseDTO resultado = estatisticasService.calcularEstatisticasAssociadasAPartida(partida1).get(0);
+        EstatisticasResponseDTO resultado = estatisticasService.calcularEstatisticasAssociadasAPartida(partida1.getId()).get(0);
 
         // Assert
         assertEquals(1, resultado.getVitoriasRankings());
@@ -452,7 +468,7 @@ class EstatisticasServiceImplTest {
                 .thenReturn(pontuacaoUsuario2);
 
         // Act
-        List<EstatisticasResponseDTO> resultado = estatisticasService.calcularEstatisticasAssociadasAPartida(partida1);
+        List<EstatisticasResponseDTO> resultado = estatisticasService.calcularEstatisticasAssociadasAPartida(partida1.getId());
 
         // Assert: cada usuário deve gerar somente um novo snapshot de estatísticas.
         assertEquals(2, resultado.size());
@@ -480,7 +496,7 @@ class EstatisticasServiceImplTest {
 
         // Act
         List<EstatisticasResponseDTO> resultado =
-                estatisticasService.calcularEstatisticasAssociadasAPartida(partida1);
+                estatisticasService.calcularEstatisticasAssociadasAPartida(partida1.getId());
 
         // Assert
         assertTrue(resultado.isEmpty());
@@ -498,7 +514,7 @@ class EstatisticasServiceImplTest {
                 .build();
 
         PartidaConsolidadaEvent event =
-                new PartidaConsolidadaEvent(this, partida1);
+                new PartidaConsolidadaEvent(this, partida1.getId());
 
         when(palpiteRepository.findByPartidaId(1L))
                 .thenReturn(List.of());

@@ -29,7 +29,7 @@ public class RankingSnapshot {
     private Usuario usuario;
 
     @ManyToOne
-    @JoinColumn(name = "partida_id", nullable = false)
+    @JoinColumn(name = "partida_id")
     private Partida partida;
 
     @JsonProperty("posicao")
@@ -42,6 +42,5 @@ public class RankingSnapshot {
 
     @JsonProperty("dataSnapshot")
     @Column(nullable = false)
-    @Builder.Default
-    private LocalDateTime dataSnapshot = LocalDateTime.now();
+    private LocalDateTime dataSnapshot;
 }

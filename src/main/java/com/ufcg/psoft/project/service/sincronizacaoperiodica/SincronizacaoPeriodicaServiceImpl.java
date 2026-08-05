@@ -1,10 +1,12 @@
-package com.ufcg.psoft.project.service.sincronizacaoPeriodica;
+package com.ufcg.psoft.project.service.sincronizacaoperiodica;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,13 +16,13 @@ import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.service.campeonato.CampeonatoService;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class SincronizacaoPeriodicaServiceImpl implements SincronizacaoPeriodicaService {
 
-    @Autowired
-    private CampeonatoService campeonatoService;
+    private final CampeonatoService campeonatoService;
 
-    @Autowired
-    private CampeonatoRepository campeonatoRepository;
+    private final CampeonatoRepository campeonatoRepository;
 
     @Value("${project.sync.max-sincronizacoes-por-ciclo}")
     private int maxSincronizacoesPorCiclo;
@@ -41,7 +43,7 @@ public class SincronizacaoPeriodicaServiceImpl implements SincronizacaoPeriodica
             try {
                 campeonatoService.sincronizarCampeonato(campeonato);
             } catch (Exception e) {
-                System.err.println("Warning: Erro ao sincronizar campeonato " + campeonato.getUrl() + " - " + e.getMessage());
+                log.warn("Erro ao sincronizar campeonato {} - {}", campeonato.getUrl(), e.getMessage(), e);
             }
 
             sincronizacoesChamadas++;

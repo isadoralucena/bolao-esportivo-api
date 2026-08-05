@@ -11,7 +11,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.test.context.TestConstructor;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
@@ -28,24 +29,21 @@ import com.ufcg.psoft.project.repository.UsuarioRepository;
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("Testes sobre o gerenciamento de participantes de grupos de bolão")
-public class GrupoParticipantesControllerTest {
+@RequiredArgsConstructor
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+class GrupoParticipantesControllerTest {
 
     final String URI_GRUPOS = "/grupos";
  
-    @Autowired
-    MockMvc driver;
+    final MockMvc driver;
  
-    @Autowired
-    ObjectMapper objectMapper;
+    final ObjectMapper objectMapper;
  
-    @Autowired
-    GrupoRepository grupoRepository;
+    final GrupoRepository grupoRepository;
  
-    @Autowired
-    UsuarioRepository usuarioRepository;
+    final UsuarioRepository usuarioRepository;
  
-    @Autowired
-    CampeonatoRepository campeonatoRepository;
+    final CampeonatoRepository campeonatoRepository;
  
     Usuario organizador;
     Usuario participante;

@@ -2,14 +2,14 @@ package com.ufcg.psoft.project.service.estatisticas;
 
 import com.ufcg.psoft.project.controller.CampeonatoController;
 import com.ufcg.psoft.project.repository.GrupoRepository;
+import java.time.Clock;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +24,6 @@ import com.ufcg.psoft.project.exception.estatistica.EstatisticaNaoExisteExceptio
 import com.ufcg.psoft.project.model.Estatisticas;
 import com.ufcg.psoft.project.model.Grupo;
 import com.ufcg.psoft.project.model.Palpite;
-import com.ufcg.psoft.project.model.Partida;
 import com.ufcg.psoft.project.model.PontuacaoPalpite;
 import com.ufcg.psoft.project.model.Usuario;
 import com.ufcg.psoft.project.repository.EstatisticasRepository;
@@ -34,46 +33,39 @@ import com.ufcg.psoft.project.service.grupo.GrupoAutorizacaoService;
 import com.ufcg.psoft.project.service.pontuacao.PontuacaoService;
 import com.ufcg.psoft.project.service.ranking.RankingService;
 
-import java.util.stream.Collectors;
-
 @Service
+@RequiredArgsConstructor
 public class EstatisticasServiceImpl implements EstatisticasService {
-    @Autowired
-    CampeonatoController campeonatoController;
+    final CampeonatoController campeonatoController;
 
-    @Autowired
-    private GrupoRepository grupoRepository;
+    private final GrupoRepository grupoRepository;
 
-    @Autowired
-    private PalpiteRepository palpiteRepository;
+    private final PalpiteRepository palpiteRepository;
 
-    @Autowired
-    private EstatisticasRepository estatisticasRepository;
+    private final EstatisticasRepository estatisticasRepository;
 
-    @Autowired
-    private GrupoAutorizacaoService grupoAutorizacaoService;
+    private final GrupoAutorizacaoService grupoAutorizacaoService;
 
-    @Autowired
-    private PontuacaoService pontuacaoService;
+    private final PontuacaoService pontuacaoService;
 
-    @Autowired
-    private RankingService rankingService;
+    private final RankingService rankingService;
 
-    @Autowired
-    private PontuacaoPalpiteRepository pontuacaoPalpiteRepository;
+    private final PontuacaoPalpiteRepository pontuacaoPalpiteRepository;
+
+    private final Clock clock;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void aoConsolidarPartida(PartidaConsolidadaEvent event) {
-        this.calcularEstatisticasAssociadasAPartida(event.getPartida());
+        this.calcularEstatisticasAssociadasAPartida(event.getPartidaId());
     }
 
     @Override
-    public List<EstatisticasResponseDTO> calcularEstatisticasAssociadasAPartida(Partida p) {
+    public List<EstatisticasResponseDTO> calcularEstatisticasAssociadasAPartida(Long partidaId) {
         // obter o conjunto de usuarios afetados pela partida.
         // são considerados afetados usuários que estão em grupos nos quais alguem fez um palpite àquela partida.
         // pois basta um usuario do grupo ter feito o palpite e acertado para afetar o ranking do grupo, que é levado em consideração no calculo da estatística.
-        List<Palpite> palpitesDaPartida = palpiteRepository.findByPartidaId(p.getId());
+        List<Palpite> palpitesDaPartida = palpiteRepository.findByPartidaId(partidaId);
         List<Grupo> gruposAfetados = palpitesDaPartida.stream()
                 .map(Palpite::getGrupo)
                 .distinct()
@@ -94,7 +86,7 @@ public class EstatisticasServiceImpl implements EstatisticasService {
         
         return estatisticas.stream()
             .map(EstatisticasResponseDTO::new)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     @Override
@@ -116,7 +108,7 @@ public class EstatisticasServiceImpl implements EstatisticasService {
 
         return estatisticasRepository.findByUsuarioIdOrderByDataRegistroAsc(usuario.getId()).stream()
             .map(EstatisticasResponseDTO::new)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     private Estatisticas calcularEstatisticasUsuario(Usuario u) {
@@ -128,17 +120,15 @@ public class EstatisticasServiceImpl implements EstatisticasService {
         int palpitesCorretos = totalPalpites - totalErros;
         float taxaAcerto = totalPalpites == 0 ? 0 : (float) palpitesCorretos / totalPalpites;
 
-        Estatisticas e = Estatisticas.builder()
+        return Estatisticas.builder()
             .usuario(u)
             .taxaAcerto(taxaAcerto)
             .placaresExatos(pontuacaoParticipante.getPlacaresExatos())
             .vitoriasRankings(contarVitoriasRankings(u))
             .maiorSequenciaAcertos(contarSequenciaAcertos(u))
             .totalPalpitesCorretos(palpitesCorretos)
-            .dataRegistro(LocalDateTime.now(ZoneOffset.UTC))
+            .dataRegistro(LocalDateTime.now(clock))
             .build();
-        
-        return e;
     }
 
 

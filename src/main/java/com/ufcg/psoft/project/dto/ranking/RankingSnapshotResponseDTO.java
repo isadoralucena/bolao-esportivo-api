@@ -36,7 +36,7 @@ public class RankingSnapshotResponseDTO {
     public RankingSnapshotResponseDTO(RankingSnapshot snapshot) {
         this.usuarioId = snapshot.getUsuario().getId();
         this.usuarioNome = snapshot.getUsuario().getNome();
-        this.partidaId = snapshot.getPartida().getId();
+        this.partidaId = snapshot.getPartida() != null ? snapshot.getPartida().getId() : null;
         this.posicao = snapshot.getPosicao();
         this.pontuacao = snapshot.getPontuacao();
         this.dataSnapshot = snapshot.getDataSnapshot();

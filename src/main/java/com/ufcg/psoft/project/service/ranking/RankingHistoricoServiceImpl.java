@@ -8,33 +8,32 @@ import com.ufcg.psoft.project.exception.partida.PartidaNaoExisteException;
 import com.ufcg.psoft.project.model.*;
 import com.ufcg.psoft.project.repository.*;
 import com.ufcg.psoft.project.service.pontuacao.PontuacaoService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class RankingHistoricoServiceImpl implements RankingHistoricoService {
 
-    @Autowired
-    private RankingSnapshotRepository rankingSnapshotRepository;
+    private final RankingSnapshotRepository rankingSnapshotRepository;
 
-    @Autowired
-    private GrupoRepository grupoRepository;
+    private final GrupoRepository grupoRepository;
 
-    @Autowired
-    private PartidaRepository partidaRepository;
+    private final PartidaRepository partidaRepository;
 
-    @Autowired
-    private PontuacaoService pontuacaoService;
+    private final PontuacaoService pontuacaoService;
 
-    @Autowired
-    private RankingCalculator rankingCalculator;
+    private final RankingCalculator rankingCalculator;
+
+    private final Clock clock;
 
     @Value("${project.ranking.historico.desempenho-recente-partidas:5}")
     private int desempenhoRecentePartidas;
@@ -72,12 +71,14 @@ public class RankingHistoricoServiceImpl implements RankingHistoricoService {
                 .findByGrupoIdOrderByDataSnapshotDescPosicaoAsc(grupoId);
 
         List<Long> partidasRecentes = todos.stream()
+                .filter(s -> s.getPartida() != null)
                 .map(s -> s.getPartida().getId())
                 .distinct()
                 .limit(desempenhoRecentePartidas)
                 .toList();
 
         return todos.stream()
+                .filter(s -> s.getPartida() != null)
                 .filter(s -> partidasRecentes.contains(s.getPartida().getId()))
                 .map(RankingSnapshotResponseDTO::new)
                 .toList();
@@ -86,15 +87,13 @@ public class RankingHistoricoServiceImpl implements RankingHistoricoService {
     @Override
     @Transactional
     public void gerarSnapshot(Long grupoId, Long partidaId) {
-        if (rankingSnapshotRepository.existsByGrupoIdAndPartidaId(grupoId, partidaId)) {
-            return;
-        }
-
         Grupo grupo = grupoRepository.findById(grupoId)
                 .orElseThrow(GrupoNaoExisteException::new);
 
-        Partida partida = partidaRepository.findById(partidaId)
-                .orElseThrow(PartidaNaoExisteException::new);
+        Partida partida = partidaId == null
+                ? null
+                : partidaRepository.findById(partidaId)
+                        .orElseThrow(PartidaNaoExisteException::new);
 
         List<PontuacaoParticipanteResponseDTO> pontuacoes = pontuacaoService
                 .listarPontuacoesParticipantesDoGrupo(grupoId, grupo.getOrganizador().getId(), grupo.getOrganizador().getCodigo());
@@ -106,6 +105,7 @@ public class RankingHistoricoServiceImpl implements RankingHistoricoService {
         Map<Long, Integer> posicoes = rankingCalculator.calcularPosicoes(pontuacoes, criterios);
 
         List<RankingSnapshot> snapshots = new ArrayList<>();
+        LocalDateTime dataSnapshot = LocalDateTime.now(clock);
         for (PontuacaoParticipanteResponseDTO pontuacao : pontuacoes) {
             snapshots.add(RankingSnapshot.builder()
                     .grupo(grupo)
@@ -118,7 +118,7 @@ public class RankingHistoricoServiceImpl implements RankingHistoricoService {
                     .partida(partida)
                     .posicao(posicoes.get(pontuacao.getUsuarioId()))
                     .pontuacao(pontuacao.getPontuacao())
-                    .dataSnapshot(LocalDateTime.now())
+                    .dataSnapshot(dataSnapshot)
                     .build());
         }
 

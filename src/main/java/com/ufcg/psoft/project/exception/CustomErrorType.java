@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Data
 @Builder
@@ -18,14 +19,16 @@ public class CustomErrorType {
 
     @JsonProperty("timestamp")
     private LocalDateTime timestamp;
+
     @JsonProperty("message")
     private String message;
+
     @JsonProperty("errors")
     private List<String> errors;
 
-    public CustomErrorType(ProjectException e) {
-        this.timestamp = LocalDateTime.now();
-        this.message = e.getMessage();
+    public CustomErrorType(ProjectException exception, LocalDateTime timestamp) {
+        this.timestamp = Objects.requireNonNull(timestamp, "O timestamp não pode ser nulo");
+        this.message = exception.getMessage();
         this.errors = new ArrayList<>();
     }
 }

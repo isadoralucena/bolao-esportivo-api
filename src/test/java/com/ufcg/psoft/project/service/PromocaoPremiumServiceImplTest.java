@@ -1,8 +1,11 @@
 package com.ufcg.psoft.project.service;
 
+import static com.ufcg.psoft.project.config.TestClockConfig.FIXED_CLOCK;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -10,7 +13,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -47,13 +49,21 @@ class PromocaoPremiumServiceImplTest {
     @Mock
     private ContadorRequisicoes contadorRequisicoes;
 
-    @InjectMocks
     private PromocaoPremiumServiceImpl promocaoPremiumService;
 
     private Usuario usuarioPadrao;
 
     @BeforeEach
     void setUp() {
+        promocaoPremiumService = new PromocaoPremiumServiceImpl(
+                usuarioRepository,
+                palpiteRepository,
+                grupoRepository,
+                pontuacaoPalpiteRepository,
+                promocaoPremiumRepository,
+                contadorRequisicoes,
+                FIXED_CLOCK
+        );
         ReflectionTestUtils.setField(promocaoPremiumService, "minPalpites", 50);
         ReflectionTestUtils.setField(promocaoPremiumService, "minGrupos", 3);
         ReflectionTestUtils.setField(promocaoPremiumService, "minRequisicoes", 100);
@@ -99,7 +109,8 @@ class PromocaoPremiumServiceImplTest {
             // Assert
             assertEquals(PerfilUsuario.PREMIUM, usuarioPadrao.getPerfil());
             verify(usuarioRepository).save(usuarioPadrao);
-            verify(promocaoPremiumRepository).save(any(PromocaoPremium.class));
+            verify(promocaoPremiumRepository).save(argThat(promocao ->
+                    LocalDateTime.now(FIXED_CLOCK).equals(promocao.getData())));
             verify(contadorRequisicoes).resetar(1L);
         }
 

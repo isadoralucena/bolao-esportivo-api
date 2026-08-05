@@ -3,6 +3,7 @@ package com.ufcg.psoft.project.service;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,7 +30,7 @@ class PromocaoPremiumEntityTest {
         PromocaoPremium promocao = PromocaoPremium.builder()
                 .id(10L)
                 .usuario(usuario)
-                .data(LocalDateTime.of(2026, 7, 22, 10, 0))
+                .data(LocalDateTime.of(2026, Month.JULY, 22, 10, 0))
                 .motivo("Motivo teste")
                 .palpites(50)
                 .gruposParticipa(3)
@@ -63,7 +64,7 @@ class PromocaoPremiumEntityTest {
         PromocaoPremium promocao = PromocaoPremium.builder()
                 .id(20L)
                 .usuario(usuario)
-                .data(LocalDateTime.of(2026, 7, 22, 15, 30))
+                .data(LocalDateTime.of(2026, Month.JULY, 22, 15, 30))
                 .motivo("Motivo DTO")
                 .palpites(55)
                 .gruposParticipa(4)
@@ -106,7 +107,7 @@ class PromocaoPremiumEntityTest {
         PromocaoPremium promocao = new PromocaoPremium();
         promocao.setId(30L);
         promocao.setUsuario(usuario);
-        promocao.setData(LocalDateTime.of(2026, 7, 22, 20, 0));
+        promocao.setData(LocalDateTime.of(2026, Month.JULY, 22, 20, 0));
         promocao.setMotivo("Setters test");
         promocao.setPalpites(60);
         promocao.setGruposParticipa(5);

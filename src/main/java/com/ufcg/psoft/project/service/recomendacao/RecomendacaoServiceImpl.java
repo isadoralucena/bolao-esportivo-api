@@ -16,36 +16,38 @@ import com.ufcg.psoft.project.repository.PartidaRepository;
 import com.ufcg.psoft.project.service.grupo.GrupoAutorizacaoService;
 import com.ufcg.psoft.project.service.partida.PartidaService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 import com.ufcg.psoft.project.dto.partida.PartidaResponseDTO;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Service
+@Slf4j
 public class RecomendacaoServiceImpl implements RecomendacaoService {
 
-    @Autowired
-    private GrupoAutorizacaoService grupoAutorizacaoService;
+    private final GrupoAutorizacaoService grupoAutorizacaoService;
+    private final PartidaService partidaService;
+    private final PartidaRepository partidaRepository;
+    private final GrupoRepository grupoRepository;
+    private final RecomendacaoStrategy placarFrequente;
+    private final RecomendacaoStrategy mediaGols;
 
-    @Autowired
-    private PartidaService partidaService;
-
-    @Autowired
-    private PartidaRepository partidaRepository;
-
-    @Autowired
-    private GrupoRepository grupoRepository;
-
-    @Autowired
-    @Qualifier("PLACAR_FREQUENTE")
-    private RecomendacaoStrategy placarFrequente;
-
-    @Autowired
-    @Qualifier("MEDIA_GOLS")
-    private RecomendacaoStrategy mediaGols;
+    public RecomendacaoServiceImpl(
+            GrupoAutorizacaoService grupoAutorizacaoService,
+            PartidaService partidaService,
+            PartidaRepository partidaRepository,
+            GrupoRepository grupoRepository,
+            @Qualifier("PLACAR_FREQUENTE") RecomendacaoStrategy placarFrequente,
+            @Qualifier("MEDIA_GOLS") RecomendacaoStrategy mediaGols) {
+        this.grupoAutorizacaoService = grupoAutorizacaoService;
+        this.partidaService = partidaService;
+        this.partidaRepository = partidaRepository;
+        this.grupoRepository = grupoRepository;
+        this.placarFrequente = placarFrequente;
+        this.mediaGols = mediaGols;
+    }
 
     @Override
     public RecomendacaoResponseDTO recomendar(Long grupoId, Long partidaId, Long usuarioId, String codigo) {
@@ -108,7 +110,9 @@ public class RecomendacaoServiceImpl implements RecomendacaoService {
                     try {
                         RecomendacaoResponseDTO recomendacao = recomendar(dto.getId(), usuarioId, codigo);
                         dto.setRecomendacao(recomendacao);
-                    } catch (Exception ignored) {}
+                    } catch (RuntimeException exception) {
+                        log.warn("Não foi possível gerar recomendação para uma partida futura.", exception);
+                    }
                     return dto;
                 })
                 .toList();

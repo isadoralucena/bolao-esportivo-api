@@ -1,5 +1,7 @@
 package com.ufcg.psoft.project.service;
 
+import static com.ufcg.psoft.project.config.TestClockConfig.FIXED_CLOCK;
+
 import com.ufcg.psoft.project.dto.ranking.HistoricoRankingResponseDTO;
 import com.ufcg.psoft.project.dto.ranking.RankingSnapshotResponseDTO;
 import com.ufcg.psoft.project.exception.grupo.GrupoNaoExisteException;
@@ -10,7 +12,6 @@ import com.ufcg.psoft.project.service.ranking.RankingCalculator;
 import com.ufcg.psoft.project.service.ranking.RankingHistoricoServiceImpl;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -38,7 +39,6 @@ class RankingHistoricoServiceImplTest {
     @Mock private PontuacaoService pontuacaoService;
     @Mock private RankingCalculator rankingCalculator;
 
-    @InjectMocks
     private RankingHistoricoServiceImpl rankingHistoricoService;
 
     private Usuario usuario;
@@ -48,6 +48,14 @@ class RankingHistoricoServiceImplTest {
 
     @BeforeEach
     void setUp() {
+        rankingHistoricoService = new RankingHistoricoServiceImpl(
+                rankingSnapshotRepository,
+                grupoRepository,
+                partidaRepository,
+                pontuacaoService,
+                rankingCalculator,
+                FIXED_CLOCK
+        );
         ReflectionTestUtils.setField(rankingHistoricoService, "desempenhoRecentePartidas", 5);
 
         usuario = Usuario.builder()
@@ -85,7 +93,7 @@ class RankingHistoricoServiceImplTest {
                 .golsMandante(2)
                 .golsVisitante(1)
                 .status(PartidaStatus.FINALIZADO)
-                .data(LocalDateTime.now().minusDays(1))
+                .data(LocalDateTime.now(FIXED_CLOCK).minusDays(1))
                 .build();
 
         snapshot = RankingSnapshot.builder()
@@ -95,7 +103,7 @@ class RankingHistoricoServiceImplTest {
                 .partida(partida)
                 .posicao(1)
                 .pontuacao(10)
-                .dataSnapshot(LocalDateTime.now())
+                .dataSnapshot(LocalDateTime.now(FIXED_CLOCK))
                 .build();
     }
 
@@ -276,9 +284,8 @@ class RankingHistoricoServiceImplTest {
     class GerarSnapshot {
 
         @Test
-        @DisplayName("Deve gerar snapshot quando nao existe para grupo e partida")
-        void deveGerarSnapshotQuandoNaoExiste() {
-            when(rankingSnapshotRepository.existsByGrupoIdAndPartidaId(1L, 1L)).thenReturn(false);
+        @DisplayName("Deve gerar um novo snapshot para cada atualizacao do ranking")
+        void deveGerarNovoSnapshotParaCadaAtualizacao() {
             when(grupoRepository.findById(1L)).thenReturn(Optional.of(grupo));
             when(partidaRepository.findById(1L)).thenReturn(Optional.of(partida));
 
@@ -296,18 +303,35 @@ class RankingHistoricoServiceImplTest {
                     .thenReturn(Map.of(1L, 1));
 
             rankingHistoricoService.gerarSnapshot(1L, 1L);
+            rankingHistoricoService.gerarSnapshot(1L, 1L);
 
-            verify(rankingSnapshotRepository).saveAll(any());
+            verify(rankingSnapshotRepository, times(2)).saveAll(argThat(snapshots ->
+                    LocalDateTime.now(FIXED_CLOCK)
+                            .equals(snapshots.iterator().next().getDataSnapshot())));
         }
 
         @Test
-        @DisplayName("Nao deve gerar snapshot duplicado para mesma partida e grupo")
-        void naoDeveGerarSnapshotDuplicado() {
-            when(rankingSnapshotRepository.existsByGrupoIdAndPartidaId(1L, 1L)).thenReturn(true);
+        @DisplayName("Deve gerar snapshot de recalculo do grupo sem partida associada")
+        void deveGerarSnapshotSemPartidaAssociada() {
+            when(grupoRepository.findById(1L)).thenReturn(Optional.of(grupo));
 
-            rankingHistoricoService.gerarSnapshot(1L, 1L);
+            com.ufcg.psoft.project.dto.pontuacao.PontuacaoParticipanteResponseDTO pontuacaoDTO =
+                    com.ufcg.psoft.project.dto.pontuacao.PontuacaoParticipanteResponseDTO.builder()
+                            .usuarioId(1L)
+                            .usuarioNome("Usuario Teste")
+                            .pontuacao(10)
+                            .build();
 
-            verify(rankingSnapshotRepository, never()).saveAll(any());
+            when(pontuacaoService.listarPontuacoesParticipantesDoGrupo(1L, usuario.getId(), usuario.getCodigo()))
+                    .thenReturn(List.of(pontuacaoDTO));
+            when(rankingCalculator.calcularPosicoes(any(), any()))
+                    .thenReturn(Map.of(1L, 1));
+
+            rankingHistoricoService.gerarSnapshot(1L, null);
+
+            verify(partidaRepository, never()).findById(any());
+            verify(rankingSnapshotRepository).saveAll(argThat(snapshots ->
+                    snapshots.iterator().next().getPartida() == null));
         }
     }
 }

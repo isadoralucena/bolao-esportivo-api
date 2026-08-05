@@ -1,9 +1,15 @@
 package com.ufcg.psoft.project.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import com.ufcg.psoft.project.dto.partida.PartidaResponseDTO;
 import com.ufcg.psoft.project.service.partida.PartidaService;
 import com.ufcg.psoft.project.service.premium.RequisicaoAutenticadaEvent;
 import com.ufcg.psoft.project.service.recomendacao.RecomendacaoService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+
+import java.util.List;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -12,33 +18,35 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+@RequiredArgsConstructor
+@Tag(name = "Partidas", description = "Consulta de partidas dos campeonatos e grupos")
 public class PartidaController {
 
-    @Autowired
-    private PartidaService partidaService;
+    private final PartidaService partidaService;
 
-    @Autowired
-    private RecomendacaoService recomendacaoService;
+    private final RecomendacaoService recomendacaoService;
 
-    @Autowired
-    private ApplicationEventPublisher eventPublisher;
+    private final ApplicationEventPublisher eventPublisher;
 
+    @Operation(summary = "Listar partidas do campeonato")
     @GetMapping("/campeonatos/{campeonatoId}/partidas")
-    public ResponseEntity<?> listarPartidasDoCampeonato(@PathVariable Long campeonatoId) {
+    public ResponseEntity<List<PartidaResponseDTO>> listarPartidasDoCampeonato(@PathVariable Long campeonatoId) {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(partidaService.listarPorCampeonato(campeonatoId));
     }
 
+    @Operation(summary = "Listar partidas do grupo")
     @GetMapping("/grupos/{grupoId}/partidas")
-    public ResponseEntity<?> listarPartidasDoGrupo(@PathVariable Long grupoId) {
+    public ResponseEntity<List<PartidaResponseDTO>> listarPartidasDoGrupo(@PathVariable Long grupoId) {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(partidaService.listarPorGrupo(grupoId));
     }
 
+    @Operation(summary = "Listar próximas partidas do usuário")
     @GetMapping("/partidas/futuras")
-    public ResponseEntity<?> listarPartidasFuturas(
+    public ResponseEntity<List<PartidaResponseDTO>> listarPartidasFuturas(
             @RequestParam Long usuarioId,
             @RequestParam String codigoUsuario) {
         var resultado = recomendacaoService.listarPartidasFuturasComRecomendacao(usuarioId, codigoUsuario);

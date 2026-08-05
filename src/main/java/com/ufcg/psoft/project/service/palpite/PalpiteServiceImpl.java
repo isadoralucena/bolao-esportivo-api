@@ -4,7 +4,6 @@ import com.ufcg.psoft.project.dto.palpite.PalpitePostPutRequestDTO;
 import com.ufcg.psoft.project.dto.palpite.PalpiteResponseDTO;
 import com.ufcg.psoft.project.exception.*;
 import com.ufcg.psoft.project.exception.grupo.GrupoNaoExisteException;
-import com.ufcg.psoft.project.exception.palpite.PalpiteForaDoTempoException;
 import com.ufcg.psoft.project.exception.palpite.PalpiteJaExisteException;
 import com.ufcg.psoft.project.exception.palpite.PalpiteNaoExisteException;
 import com.ufcg.psoft.project.exception.partida.PartidaNaoExisteException;
@@ -20,28 +19,26 @@ import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.PalpiteRepository;
 import com.ufcg.psoft.project.repository.PartidaRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class PalpiteServiceImpl implements PalpiteService {
 
-    @Autowired
-    private PalpiteRepository palpiteRepository;
+    private final PalpiteRepository palpiteRepository;
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
+    private final UsuarioRepository usuarioRepository;
 
-    @Autowired
-    private GrupoRepository grupoRepository;
+    private final GrupoRepository grupoRepository;
 
-    @Autowired
-    private PartidaRepository partidaRepository;
+    private final PartidaRepository partidaRepository;
+
+    private final Clock clock;
 
     @Override
     public PalpiteResponseDTO criar(Long usuarioId, String codigo, Long grupoId, Long partidaId, PalpitePostPutRequestDTO dto) {
@@ -58,9 +55,7 @@ public class PalpiteServiceImpl implements PalpiteService {
         Partida partida = partidaRepository.findById(partidaId)
                 .orElseThrow(PartidaNaoExisteException::new);
         
-        if (!partida.estaAbertaParaPalpite(grupo.getJanelaDePalpites(), LocalDateTime.now(ZoneOffset.UTC))) {
-            throw new PalpiteForaDoTempoException();
-        }
+        partida.validarCriacaoPalpite(grupo.getJanelaDePalpites(), LocalDateTime.now(clock));
 
         if (!grupo.getParticipantes().contains(usuario)) {
             throw new UsuarioNaoParticipanteException();
@@ -80,7 +75,7 @@ public class PalpiteServiceImpl implements PalpiteService {
                 .grupo(grupo)
                 .golsMandante(dto.getGolsMandante())
                 .golsVisitante(dto.getGolsVisitante())
-                .data(LocalDateTime.now(ZoneOffset.UTC))
+                .data(LocalDateTime.now(clock))
                 .build();
 
         palpiteRepository.save(palpite);
@@ -91,26 +86,30 @@ public class PalpiteServiceImpl implements PalpiteService {
     public List<PalpiteResponseDTO> listarPorGrupo(Long grupoId) {
         return palpiteRepository.findByGrupoId(grupoId).stream()
                 .map(PalpiteResponseDTO::new)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
     public List<PalpiteResponseDTO> listarPorGrupoEPartida(Long grupoId, Long partidaId) {
         return palpiteRepository.findByPartidaIdAndGrupoId(partidaId, grupoId).stream()
                 .map(PalpiteResponseDTO::new)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
     public List<PalpiteResponseDTO> listarPorUsuario(Long usuarioId) {
         return palpiteRepository.findByUsuarioId(usuarioId).stream()
                 .map(PalpiteResponseDTO::new)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
     public PalpiteResponseDTO editar(Long palpiteId, Long usuarioId, String codigo, PalpitePostPutRequestDTO dto) {
         Palpite palpite = obterPalpiteValidado(palpiteId, usuarioId, codigo);
+
+        palpite.getPartida().validarEdicaoPalpite(
+                palpite.getGrupo().getJanelaDePalpites(),
+                LocalDateTime.now(clock));
 
         palpite.setGolsMandante(dto.getGolsMandante());
         palpite.setGolsVisitante(dto.getGolsVisitante());
@@ -122,6 +121,11 @@ public class PalpiteServiceImpl implements PalpiteService {
     @Override
     public void deletar(Long palpiteId, Long usuarioId, String codigo) {
         Palpite palpite = obterPalpiteValidado(palpiteId, usuarioId, codigo);
+
+        palpite.getPartida().validarExclusaoPalpite(
+                palpite.getGrupo().getJanelaDePalpites(),
+                LocalDateTime.now(clock));
+
         palpiteRepository.delete(palpite);
     }
 
@@ -138,10 +142,6 @@ public class PalpiteServiceImpl implements PalpiteService {
 
         if (!palpite.getUsuario().getId().equals(usuarioId)) {
             throw new UsuarioInvalidoException();
-        }
-
-        if (!palpite.getPartida().estaAbertaParaPalpite(palpite.getGrupo().getJanelaDePalpites(), LocalDateTime.now(ZoneOffset.UTC))) {
-            throw new PalpiteForaDoTempoException();
         }
 
         return palpite;

@@ -1,5 +1,7 @@
 package com.ufcg.psoft.project.controller.grupo;
 
+import static com.ufcg.psoft.project.config.TestClockConfig.FIXED_CLOCK;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ufcg.psoft.project.dto.grupo.GrupoResponseDTO;
 import com.ufcg.psoft.project.dto.palpite.PalpitePostPutRequestDTO;
@@ -8,7 +10,8 @@ import com.ufcg.psoft.project.exception.CustomErrorType;
 import com.ufcg.psoft.project.model.*;
 import com.ufcg.psoft.project.repository.*;
 import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.test.context.TestConstructor;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -18,7 +21,6 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -28,33 +30,27 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("Testes de configuração de regras de palpites - US10")
-public class GrupoRegrasPalpitesControllerTest {
+@RequiredArgsConstructor
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+class GrupoRegrasPalpitesControllerTest {
 
     final String URI_GRUPOS = "/grupos";
 
-    @Autowired
     MockMvc driver;
 
-    @Autowired
-    WebApplicationContext webApplicationContext;
+    final WebApplicationContext webApplicationContext;
 
-    @Autowired
-    GrupoRepository grupoRepository;
+    final GrupoRepository grupoRepository;
 
-    @Autowired
-    UsuarioRepository usuarioRepository;
+    final UsuarioRepository usuarioRepository;
 
-    @Autowired
-    CampeonatoRepository campeonatoRepository;
+    final CampeonatoRepository campeonatoRepository;
 
-    @Autowired
-    PartidaRepository partidaRepository;
+    final PartidaRepository partidaRepository;
 
-    @Autowired
-    PalpiteRepository palpiteRepository;
+    final PalpiteRepository palpiteRepository;
 
-    @Autowired
-    ObjectMapper objectMapper;
+    final ObjectMapper objectMapper;
 
     Usuario organizador;
     Usuario participante;
@@ -321,7 +317,7 @@ public class GrupoRegrasPalpitesControllerTest {
                     .codigoExterno(1L)
                     .mandante("Time A")
                     .visitante("Time B")
-                    .data(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(60))
+                    .data(LocalDateTime.now(FIXED_CLOCK).plusMinutes(60))
                     .status(PartidaStatus.ABERTO)
                     .build());
 
@@ -344,7 +340,7 @@ public class GrupoRegrasPalpitesControllerTest {
                     .codigoExterno(2L)
                     .mandante("Time C")
                     .visitante("Time D")
-                    .data(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(180))
+                    .data(LocalDateTime.now(FIXED_CLOCK).plusMinutes(180))
                     .status(PartidaStatus.ABERTO)
                     .build());
 
@@ -370,7 +366,7 @@ public class GrupoRegrasPalpitesControllerTest {
                     .codigoExterno(3L)
                     .mandante("Time E")
                     .visitante("Time F")
-                    .data(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(180))
+                    .data(LocalDateTime.now(FIXED_CLOCK).plusMinutes(180))
                     .status(PartidaStatus.ABERTO)
                     .build());
 

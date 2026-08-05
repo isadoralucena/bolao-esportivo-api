@@ -13,7 +13,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.test.context.TestConstructor;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -29,21 +30,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("CampeonatoController combined tests")
-public class CampeonatoControllerTest {
+@RequiredArgsConstructor
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+class CampeonatoControllerTest {
 
 	private static final String URI_CAMPEONATOS = "/campeonatos";
 
-	@Autowired
-	MockMvc mockMvc;
+	final MockMvc mockMvc;
 
-	@Autowired
-	ObjectMapper objectMapper;
+	final ObjectMapper objectMapper;
 
-	@Autowired
-	UsuarioRepository usuarioRepository;
+	final UsuarioRepository usuarioRepository;
 
-	@Autowired
-	CampeonatoRepository campeonatoRepository;
+	final CampeonatoRepository campeonatoRepository;
 
     @SpyBean
     CampeonatoService campeonatoService;
