@@ -54,6 +54,8 @@ class UsuarioControllerTest {
 
     final Clock clock;
 
+    final UsuarioController usuarioController;
+
     ObjectMapper objectMapper = new ObjectMapper();
 
     Usuario usuario;
@@ -458,6 +460,17 @@ class UsuarioControllerTest {
     @Nested
     @DisplayName("Conjunto de casos de verificação dos fluxos básicos API Rest")
     class usuarioVerificacaoFluxosBasicosApiRest {
+
+        @Test
+        @DisplayName("Quando o filtro de nome e nulo lista todos os usuarios")
+        void quandoFiltroNomeNuloListaTodosUsuarios() {
+            var resposta = usuarioController.listarUsuarios(null);
+
+            assertAll(
+                    () -> assertEquals(200, resposta.getStatusCode().value()),
+                    () -> assertEquals(1, resposta.getBody().size())
+            );
+        }
 
         @Test
         @DisplayName("Quando buscamos por todos usuarios salvos")

@@ -258,6 +258,17 @@ class PartidaControllerTests {
                 .andExpect(jsonPath("$", hasSize(3)));
     }
 
+    @Test
+    @DisplayName("Listar partidas futuras do usuario autenticado")
+    void listarPartidasFuturasDoUsuario() throws Exception {
+        mockMvc.perform(get("/partidas/futuras")
+                        .param("usuarioId", usuario.getId().toString())
+                        .param("codigoUsuario", usuario.getCodigo()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].id").value(partidaAberta.getId()));
+    }
+
     // ========== Integração com sincronização ==========
 
     @Test
