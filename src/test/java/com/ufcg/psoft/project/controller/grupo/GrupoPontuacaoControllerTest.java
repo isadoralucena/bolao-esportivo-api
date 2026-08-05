@@ -306,15 +306,19 @@ class GrupoPontuacaoControllerTest {
         @Test
         @DisplayName("Quando participante não existe lança UsuarioNaoExisteException")
         void quandoParticipanteNaoExiste() {
+            Long grupoId = grupo.getId();
+
             assertThrows(UsuarioNaoExisteException.class, () ->
-                    pontuacaoService.calcularPontuacaoParticipanteNoGrupo(grupo.getId(), 999999L));
+                    pontuacaoService.calcularPontuacaoParticipanteNoGrupo(grupoId, 999999L));
         }
 
         @Test
         @DisplayName("Quando grupo não existe lança GrupoNaoExisteException")
         void quandoGrupoNaoExiste() {
+            Long participanteId = participante.getId();
+
             assertThrows(GrupoNaoExisteException.class, () ->
-                    pontuacaoService.calcularPontuacaoParticipanteNoGrupo(999999L, participante.getId()));
+                    pontuacaoService.calcularPontuacaoParticipanteNoGrupo(999999L, participanteId));
         }
 
         @Test
@@ -328,9 +332,11 @@ class GrupoPontuacaoControllerTest {
                     .codigo("EXT001")
                     .perfil(PerfilUsuario.PADRAO)
                     .build());
+            Long grupoId = grupo.getId();
+            Long naoParticipanteId = naoParticipante.getId();
 
             assertThrows(UsuarioNaoParticipanteException.class, () ->
-                    pontuacaoService.calcularPontuacaoParticipanteNoGrupo(grupo.getId(), naoParticipante.getId()));
+                    pontuacaoService.calcularPontuacaoParticipanteNoGrupo(grupoId, naoParticipanteId));
         }
 
         @Test
@@ -764,9 +770,10 @@ class GrupoPontuacaoControllerTest {
                     .golsMandante(1)
                     .golsVisitante(0)
                     .build());
+            Long grupoId = grupo.getId();
 
             assertThrows(IllegalArgumentException.class, () ->
-                    pontuacaoService.calcularPontuacoesDoGrupo(grupo.getId()));
+                    pontuacaoService.calcularPontuacoesDoGrupo(grupoId));
         }
     }
 
@@ -814,9 +821,10 @@ class GrupoPontuacaoControllerTest {
                     .data(LocalDateTime.now(FIXED_CLOCK).minusHours(1))
                     .status(PartidaStatus.FINALIZADO)
                     .build());
+            Long partidaId = partidaGolsNulos.getId();
 
             assertThrows(IllegalArgumentException.class, () ->
-                    pontuacaoService.calcularPontuacoesAssociadasAPartida(partidaGolsNulos.getId()));
+                    pontuacaoService.calcularPontuacoesAssociadasAPartida(partidaId));
         }
 
         @Test

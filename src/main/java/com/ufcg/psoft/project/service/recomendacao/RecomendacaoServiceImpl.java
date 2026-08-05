@@ -19,11 +19,12 @@ import com.ufcg.psoft.project.service.partida.PartidaService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 import com.ufcg.psoft.project.dto.partida.PartidaResponseDTO;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Service
+@Slf4j
 public class RecomendacaoServiceImpl implements RecomendacaoService {
 
     private final GrupoAutorizacaoService grupoAutorizacaoService;
@@ -109,7 +110,9 @@ public class RecomendacaoServiceImpl implements RecomendacaoService {
                     try {
                         RecomendacaoResponseDTO recomendacao = recomendar(dto.getId(), usuarioId, codigo);
                         dto.setRecomendacao(recomendacao);
-                    } catch (Exception ignored) {}
+                    } catch (RuntimeException exception) {
+                        log.warn("Não foi possível gerar recomendação para uma partida futura.", exception);
+                    }
                     return dto;
                 })
                 .toList();

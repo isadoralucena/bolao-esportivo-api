@@ -48,7 +48,7 @@ class NotificacaoServiceImplTest {
 
     private String logsCapturados() {
         return listAppender.list.stream()
-                .map(event -> event.getFormattedMessage())
+                .map(ILoggingEvent::getFormattedMessage)
                 .collect(Collectors.joining(System.lineSeparator()));
     }
 

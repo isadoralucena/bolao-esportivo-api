@@ -126,9 +126,12 @@ class CampeonatoServiceImplTest {
     @DisplayName("Quando usuário administrador não existe, sincronização falha")
     void quandoUsuarioAdministradorNaoExisteSincronizacaoFalha() {
         when(usuarioRepository.findById(admin.getId())).thenReturn(Optional.empty());
+        Long campeonatoId = campeonato.getId();
+        Long adminId = admin.getId();
+        String codigoAdmin = admin.getCodigo();
 
         assertThrows(CodigoDeAcessoInvalidoException.class,
-                () -> campeonatoService.sincronizarCampeonato(campeonato.getId(), admin.getId(), admin.getCodigo())
+                () -> campeonatoService.sincronizarCampeonato(campeonatoId, adminId, codigoAdmin)
         );
     }
 

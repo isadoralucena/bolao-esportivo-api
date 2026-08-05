@@ -104,9 +104,10 @@ class ClassificacaoCampeonatoServiceImplTest {
         server.expect(requestTo("http://api.test/competitions/1/standings"))
                 .andExpect(method(GET))
                 .andRespond(withSuccess(respostaAPI, MediaType.APPLICATION_JSON));
+        Long campeonatoId = campeonato.getId();
 
         assertThrows(ClassificacaoCampeonatoSyncException.class,
-                () -> classificacaoCampeonatoService.sincronizarClassificacao(campeonato.getId())
+                () -> classificacaoCampeonatoService.sincronizarClassificacao(campeonatoId)
         );
     }
 
@@ -139,9 +140,10 @@ class ClassificacaoCampeonatoServiceImplTest {
         server.expect(requestTo("http://api.test/competitions/1/standings"))
                 .andExpect(method(GET))
                 .andRespond(withSuccess("", MediaType.APPLICATION_JSON));
+        Long campeonatoId = campeonato.getId();
 
         assertThrows(ClassificacaoCampeonatoSyncException.class,
-                () -> classificacaoCampeonatoService.sincronizarClassificacao(campeonato.getId())
+                () -> classificacaoCampeonatoService.sincronizarClassificacao(campeonatoId)
         );
     }
 
@@ -161,9 +163,10 @@ class ClassificacaoCampeonatoServiceImplTest {
         server.expect(requestTo("http://api.test/competitions/1/standings"))
                 .andExpect(method(GET))
                 .andRespond(withSuccess(respostaAPI, MediaType.APPLICATION_JSON));
+        Long campeonatoId = campeonato.getId();
 
         assertThrows(ClassificacaoCampeonatoSyncException.class,
-                () -> classificacaoCampeonatoService.sincronizarClassificacao(campeonato.getId())
+                () -> classificacaoCampeonatoService.sincronizarClassificacao(campeonatoId)
         );
     }
 
@@ -187,9 +190,10 @@ class ClassificacaoCampeonatoServiceImplTest {
         server.expect(requestTo("http://api.test/competitions/1/standings"))
                 .andExpect(method(GET))
                 .andRespond(withSuccess(respostaAPI, MediaType.APPLICATION_JSON));
+        Long campeonatoId = campeonato.getId();
 
         assertThrows(ClassificacaoCampeonatoSyncException.class,
-                () -> classificacaoCampeonatoService.sincronizarClassificacao(campeonato.getId())
+                () -> classificacaoCampeonatoService.sincronizarClassificacao(campeonatoId)
         );
     }
 

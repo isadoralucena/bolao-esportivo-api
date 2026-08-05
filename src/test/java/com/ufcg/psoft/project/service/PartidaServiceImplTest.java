@@ -21,6 +21,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 
@@ -133,7 +134,7 @@ class PartidaServiceImplTest {
         assertEquals("Time B", partida.getVisitante());
         assertEquals(2, partida.getGolsMandante());
         assertEquals(1, partida.getGolsVisitante());
-        assertEquals(LocalDateTime.of(2026, 7, 5, 18, 0), partida.getData());
+        assertEquals(LocalDateTime.of(2026, Month.JULY, 5, 18, 0), partida.getData());
         assertEquals(PartidaStatus.FINALIZADO, partida.getStatus());
     }
 
@@ -260,7 +261,7 @@ class PartidaServiceImplTest {
                 .id(10L).campeonato(campeonato)
                 .mandante("A").visitante("B")
                 .golsMandante(2).golsVisitante(1)
-                .data(LocalDateTime.of(2026, 7, 5, 18, 0))
+                .data(LocalDateTime.of(2026, Month.JULY, 5, 18, 0))
                 .status(PartidaStatus.FINALIZADO)
                 .codigoExterno(100L)
                 .mataMata(false)
@@ -353,7 +354,7 @@ class PartidaServiceImplTest {
                 .id(100L).campeonato(campeonato).codigoExterno(40L)
                 .mandante("C").visitante("D")
                 .status(PartidaStatus.ABERTO)
-                .data(LocalDateTime.of(2026, 7, 6, 18, 0))
+                .data(LocalDateTime.of(2026, Month.JULY, 6, 18, 0))
                 .build();
 
         when(partidaRepository.findByCampeonatoIdAndCodigoExterno(1L, 40L))
@@ -420,7 +421,7 @@ class PartidaServiceImplTest {
                 .id(101L).campeonato(campeonato).codigoExterno(50L)
                 .mandante("E").visitante("F")
                 .status(PartidaStatus.EM_ANDAMENTO)
-                .data(LocalDateTime.of(2026, 7, 6, 18, 0))
+                .data(LocalDateTime.of(2026, Month.JULY, 6, 18, 0))
                 .build();
 
         when(partidaRepository.findByCampeonatoIdAndCodigoExterno(1L, 50L))
@@ -463,7 +464,7 @@ class PartidaServiceImplTest {
                 .mandante("G").visitante("H")
                 .golsMandante(1).golsVisitante(0)
                 .status(PartidaStatus.FINALIZADO)
-                .data(LocalDateTime.of(2026, 7, 6, 18, 0))
+                .data(LocalDateTime.of(2026, Month.JULY, 6, 18, 0))
                 .build();
 
         when(partidaRepository.findByCampeonatoIdAndCodigoExterno(1L, 60L))
@@ -517,7 +518,7 @@ class PartidaServiceImplTest {
 				.visitante("Time B")
 				.status(PartidaStatus.EM_ANDAMENTO)
 				.consolidada(false)
-				.data(LocalDateTime.of(2026, 7, 6, 18, 0))
+				.data(LocalDateTime.of(2026, Month.JULY, 6, 18, 0))
 				.build();
 
 		when(partidaRepository.findByCampeonatoIdAndCodigoExterno(1L, 100L))
@@ -576,7 +577,7 @@ class PartidaServiceImplTest {
                 .golsMandante(1).golsVisitante(0)
                 .status(PartidaStatus.FINALIZADO)
                 .consolidada(true)
-                .data(LocalDateTime.of(2026, 7, 6, 18, 0))
+                .data(LocalDateTime.of(2026, Month.JULY, 6, 18, 0))
                 .build();
 
         when(partidaRepository.findByCampeonatoIdAndCodigoExterno(1L, 61L))
@@ -783,7 +784,7 @@ class PartidaServiceImplTest {
                     .minutosAberturaPalpites(120)
                     .minutosFechamentoPalpites(30)
                     .build();
-            dataPartida = LocalDateTime.of(2026, 7, 15, 18, 0);
+            dataPartida = LocalDateTime.of(2026, Month.JULY, 15, 18, 0);
             partidaBuilder = Partida.builder()
                     .id(100L).codigoExterno(1L)
                     .mandante("A").visitante("B")
@@ -818,7 +819,7 @@ class PartidaServiceImplTest {
         @DisplayName("ABERTO dentro da janela retorna ABERTO")
         void quandoAbertoDentroDaJanela() {
             Partida partida = partidaBuilder.status(PartidaStatus.ABERTO).build();
-            LocalDateTime agora = LocalDateTime.of(2026, 7, 15, 17, 0);
+            LocalDateTime agora = LocalDateTime.of(2026, Month.JULY, 15, 17, 0);
             assertEquals(PartidaStatus.ABERTO,
                     partida.statusEfetivoParaGrupo(grupo, agora));
         }
@@ -827,7 +828,7 @@ class PartidaServiceImplTest {
         @DisplayName("ABERTO antes da abertura retorna EM_ANDAMENTO")
         void quandoAbertoAntesDaAbertura() {
             Partida partida = partidaBuilder.status(PartidaStatus.ABERTO).build();
-            LocalDateTime agora = LocalDateTime.of(2026, 7, 15, 15, 0);
+            LocalDateTime agora = LocalDateTime.of(2026, Month.JULY, 15, 15, 0);
             assertEquals(PartidaStatus.EM_ANDAMENTO,
                     partida.statusEfetivoParaGrupo(grupo, agora));
         }
@@ -836,7 +837,7 @@ class PartidaServiceImplTest {
         @DisplayName("ABERTO depois do fechamento retorna EM_ANDAMENTO")
         void quandoAbertoDepoisDoFechamento() {
             Partida partida = partidaBuilder.status(PartidaStatus.ABERTO).build();
-            LocalDateTime agora = LocalDateTime.of(2026, 7, 15, 17, 45);
+            LocalDateTime agora = LocalDateTime.of(2026, Month.JULY, 15, 17, 45);
             assertEquals(PartidaStatus.EM_ANDAMENTO,
                     partida.statusEfetivoParaGrupo(grupo, agora));
         }

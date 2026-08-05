@@ -209,11 +209,11 @@ class RankingControllerTest {
 
             assertAll(
                     () -> assertTrue(entry.getPosicao() > 0),
-                    () -> assertNotNull(entry.getPontuacaoParticipante().getPontuacao()),
-                    () -> assertNotNull(entry.getPontuacaoParticipante().getAcertosVencedor()),
-                    () -> assertNotNull(entry.getPontuacaoParticipante().getAcertosEmpate()),
-                    () -> assertNotNull(entry.getPontuacaoParticipante().getTotalPalpitesAvaliados()),
-                    () -> assertNotNull(entry.getPontuacaoParticipante().getPlacaresExatos())
+                    () -> assertEquals(10, entry.getPontuacaoParticipante().getPontuacao()),
+                    () -> assertEquals(1, entry.getPontuacaoParticipante().getAcertosVencedor()),
+                    () -> assertEquals(0, entry.getPontuacaoParticipante().getAcertosEmpate()),
+                    () -> assertEquals(1, entry.getPontuacaoParticipante().getTotalPalpitesAvaliados()),
+                    () -> assertEquals(1, entry.getPontuacaoParticipante().getPlacaresExatos())
             );
         }
 
@@ -371,10 +371,10 @@ class RankingControllerTest {
 
             assertAll(
                     () -> assertTrue(entry.getPosicao() > 0),
-                    () -> assertNotNull(entry.getPontuacaoParticipante().getPontuacao()),
-                    () -> assertNotNull(entry.getPontuacaoParticipante().getAcertosVencedor()),
-                    () -> assertNotNull(entry.getPontuacaoParticipante().getAcertosEmpate()),
-                    () -> assertNotNull(entry.getPontuacaoParticipante().getPlacaresExatos())
+                    () -> assertEquals(10, entry.getPontuacaoParticipante().getPontuacao()),
+                    () -> assertEquals(1, entry.getPontuacaoParticipante().getAcertosVencedor()),
+                    () -> assertEquals(0, entry.getPontuacaoParticipante().getAcertosEmpate()),
+                    () -> assertEquals(1, entry.getPontuacaoParticipante().getPlacaresExatos())
             );
         }
 

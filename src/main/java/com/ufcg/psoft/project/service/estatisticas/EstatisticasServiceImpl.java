@@ -120,7 +120,7 @@ public class EstatisticasServiceImpl implements EstatisticasService {
         int palpitesCorretos = totalPalpites - totalErros;
         float taxaAcerto = totalPalpites == 0 ? 0 : (float) palpitesCorretos / totalPalpites;
 
-        Estatisticas e = Estatisticas.builder()
+        return Estatisticas.builder()
             .usuario(u)
             .taxaAcerto(taxaAcerto)
             .placaresExatos(pontuacaoParticipante.getPlacaresExatos())
@@ -129,8 +129,6 @@ public class EstatisticasServiceImpl implements EstatisticasService {
             .totalPalpitesCorretos(palpitesCorretos)
             .dataRegistro(LocalDateTime.now(clock))
             .build();
-        
-        return e;
     }
 
 

@@ -176,9 +176,11 @@ class ConsolidacaoPartidaServiceImplTest {
     }
 
     private void assertResultadoInvalido(Partida partidaInvalida) {
+        Long partidaId = partidaInvalida.getId();
+
         PartidaSyncException exception = assertThrows(
                 PartidaSyncException.class,
-                () -> consolidacaoService.consolidar(partidaInvalida.getId())
+                () -> consolidacaoService.consolidar(partidaId)
         );
 
         assertEquals(

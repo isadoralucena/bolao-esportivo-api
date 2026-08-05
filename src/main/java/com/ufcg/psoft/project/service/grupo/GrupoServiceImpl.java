@@ -34,7 +34,7 @@ public class GrupoServiceImpl implements GrupoService {
         Campeonato campeonato = campeonatoRepository.findById(grupoPostRequestDto.getCampeonatoId())
                 .orElseThrow(CampeonatoNaoExisteException::new);
 
-        if (!campeonato.getAtivo()) {
+        if (!Boolean.TRUE.equals(campeonato.getAtivo())) {
             throw new CampeonatoInativoException();
         }
 

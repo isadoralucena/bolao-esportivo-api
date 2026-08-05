@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,12 +58,12 @@ class SincronizacaoPeriodicaTest {
         Campeonato sincronizadoMaisAntigo = campeonato(
                 2L,
                 "Sincronizado mais antigo",
-                LocalDateTime.of(2026, 1, 1, 1, 1));
+                LocalDateTime.of(2026, Month.JANUARY, 1, 1, 1));
 
         Campeonato sincronizadoMaisRecente = campeonato(
                 3L,
                 "Sincronizado mais recente",
-                LocalDateTime.of(2026, 6, 1, 1, 1));
+                LocalDateTime.of(2026, Month.JUNE, 1, 1, 1));
 
         when(campeonatoRepository.findByAtivoTrue()).thenReturn(new ArrayList<>(List.of(
                 sincronizadoMaisRecente,
@@ -123,7 +124,7 @@ class SincronizacaoPeriodicaTest {
         ReflectionTestUtils.setField(sincronizacaoPeriodicaService, "maxSincronizacoesPorCiclo", 10);
 
         Campeonato campeonato1 = campeonato(1L, "Campeonato 1", null);
-        Campeonato campeonato2 = campeonato(2L, "Campeonato 2", LocalDateTime.of(2026, 1, 1, 1, 1));
+        Campeonato campeonato2 = campeonato(2L, "Campeonato 2", LocalDateTime.of(2026, Month.JANUARY, 1, 1, 1));
 
         when(campeonatoRepository.findByAtivoTrue()).thenReturn(new ArrayList<>(List.of(campeonato1, campeonato2)));
 
@@ -143,7 +144,7 @@ class SincronizacaoPeriodicaTest {
         Campeonato campeonatoComErro = campeonato(1L, "Campeonato com erro", null);
         campeonatoComErro.setUrl("http://api.test/competitions/1");
 
-        Campeonato campeonatoSeguinte = campeonato(2L, "Campeonato seguinte", LocalDateTime.of(2026, 1, 1, 1, 1));
+        Campeonato campeonatoSeguinte = campeonato(2L, "Campeonato seguinte", LocalDateTime.of(2026, Month.JANUARY, 1, 1, 1));
         campeonatoSeguinte.setUrl("http://api.test/competitions/2");
 
         when(campeonatoRepository.findByAtivoTrue()).thenReturn(new ArrayList<>(List.of(campeonatoComErro, campeonatoSeguinte)));

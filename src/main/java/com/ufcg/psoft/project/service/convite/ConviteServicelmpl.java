@@ -3,6 +3,7 @@ package com.ufcg.psoft.project.service.convite;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import com.ufcg.psoft.project.dto.convite.ConvitePostPutRequestDTO;
@@ -29,6 +30,7 @@ import com.ufcg.psoft.project.service.grupo.participante.GrupoParticipanteServic
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ConviteServicelmpl implements ConviteService {
 
     private final ConviteRepository conviteRepository;
@@ -64,7 +66,7 @@ public class ConviteServicelmpl implements ConviteService {
             throw new ConviteDuplicadoException();
         }
 
-        if (!grupo.getCampeonato().getAtivo()) {
+        if (!Boolean.TRUE.equals(grupo.getCampeonato().getAtivo())) {
             throw new CampeonatoInativoException();
         }
 
@@ -178,11 +180,7 @@ public class ConviteServicelmpl implements ConviteService {
     }
 
     private void notificarConvidado(Convite convite, String status) {
-        String mensagem = String.format("Notificação: O convite para %s participar do grupo %s foi %s.", 
-                convite.getConvidado().getNome(), 
-                convite.getGrupo().getNome(), 
-                status);
-        System.out.println(mensagem);
+        log.info("Convite para o grupo {} foi {}.", convite.getGrupo().getId(), status);
     }
 
     private void validarUsuário(Usuario usuario, String codigoAcesso) {

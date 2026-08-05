@@ -75,7 +75,7 @@ public class GrupoParticipanteServiceImpl implements GrupoParticipanteService {
     }
 
     public void validarEntradaGrupo(Grupo grupo, Usuario usuario) {
-        if (!grupo.getCampeonato().getAtivo()) {
+        if (!Boolean.TRUE.equals(grupo.getCampeonato().getAtivo())) {
             throw new CampeonatoInativoException();
         }
 
