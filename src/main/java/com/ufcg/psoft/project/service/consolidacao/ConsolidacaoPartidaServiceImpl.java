@@ -14,7 +14,6 @@ import com.ufcg.psoft.project.event.PartidaFinalizadaEvent;
 import com.ufcg.psoft.project.exception.partida.PartidaNaoExisteException;
 import com.ufcg.psoft.project.exception.partida.PartidaSyncException;
 import com.ufcg.psoft.project.model.Partida;
-import com.ufcg.psoft.project.model.PartidaStatus;
 import com.ufcg.psoft.project.repository.PartidaRepository;
 import com.ufcg.psoft.project.service.pontuacao.PontuacaoService;
 
@@ -33,7 +32,9 @@ public class ConsolidacaoPartidaServiceImpl implements ConsolidacaoPartidaServic
         Partida partida = partidaRepository.findById(partidaId)
                 .orElseThrow(PartidaNaoExisteException::new);
 
-        if (partida.getStatus() != PartidaStatus.FINALIZADO || partida.isConsolidada()) {
+        partida.validarConsolidacao();
+
+        if (partida.isConsolidada()) {
             return; 
         }
 

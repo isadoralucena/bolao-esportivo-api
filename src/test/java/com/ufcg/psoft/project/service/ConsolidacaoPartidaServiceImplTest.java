@@ -23,6 +23,7 @@ import org.springframework.context.ApplicationEventPublisher;
 
 import com.ufcg.psoft.project.event.PartidaConsolidadaEvent;
 import com.ufcg.psoft.project.event.PartidaFinalizadaEvent;
+import com.ufcg.psoft.project.exception.partida.PartidaNaoFinalizadaException;
 import com.ufcg.psoft.project.exception.partida.PartidaSyncException;
 import com.ufcg.psoft.project.model.Partida;
 import com.ufcg.psoft.project.model.PartidaStatus;
@@ -69,7 +70,10 @@ class ConsolidacaoPartidaServiceImplTest {
         void quandoPartidaNaoFinalizadaNaoConsolida() {
             partida.setStatus(PartidaStatus.EM_ANDAMENTO);
 
-            consolidacaoService.consolidar(partida.getId());
+            assertThrows(
+                    PartidaNaoFinalizadaException.class,
+                    () -> consolidacaoService.consolidar(partida.getId())
+            );
 
             assertFalse(partida.isConsolidada());
             verify(partidaRepository).findById(partida.getId());
