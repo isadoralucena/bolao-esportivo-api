@@ -70,9 +70,11 @@ class ConsolidacaoPartidaServiceImplTest {
         void quandoPartidaNaoFinalizadaNaoConsolida() {
             partida.setStatus(PartidaStatus.EM_ANDAMENTO);
 
+            Long partidaId = partida.getId();
+
             assertThrows(
                     PartidaNaoFinalizadaException.class,
-                    () -> consolidacaoService.consolidar(partida.getId())
+                    () -> consolidacaoService.consolidar(partidaId)
             );
 
             assertFalse(partida.isConsolidada());

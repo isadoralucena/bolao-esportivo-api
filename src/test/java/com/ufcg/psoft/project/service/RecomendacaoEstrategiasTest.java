@@ -104,6 +104,19 @@ class RecomendacaoEstrategiasTest {
         }
 
         @Test
+        @DisplayName("Deve permitir a estrategia de media quando nenhum placar se repete")
+        void deveRetornarVazioSemPlacarPredominante() {
+            List<Partida> finalizadas = List.of(
+                    criarPartidaFinalizada(2L, 2L, 2, 1),
+                    criarPartidaFinalizada(3L, 3L, 1, 0)
+            );
+            when(partidaRepository.findByCampeonatoId(1L)).thenReturn(finalizadas);
+
+            assertTrue(placarFrequente.recomendar(partida).isEmpty());
+            assertTrue(mediaGols.recomendar(partida).isPresent());
+        }
+
+        @Test
         @DisplayName("Deve ignorar partidas sem gols definidos")
         void deveIgnorarPartidasSemGols() {
             Partida semGols = Partida.builder()

@@ -32,7 +32,12 @@ public class RecomendacaoPlacarFrequente extends RecomendacaoStrategyBase {
             return semHistorico();
         }
 
-        Placar placar = encontrarPlacarMaisFrequente(finalizadas);
+        Optional<Placar> placarFrequente = encontrarPlacarMaisFrequente(finalizadas);
+        if (placarFrequente.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Placar placar = placarFrequente.get();
 
         return Optional.of(RecomendacaoResponseDTO.builder()
                 .golsMandanteRecomendado(placar.mandante())
@@ -45,15 +50,15 @@ public class RecomendacaoPlacarFrequente extends RecomendacaoStrategyBase {
                 .build());
     }
 
-    private Placar encontrarPlacarMaisFrequente(List<Partida> finalizadas) {
+    private Optional<Placar> encontrarPlacarMaisFrequente(List<Partida> finalizadas) {
         return finalizadas.stream()
                 .collect(Collectors.groupingBy(
                         p -> new Placar(p.getGolsMandante(), p.getGolsVisitante()),
                         Collectors.counting()
                 ))
                 .entrySet().stream()
+                .filter(entry -> entry.getValue() > 1)
                 .max(Map.Entry.comparingByValue())
-                .map(Map.Entry::getKey)
-                .orElse(new Placar(0, 0));
+                .map(Map.Entry::getKey);
     }
 }
