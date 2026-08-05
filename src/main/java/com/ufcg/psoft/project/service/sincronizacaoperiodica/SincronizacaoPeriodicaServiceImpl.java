@@ -1,4 +1,4 @@
-package com.ufcg.psoft.project.service.sincronizacaoPeriodica;
+package com.ufcg.psoft.project.service.sincronizacaoperiodica;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;

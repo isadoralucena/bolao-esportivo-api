@@ -25,7 +25,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.service.campeonato.CampeonatoService;
-import com.ufcg.psoft.project.service.sincronizacaoPeriodica.SincronizacaoPeriodicaServiceImpl;
+import com.ufcg.psoft.project.service.sincronizacaoperiodica.SincronizacaoPeriodicaServiceImpl;
 
 @SpringBootTest
 @AutoConfigureMockMvc
