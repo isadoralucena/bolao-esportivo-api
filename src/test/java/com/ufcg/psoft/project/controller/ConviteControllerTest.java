@@ -12,6 +12,8 @@ import com.ufcg.psoft.project.repository.CampeonatoRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
 import org.junit.jupiter.api.*;
 import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.test.context.TestConstructor;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -445,69 +447,43 @@ class ConviteControllerTest {
             );
         }
 
-        @Test
-        @DisplayName("Quando tenta aceitar convite já processado")
-        void quandoTentaAceitarConviteJaProcessado() throws Exception {
-            driver.perform(post(URI_CONVITES + "/" + convite.getId() + "/recusar")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .param("codigoUsuario", convidado.getCodigo()))
+        @ParameterizedTest(name = "Após {0}, não deve permitir {1}")
+        @CsvSource({
+                "recusar, aceitar",
+                "aceitar, recusar",
+                "aceitar, ignorar"
+        })
+        @DisplayName("Quando tenta responder a um convite já processado")
+        void quandoTentaResponderConviteJaProcessado(
+                String acaoInicial,
+                String novaAcao) throws Exception {
+
+            driver.perform(post(
+                            URI_CONVITES + "/" + convite.getId() + "/" + acaoInicial
+                    )
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .param("codigoUsuario", convidado.getCodigo()))
                     .andExpect(status().isOk());
 
-            String responseJsonString = driver.perform(post(URI_CONVITES + "/" + convite.getId() + "/aceitar")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .param("codigoUsuario", convidado.getCodigo()))
+            String responseJsonString = driver.perform(post(
+                            URI_CONVITES + "/" + convite.getId() + "/" + novaAcao
+                    )
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .param("codigoUsuario", convidado.getCodigo()))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
+                    .andReturn()
+                    .getResponse()
+                    .getContentAsString();
 
-            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
-
-            assertAll(
-                    () -> assertEquals("O convite já foi processado e não pode ser modificado!", resultado.getMessage())
+            CustomErrorType resultado = objectMapper.readValue(
+                    responseJsonString,
+                    CustomErrorType.class
             );
-        }
 
-        @Test
-        @DisplayName("Quando tenta recusar convite já processado")
-        void quandoTentaRecusarConviteJaProcessado() throws Exception {
-            driver.perform(post(URI_CONVITES + "/" + convite.getId() + "/aceitar")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoUsuario", convidado.getCodigo()))
-                    .andExpect(status().isOk());
-
-            String responseJsonString = driver.perform(post(URI_CONVITES + "/" + convite.getId() + "/recusar")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoUsuario", convidado.getCodigo()))
-                    .andExpect(status().isBadRequest())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
-
-            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
-
-            assertAll(
-                    () -> assertEquals("O convite já foi processado e não pode ser modificado!", resultado.getMessage())
-            );
-        }
-
-        @Test
-        @DisplayName("Quando tenta ignorar convite já processado")
-        void quandoTentaIgnorarConviteJaProcessado() throws Exception {
-            driver.perform(post(URI_CONVITES + "/" + convite.getId() + "/aceitar")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoUsuario", convidado.getCodigo()))
-                    .andExpect(status().isOk());
-
-            String responseJsonString = driver.perform(post(URI_CONVITES + "/" + convite.getId() + "/ignorar")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoUsuario", convidado.getCodigo()))
-                    .andExpect(status().isBadRequest())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
-
-            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
-
-            assertAll(
-                    () -> assertEquals("O convite já foi processado e não pode ser modificado!", resultado.getMessage())
+            assertEquals(
+                    "O convite já foi processado e não pode ser modificado!",
+                    resultado.getMessage()
             );
         }
 

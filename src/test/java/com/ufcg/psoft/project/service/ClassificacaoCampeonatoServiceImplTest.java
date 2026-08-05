@@ -3,6 +3,7 @@ package com.ufcg.psoft.project.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
@@ -11,10 +12,14 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -61,6 +66,45 @@ class ClassificacaoCampeonatoServiceImplTest {
                 .build();
     }
 
+    private static Stream<Arguments> respostasInvalidasDaApi() {
+        return Stream.of(
+            arguments(
+                "resposta sem standings",
+                """
+                {}
+                """
+            ),
+            arguments(
+                "resposta sem corpo",
+                ""
+            ),
+            arguments(
+                "standings sem tabela",
+                """
+                {
+                    "standings": [
+                        {}
+                    ]
+                }
+                """
+            ),
+            arguments(
+                "linha da classificação sem time",
+                """
+                {
+                    "standings": [
+                        {
+                            "table": [
+                                {"position": 1}
+                            ]
+                        }
+                    ]
+                }
+                """
+            )
+        );
+    }
+
     @Test
     @DisplayName("Quando sincroniza classificação, substitui tabela antiga pela nova")
     void quandoSincronizaClassificacaoSubstituiTabelaAntigaPelaNova() {
@@ -92,22 +136,24 @@ class ClassificacaoCampeonatoServiceImplTest {
         assertEquals("Time B", resultado.get(1).getNomeTime());
     }
 
-    @Test
-    @DisplayName("Quando resposta da API não possui standings, lança exceção")
-    void quandoRespostaSemStandingsLancaExcecao() {
-        String respostaAPI = """
-            {}
-        """;
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("respostasInvalidasDaApi")
+    @DisplayName("Quando a resposta da API é inválida, lança exceção")
+    void quandoRespostaDaApiInvalidaLancaExcecao(String descricao, String respostaAPI) {
 
-        when(campeonatoRepository.findById(campeonato.getId())).thenReturn(Optional.of(campeonato));
+        when(campeonatoRepository.findById(campeonato.getId()))
+                .thenReturn(Optional.of(campeonato));
 
         server.expect(requestTo("http://api.test/competitions/1/standings"))
                 .andExpect(method(GET))
                 .andRespond(withSuccess(respostaAPI, MediaType.APPLICATION_JSON));
+
         Long campeonatoId = campeonato.getId();
 
-        assertThrows(ClassificacaoCampeonatoSyncException.class,
-                () -> classificacaoCampeonatoService.sincronizarClassificacao(campeonatoId)
+        assertThrows(
+                ClassificacaoCampeonatoSyncException.class,
+                () -> classificacaoCampeonatoService
+                        .sincronizarClassificacao(campeonatoId)
         );
     }
 
@@ -146,55 +192,4 @@ class ClassificacaoCampeonatoServiceImplTest {
                 () -> classificacaoCampeonatoService.sincronizarClassificacao(campeonatoId)
         );
     }
-
-    @Test
-    @DisplayName("Quando resposta da API tem tabela vazia, lança exceção")
-    void quandoRespostaComTabelaVaziaLancaExcecao() {
-        String respostaAPI = """
-            {
-                "standings": [
-                    {}
-                ]
-            }
-        """;
-
-        when(campeonatoRepository.findById(campeonato.getId())).thenReturn(Optional.of(campeonato));
-
-        server.expect(requestTo("http://api.test/competitions/1/standings"))
-                .andExpect(method(GET))
-                .andRespond(withSuccess(respostaAPI, MediaType.APPLICATION_JSON));
-        Long campeonatoId = campeonato.getId();
-
-        assertThrows(ClassificacaoCampeonatoSyncException.class,
-                () -> classificacaoCampeonatoService.sincronizarClassificacao(campeonatoId)
-        );
-    }
-
-    @Test
-    @DisplayName("Quando linha da classificação não tem time, lança exceção")
-    void quandoLinhaDaClassificacaoNaoTemTimeLancaExcecao() {
-        String respostaAPI = """
-            {
-                "standings": [
-                    {
-                        "table": [
-                            {"position": 1}
-                        ]
-                    }
-                ]
-            }
-        """;
-
-        when(campeonatoRepository.findById(campeonato.getId())).thenReturn(Optional.of(campeonato));
-
-        server.expect(requestTo("http://api.test/competitions/1/standings"))
-                .andExpect(method(GET))
-                .andRespond(withSuccess(respostaAPI, MediaType.APPLICATION_JSON));
-        Long campeonatoId = campeonato.getId();
-
-        assertThrows(ClassificacaoCampeonatoSyncException.class,
-                () -> classificacaoCampeonatoService.sincronizarClassificacao(campeonatoId)
-        );
-    }
-
 }

@@ -13,6 +13,9 @@ import com.ufcg.psoft.project.repository.PromocaoPremiumRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
 import org.junit.jupiter.api.*;
 import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.test.context.TestConstructor;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -128,13 +131,12 @@ class UsuarioControllerTest {
             assertEquals("usuario Um Alterado", resultado.getNome());
         }
 
-        @Test
-        @DisplayName("Quando alteramos o nome do usuario nulo")
-        void quandoAlteramosNomeDousuarioNulo() throws Exception {
-            // Arrange
-            usuarioPostPutRequestDTO.setNome(null);
+        @ParameterizedTest(name = "Nome inválido: {0}")
+        @NullAndEmptySource
+        @DisplayName("Quando alteramos o nome para um valor obrigatório inválido")
+        void quandoAlteramosNomeParaValorInvalido(String nomeInvalido) throws Exception {
+            usuarioPostPutRequestDTO.setNome(nomeInvalido);
 
-            // Act
             String responseJsonString = driver.perform(put(URI_USUARIOS + "/" + usuario.getId())
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("codigoUsuario", usuario.getCodigo())
@@ -145,33 +147,8 @@ class UsuarioControllerTest {
 
             CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
 
-            // Assert
             assertAll(
                     () -> assertEquals(LocalDateTime.now(clock), resultado.getTimestamp()),
-                    () -> assertEquals("Erros de validacao encontrados", resultado.getMessage()),
-                    () -> assertEquals("Nome obrigatorio", resultado.getErrors().get(0))
-            );
-        }
-
-        @Test
-        @DisplayName("Quando alteramos o nome do usuario vazio")
-        void quandoAlteramosNomeDousuarioVazio() throws Exception {
-            // Arrange
-            usuarioPostPutRequestDTO.setNome("");
-
-            // Act
-            String responseJsonString = driver.perform(put(URI_USUARIOS + "/" + usuario.getId())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoUsuario", usuario.getCodigo())
-                            .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
-                    .andExpect(status().isBadRequest())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
-
-            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
-
-            // Assert
-            assertAll(
                     () -> assertEquals("Erros de validacao encontrados", resultado.getMessage()),
                     () -> assertEquals("Nome obrigatorio", resultado.getErrors().get(0))
             );
@@ -203,13 +180,12 @@ class UsuarioControllerTest {
             assertEquals("Endereco Alterado", resultado.getEndereco());
         }
 
-        @Test
-        @DisplayName("Quando alteramos o endereço do usuario nulo")
-        void quandoAlteramosEnderecoDousuarioNulo() throws Exception {
-            // Arrange
-            usuarioPostPutRequestDTO.setEndereco(null);
+        @ParameterizedTest(name = "Endereço inválido: {0}")
+        @NullAndEmptySource
+        @DisplayName("Quando alteramos o endereço para um valor obrigatório inválido")
+        void quandoAlteramosEnderecoParaValorInvalido(String enderecoInvalido) throws Exception {
+            usuarioPostPutRequestDTO.setEndereco(enderecoInvalido);
 
-            // Act
             String responseJsonString = driver.perform(put(URI_USUARIOS + "/" + usuario.getId())
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("codigoUsuario", usuario.getCodigo())
@@ -220,31 +196,6 @@ class UsuarioControllerTest {
 
             CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
 
-            // Assert
-            assertAll(
-                    () -> assertEquals("Erros de validacao encontrados", resultado.getMessage()),
-                    () -> assertEquals("Endereco obrigatorio", resultado.getErrors().get(0))
-            );
-        }
-
-        @Test
-        @DisplayName("Quando alteramos o endereço do usuario vazio")
-        void quandoAlteramosEnderecoDousuarioVazio() throws Exception {
-            // Arrange
-            usuarioPostPutRequestDTO.setEndereco("");
-
-            // Act
-            String responseJsonString = driver.perform(put(URI_USUARIOS + "/" + usuario.getId())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoUsuario", usuario.getCodigo())
-                            .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
-                    .andExpect(status().isBadRequest())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
-
-            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
-
-            // Assert
             assertAll(
                     () -> assertEquals("Erros de validacao encontrados", resultado.getMessage()),
                     () -> assertEquals("Endereco obrigatorio", resultado.getErrors().get(0))
@@ -259,10 +210,8 @@ class UsuarioControllerTest {
         @Test
         @DisplayName("Quando alteramos o código de acesso do usuario nulo")
         void quandoAlteramosCodigoAcessoDousuarioNulo() throws Exception {
-            // Arrange
             usuarioPostPutRequestDTO.setCodigo(null);
 
-            // Act
             String responseJsonString = driver.perform(put(URI_USUARIOS + "/" + usuario.getId())
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("codigoUsuario", usuario.getCodigo())
@@ -273,82 +222,50 @@ class UsuarioControllerTest {
 
             CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
 
-            // Assert
             assertAll(
                     () -> assertEquals("Erros de validacao encontrados", resultado.getMessage()),
                     () -> assertEquals("Codigo de acesso obrigatorio", resultado.getErrors().get(0))
             );
         }
 
-        @Test
-        @DisplayName("Quando alteramos o código de acesso do usuario mais de 6 digitos")
-        void quandoAlteramosCodigoAcessoDousuarioMaisDe6Digitos() throws Exception {
-            // Arrange
-            usuarioPostPutRequestDTO.setCodigo("1234567");
+        @ParameterizedTest(name = "Código inválido: \"{0}\"")
+        @ValueSource(strings = {
+            "1234567",
+            "12345",
+            "a*c4e@"
+        })
+        @DisplayName("Quando alteramos o código de acesso para um valor inválido")
+        void quandoAlteramosCodigoAcessoParaValorInvalido(String codigoInvalido) throws Exception {
 
-            // Act
-            String responseJsonString = driver.perform(put(URI_USUARIOS + "/" + usuario.getId())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoUsuario", usuario.getCodigo())
-                            .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
+            usuarioPostPutRequestDTO.setCodigo(codigoInvalido);
+
+            String responseJsonString = driver.perform(
+                            put(URI_USUARIOS + "/" + usuario.getId())
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .param("codigoUsuario", usuario.getCodigo())
+                                    .content(objectMapper.writeValueAsString(
+                                            usuarioPostPutRequestDTO
+                                    )))
                     .andExpect(status().isBadRequest())
                     .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
+                    .andReturn()
+                    .getResponse()
+                    .getContentAsString();
 
-            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
-
-            // Assert
-            assertAll(
-                    () -> assertEquals("Erros de validacao encontrados", resultado.getMessage()),
-                    () -> assertEquals("Codigo de acesso deve ter exatamente 6 digitos numericos", resultado.getErrors().get(0))
+            CustomErrorType resultado = objectMapper.readValue(
+                    responseJsonString,
+                    CustomErrorType.class
             );
-        }
 
-        @Test
-        @DisplayName("Quando alteramos o código de acesso do usuario menos de 6 digitos")
-        void quandoAlteramosCodigoAcessoDousuarioMenosDe6Digitos() throws Exception {
-            // Arrange
-            usuarioPostPutRequestDTO.setCodigo("12345");
-
-            // Act
-            String responseJsonString = driver.perform(put(URI_USUARIOS + "/" + usuario.getId())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoUsuario", usuario.getCodigo())
-                            .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
-                    .andExpect(status().isBadRequest())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
-
-            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
-
-            // Assert
             assertAll(
-                    () -> assertEquals("Erros de validacao encontrados", resultado.getMessage()),
-                    () -> assertEquals("Codigo de acesso deve ter exatamente 6 digitos numericos", resultado.getErrors().get(0))
-            );
-        }
-
-        @Test
-        @DisplayName("Quando alteramos o código de acesso do usuario caracteres não numéricos")
-        void quandoAlteramosCodigoAcessoDousuarioCaracteresNaoNumericos() throws Exception {
-            // Arrange
-            usuarioPostPutRequestDTO.setCodigo("a*c4e@");
-
-            // Act
-            String responseJsonString = driver.perform(put(URI_USUARIOS + "/" + usuario.getId())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .param("codigoUsuario", usuario.getCodigo())
-                            .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
-                    .andExpect(status().isBadRequest())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
-
-            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
-
-            // Assert
-            assertAll(
-                    () -> assertEquals("Erros de validacao encontrados", resultado.getMessage()),
-                    () -> assertEquals("Codigo de acesso deve ter exatamente 6 digitos numericos", resultado.getErrors().get(0))
+                    () -> assertEquals(
+                            "Erros de validacao encontrados",
+                            resultado.getMessage()
+                    ),
+                    () -> assertEquals(
+                            "Codigo de acesso deve ter exatamente 6 digitos numericos",
+                            resultado.getErrors().get(0)
+                    )
             );
         }
     }
@@ -356,13 +273,12 @@ class UsuarioControllerTest {
     @Nested
     @DisplayName("Conjunto de casos de verificação do email")
     class usuarioVerificacaoEmail {
-        @Test
-        @DisplayName("Quando criamos usuario com email nulo")
-        void quandoCriamosUsuarioComEmailNulo() throws Exception {
-            // Arrange
-            usuarioPostPutRequestDTO.setEmail(null);
+        @ParameterizedTest(name = "E-mail inválido: {0}")
+        @NullAndEmptySource
+        @DisplayName("Quando criamos usuário sem informar um e-mail")
+        void quandoCriamosUsuarioSemEmail(String emailInvalido) throws Exception {
+            usuarioPostPutRequestDTO.setEmail(emailInvalido);
 
-            // Act
             String responseJsonString = driver.perform(post(URI_USUARIOS)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
@@ -372,30 +288,6 @@ class UsuarioControllerTest {
 
             CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
 
-            // Assert
-            assertAll(
-                    () -> assertEquals("Erros de validacao encontrados", resultado.getMessage()),
-                    () -> assertTrue(resultado.getErrors().contains("Email obrigatorio"))
-            );
-        }
-
-        @Test
-        @DisplayName("Quando criamos usuario com email vazio")
-        void quandoCriamosUsuarioComEmailVazio() throws Exception {
-            // Arrange
-            usuarioPostPutRequestDTO.setEmail("");
-
-            // Act
-            String responseJsonString = driver.perform(post(URI_USUARIOS)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
-                    .andExpect(status().isBadRequest())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
-
-            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
-
-            // Assert
             assertAll(
                     () -> assertEquals("Erros de validacao encontrados", resultado.getMessage()),
                     () -> assertTrue(resultado.getErrors().contains("Email obrigatorio"))
@@ -435,9 +327,9 @@ class UsuarioControllerTest {
             String responseJsonString = driver.perform(post(URI_USUARIOS)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
-                    .andExpect(status().isBadRequest())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
+						.andExpect(status().isBadRequest())
+						.andDo(print())
+						.andReturn().getResponse().getContentAsString();
 
             CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
 
@@ -541,36 +433,12 @@ class UsuarioControllerTest {
     @Nested
     @DisplayName("Conjunto de casos de verificação do username")
     class usuarioVerificacaoUsername {
-        @Test
-        @DisplayName("Quando criamos usuario com username nulo")
-        void quandoCriamosUsuarioComUsernameNulo() throws Exception {
-            // Arrange
-            usuarioPostPutRequestDTO.setUsername(null);
+        @ParameterizedTest(name = "Username inválido: {0}")
+        @NullAndEmptySource
+        @DisplayName("Quando criamos usuário com username obrigatório inválido")
+        void quandoCriamosUsuarioComUsernameInvalido(String usernameInvalido) throws Exception {
+            usuarioPostPutRequestDTO.setUsername(usernameInvalido);
 
-            // Act
-            String responseJsonString = driver.perform(post(URI_USUARIOS)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
-                    .andExpect(status().isBadRequest())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
-
-            CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
-
-            // Assert
-            assertAll(
-                    () -> assertEquals("Erros de validacao encontrados", resultado.getMessage()),
-                    () -> assertTrue(resultado.getErrors().contains("Username obrigatorio"))
-            );
-        }
-
-        @Test
-        @DisplayName("Quando criamos usuario com username vazio")
-        void quandoCriamosUsuarioComUsernameVazio() throws Exception {
-            // Arrange
-            usuarioPostPutRequestDTO.setUsername("");
-
-            // Act
             String responseJsonString = driver.perform(post(URI_USUARIOS)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(usuarioPostPutRequestDTO)))
@@ -580,7 +448,6 @@ class UsuarioControllerTest {
 
             CustomErrorType resultado = objectMapper.readValue(responseJsonString, CustomErrorType.class);
 
-            // Assert
             assertAll(
                     () -> assertEquals("Erros de validacao encontrados", resultado.getMessage()),
                     () -> assertTrue(resultado.getErrors().contains("Username obrigatorio"))
