@@ -1,5 +1,7 @@
 package com.ufcg.psoft.project.controller.grupo;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
@@ -30,11 +32,13 @@ import jakarta.validation.Valid;
     produces = MediaType.APPLICATION_JSON_VALUE
 )
 @RequiredArgsConstructor
+@Tag(name = "Critérios de Desempate", description = "Configuração dos critérios de desempate dos grupos")
 public class CriterioDesempateController {
     final CriterioDesempateService criterioDesempateService;
 
     private final ApplicationEventPublisher eventPublisher;
     
+    @Operation(summary = "Configurar critérios de desempate")
     @PutMapping("/{grupoId}/criterios-desempate")
 	public ResponseEntity<GrupoResponseDTO> configurarCriteriosDesempate(
 		@RequestParam Long usuarioId,
@@ -49,6 +53,7 @@ public class CriterioDesempateController {
 				.body(resultado);
 	}
 
+	@Operation(summary = "Listar critérios de desempate")
 	@GetMapping("/{grupoId}/criterios-desempate")
 	public ResponseEntity<List<CriterioDesempateResponseDTO>> listarCriteriosDesempate(
 			@RequestParam Long usuarioId,

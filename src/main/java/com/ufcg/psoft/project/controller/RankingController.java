@@ -1,5 +1,7 @@
 package com.ufcg.psoft.project.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -22,10 +24,12 @@ import org.springframework.web.bind.annotation.PathVariable;
     produces = MediaType.APPLICATION_JSON_VALUE
 )
 @RequiredArgsConstructor
+@Tag(name = "Rankings", description = "Consulta dos rankings global e por grupo")
 public class RankingController {
     private final RankingService rankingService;
     private final ApplicationEventPublisher eventPublisher;
 
+    @Operation(summary = "Consultar ranking global")
     @GetMapping
     public ResponseEntity<RankingResponseDTO> rankingGlobal(
             @RequestParam Long usuarioId,
@@ -37,6 +41,7 @@ public class RankingController {
                 .body(resultado);
     }
 
+    @Operation(summary = "Consultar ranking do grupo")
     @GetMapping("/grupo/{grupoId}")
     public ResponseEntity<RankingResponseDTO> rankingDoGrupo(
             @PathVariable Long grupoId,

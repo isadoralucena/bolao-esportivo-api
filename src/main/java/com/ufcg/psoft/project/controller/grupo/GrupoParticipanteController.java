@@ -1,5 +1,7 @@
 package com.ufcg.psoft.project.controller.grupo;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Set;
@@ -27,11 +29,13 @@ import com.ufcg.psoft.project.service.premium.RequisicaoAutenticadaEvent;
     produces = MediaType.APPLICATION_JSON_VALUE
 )
 @RequiredArgsConstructor
+@Tag(name = "Participantes dos Grupos", description = "Entrada, consulta e remoção de participantes dos grupos")
 public class GrupoParticipanteController {
     final GrupoParticipanteService grupoParticipanteService;
 
     private final ApplicationEventPublisher eventPublisher;
 
+    @Operation(summary = "Listar participantes do grupo")
     @GetMapping("/{grupoId}/participantes")
     public ResponseEntity<Set<UsuarioResponseDTO>> listarParticipantes(
             @RequestParam Long usuarioId,
@@ -44,6 +48,7 @@ public class GrupoParticipanteController {
                 .body(resultado);
     }
 
+    @Operation(summary = "Remover participante do grupo")
     @DeleteMapping("/{grupoId}/participantes/{participanteId}")
     public ResponseEntity<Void> removerParticipante(
             @RequestParam Long usuarioId,
@@ -57,6 +62,7 @@ public class GrupoParticipanteController {
                 .build();
     }
 
+    @Operation(summary = "Entrar em grupo público")
     @PostMapping("/{grupoId}/entrar")
     public ResponseEntity<GrupoResponseDTO> entrarEmGrupoPublico(
                 @RequestParam Long usuarioId,

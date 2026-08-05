@@ -1,5 +1,7 @@
 package com.ufcg.psoft.project.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import com.ufcg.psoft.project.dto.usuario.PromocaoPremiumResponseDTO;
 import com.ufcg.psoft.project.dto.usuario.UsuarioPostPutRequestDTO;
 import com.ufcg.psoft.project.dto.usuario.UsuarioResponseDTO;
@@ -22,12 +24,14 @@ import org.springframework.web.bind.annotation.*;
         produces = MediaType.APPLICATION_JSON_VALUE
 )
 @RequiredArgsConstructor
+@Tag(name = "Usuários", description = "Cadastro e gerenciamento de usuários")
 public class UsuarioController {
 
     final UsuarioService usuarioService;
 
     private final ApplicationEventPublisher eventPublisher;
 
+    @Operation(summary = "Buscar usuário por ID")
     @GetMapping("/{id}")
     public ResponseEntity<UsuarioResponseDTO> recuperarUsuario(
             @PathVariable Long id) {
@@ -36,6 +40,7 @@ public class UsuarioController {
                 .body(usuarioService.recuperar(id));
     }
 
+    @Operation(summary = "Listar ou buscar usuários por nome")
     @GetMapping("")
     public ResponseEntity<List<UsuarioResponseDTO>> listarUsuarios(
             @RequestParam(required = false, defaultValue = "") String nome) {
@@ -50,6 +55,7 @@ public class UsuarioController {
                 .body(usuarioService.listar());
     }
 
+    @Operation(summary = "Criar usuário")
     @PostMapping()
     public ResponseEntity<UsuarioResponseDTO> criarUsuario(
             @RequestBody @Valid UsuarioPostPutRequestDTO usuarioPostPutRequestDto) {
@@ -58,6 +64,7 @@ public class UsuarioController {
                 .body(usuarioService.criar(usuarioPostPutRequestDto));
     }
 
+    @Operation(summary = "Atualizar usuário")
     @PutMapping("/{id}")
     public ResponseEntity<UsuarioResponseDTO> atualizarUsuario(
             @PathVariable Long id,
@@ -70,6 +77,7 @@ public class UsuarioController {
                 .body(resultado);
     }
 
+    @Operation(summary = "Consultar promoção premium do usuário")
     @GetMapping("/{id}/promocao-premium")
     public ResponseEntity<PromocaoPremiumResponseDTO> obterPromocaoPremium(
             @PathVariable Long id) {
@@ -78,6 +86,7 @@ public class UsuarioController {
                 .body(usuarioService.obterPromocao(id));
     }
 
+    @Operation(summary = "Excluir usuário")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluirUsuario(
             @PathVariable Long id,

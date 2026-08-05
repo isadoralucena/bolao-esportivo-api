@@ -1,5 +1,7 @@
 package com.ufcg.psoft.project.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,7 @@ import jakarta.validation.Valid;
     produces = MediaType.APPLICATION_JSON_VALUE
 )
 @RequiredArgsConstructor
+@Tag(name = "Convites", description = "Envio e gerenciamento de convites para grupos")
 public class ConviteController {
     
     private final ConviteService conviteService;
@@ -38,6 +41,7 @@ public class ConviteController {
 
     private final UsuarioRepository usuarioRepository;
 
+    @Operation(summary = "Enviar convite para um grupo")
     @PostMapping("")
     public ResponseEntity<ConviteResponseDTO> criarConvite(
         @RequestParam String codigoUsuario,
@@ -51,6 +55,7 @@ public class ConviteController {
 
     }
 
+    @Operation(summary = "Aceitar convite")
     @PostMapping("/{id}/aceitar")
     public ResponseEntity<ConviteResponseDTO> aceitarConvite(
             @RequestParam String codigoUsuario,
@@ -62,6 +67,7 @@ public class ConviteController {
                 .body(resultado);
     }
 
+    @Operation(summary = "Recusar convite")
     @PostMapping("/{id}/recusar")
     public ResponseEntity<ConviteResponseDTO> recusarConvite(
             @RequestParam String codigoUsuario,
@@ -73,6 +79,7 @@ public class ConviteController {
                 .body(resultado);
     }
 
+    @Operation(summary = "Ignorar convite")
     @PostMapping("/{id}/ignorar")
     public ResponseEntity<ConviteResponseDTO> ignorarConvite(
             @RequestParam String codigoUsuario,
@@ -84,6 +91,7 @@ public class ConviteController {
                 .body(resultado);
     }
 
+    @Operation(summary = "Remover convite")
     @DeleteMapping("/{id}/remover")
     public ResponseEntity<Void> removerConvite(
             @RequestParam String codigoUsuario,
@@ -95,6 +103,7 @@ public class ConviteController {
                 .build();
     }
 
+    @Operation(summary = "Listar convites pendentes do usuário")
     @GetMapping("/usuario/{convidadoId}/pendentes")
     public ResponseEntity<List<ConviteResponseDTO>> listarConvitesPendentes(
             @RequestParam String codigoUsuario,

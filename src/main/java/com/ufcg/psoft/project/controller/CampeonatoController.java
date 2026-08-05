@@ -1,5 +1,7 @@
 package com.ufcg.psoft.project.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import com.ufcg.psoft.project.dto.campeonato.CampeonatoPostPutRequestDTO;
 import com.ufcg.psoft.project.dto.campeonato.CampeonatoResponseDTO;
 import com.ufcg.psoft.project.service.campeonato.CampeonatoService;
@@ -21,12 +23,14 @@ value = "/campeonatos",
 produces = MediaType.APPLICATION_JSON_VALUE
 )
 @RequiredArgsConstructor
+@Tag(name = "Campeonatos", description = "Cadastro, consulta e sincronização de campeonatos")
 public class CampeonatoController {
 
 	private final CampeonatoService campeonatoService;
 
 	private final ApplicationEventPublisher eventPublisher;
 
+	@Operation(summary = "Buscar campeonato por ID")
 	@GetMapping("/{id}")
 	public ResponseEntity<CampeonatoResponseDTO> recuperarCampeonato(@PathVariable Long id) {
 		return ResponseEntity
@@ -34,6 +38,7 @@ public class CampeonatoController {
 			.body(campeonatoService.recuperar(id));
 	}
 
+	@Operation(summary = "Listar campeonatos")
 	@GetMapping("")
 	public ResponseEntity<List<CampeonatoResponseDTO>> listarCampeonatos() {
 
@@ -42,6 +47,7 @@ public class CampeonatoController {
 			.body(campeonatoService.listar());
 	}
 
+	@Operation(summary = "Buscar campeonatos por nome")
 	@GetMapping("/buscar")
 	public ResponseEntity<List<CampeonatoResponseDTO>> buscarCampeonatoPorNome(@RequestParam String nome) {
 		return ResponseEntity
@@ -49,6 +55,7 @@ public class CampeonatoController {
 			.body(campeonatoService.recuperarNome(nome));
 	}
 
+	@Operation(summary = "Criar campeonato")
 	@PostMapping("")
 	public ResponseEntity<CampeonatoResponseDTO> criarCampeonato(
 		@RequestParam Long userId,
@@ -62,6 +69,7 @@ public class CampeonatoController {
 		.body(resultado);
 	}
 
+	@Operation(summary = "Ativar campeonato")
 	@PutMapping("/{id}/ativar")
 	public ResponseEntity<CampeonatoResponseDTO> ativarCampeonato(
 		@PathVariable Long id,
@@ -75,6 +83,7 @@ public class CampeonatoController {
 			.body(resultado);
 	}
 
+	@Operation(summary = "Desativar campeonato")
 	@PutMapping("/{id}/desativar")
 	public ResponseEntity<CampeonatoResponseDTO> desativarCampeonato(
 		@PathVariable Long id,
@@ -88,6 +97,7 @@ public class CampeonatoController {
 			.body(resultado);
 	}
 
+	@Operation(summary = "Excluir campeonato")
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> excluirCampeonato(
 		@PathVariable Long id,
@@ -102,6 +112,7 @@ public class CampeonatoController {
 			.build();
 	}
 
+    @Operation(summary = "Sincronizar dados do campeonato")
     @PostMapping("/{campeonatoId}/sincronizar")
     public ResponseEntity<CampeonatoResponseDTO> sincronizarCampeonato(
             @PathVariable Long campeonatoId,
