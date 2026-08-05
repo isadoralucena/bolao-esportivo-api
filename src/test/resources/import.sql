@@ -1,0 +1,1 @@
+-- Os testes montam seus proprios cenarios e devem iniciar com o banco vazio.
