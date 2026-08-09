@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDateTime;
 
 import com.ufcg.psoft.project.model.PartidaStatus;
 
@@ -20,4 +21,6 @@ public interface PartidaRepository extends JpaRepository<Partida, Long> {
     boolean existsByCampeonatoId(Long campeonatoId);
 
     void deleteByCampeonatoId(Long campeonatoId);
+
+    List<Partida> findByDataAfterAndStatus(LocalDateTime data, PartidaStatus status);
 }

@@ -2,6 +2,8 @@ package com.ufcg.psoft.project.exception;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -10,15 +12,18 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 @ControllerAdvice
+@RequiredArgsConstructor
 public class ErrorHandlingControllerAdvice {
+    private final Clock clock;
 
     private CustomErrorType defaultCustomErrorTypeConstruct(String message) {
         return CustomErrorType.builder()
-                .timestamp(LocalDateTime.now())
+                .timestamp(LocalDateTime.now(clock))
                 .errors(new ArrayList<>())
                 .message(message)
                 .build();

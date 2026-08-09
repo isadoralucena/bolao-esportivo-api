@@ -1,9 +1,17 @@
 package com.ufcg.psoft.project.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import com.ufcg.psoft.project.dto.campeonato.CampeonatoPostPutRequestDTO;
+import com.ufcg.psoft.project.dto.campeonato.CampeonatoResponseDTO;
 import com.ufcg.psoft.project.service.campeonato.CampeonatoService;
+import com.ufcg.psoft.project.service.premium.RequisicaoAutenticadaEvent;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+
+import java.util.List;
+
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -14,87 +22,107 @@ import org.springframework.web.bind.annotation.*;
 value = "/campeonatos",
 produces = MediaType.APPLICATION_JSON_VALUE
 )
+@RequiredArgsConstructor
+@Tag(name = "Campeonatos", description = "Cadastro, consulta e sincronização de campeonatos")
 public class CampeonatoController {
 
-	@Autowired
-	private CampeonatoService campeonatoService;
+	private final CampeonatoService campeonatoService;
 
+	private final ApplicationEventPublisher eventPublisher;
+
+	@Operation(summary = "Buscar campeonato por ID")
 	@GetMapping("/{id}")
-	public ResponseEntity<?> recuperarCampeonato(@PathVariable Long id) {
+	public ResponseEntity<CampeonatoResponseDTO> recuperarCampeonato(@PathVariable Long id) {
 		return ResponseEntity
 			.status(HttpStatus.OK)
 			.body(campeonatoService.recuperar(id));
 	}
 
+	@Operation(summary = "Listar campeonatos")
 	@GetMapping("")
-	public ResponseEntity<?> listarCampeonatos() {
+	public ResponseEntity<List<CampeonatoResponseDTO>> listarCampeonatos() {
 
 		return ResponseEntity
 			.status(HttpStatus.OK)
 			.body(campeonatoService.listar());
 	}
 
+	@Operation(summary = "Buscar campeonatos por nome")
 	@GetMapping("/buscar")
-	public ResponseEntity<?> buscarCampeonatoPorNome(@RequestParam String nome) {
+	public ResponseEntity<List<CampeonatoResponseDTO>> buscarCampeonatoPorNome(@RequestParam String nome) {
 		return ResponseEntity
 			.status(HttpStatus.OK)
 			.body(campeonatoService.recuperarNome(nome));
 	}
 
+	@Operation(summary = "Criar campeonato")
 	@PostMapping("")
-	public ResponseEntity<?> criarCampeonato(
+	public ResponseEntity<CampeonatoResponseDTO> criarCampeonato(
 		@RequestParam Long userId,
 		@RequestParam String senha,
 		@RequestBody @Valid CampeonatoPostPutRequestDTO dto) {
 
+	var resultado = campeonatoService.criar(userId, senha, dto);
+	eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(userId));
 	return ResponseEntity
 		.status(HttpStatus.CREATED)
-		.body(campeonatoService.criar(userId, senha, dto));
+		.body(resultado);
 	}
 
+	@Operation(summary = "Ativar campeonato")
 	@PutMapping("/{id}/ativar")
-	public ResponseEntity<?> ativarCampeonato(
+	public ResponseEntity<CampeonatoResponseDTO> ativarCampeonato(
 		@PathVariable Long id,
 		@RequestParam Long userId,
 		@RequestParam String senha) {
 
+		var resultado = campeonatoService.ativar(userId, senha, id);
+		eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(userId));
 		return ResponseEntity
 			.status(HttpStatus.OK)
-			.body(campeonatoService.ativar(userId, senha, id));
+			.body(resultado);
 	}
 
+	@Operation(summary = "Desativar campeonato")
 	@PutMapping("/{id}/desativar")
-	public ResponseEntity<?> desativarCampeonato(
+	public ResponseEntity<CampeonatoResponseDTO> desativarCampeonato(
 		@PathVariable Long id,
 		@RequestParam Long userId,
 		@RequestParam String senha) {
 
+		var resultado = campeonatoService.desativar(userId, senha, id);
+		eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(userId));
 		return ResponseEntity
 			.status(HttpStatus.OK)
-			.body(campeonatoService.desativar(userId, senha, id));
+			.body(resultado);
 	}
 
+	@Operation(summary = "Excluir campeonato")
 	@DeleteMapping("/{id}")
-	public ResponseEntity<?> excluirCampeonato(
+	public ResponseEntity<Void> excluirCampeonato(
 		@PathVariable Long id,
 		@RequestParam Long userId,
 		@RequestParam String senha) {
 
 		campeonatoService.remover(userId, senha, id);
+		eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(userId));
 
 		return ResponseEntity
 			.status(HttpStatus.NO_CONTENT)
-			.body("");
+			.build();
 	}
 
+    @Operation(summary = "Sincronizar dados do campeonato")
     @PostMapping("/{campeonatoId}/sincronizar")
-    public ResponseEntity<?> sincronizarCampeonato(
+    public ResponseEntity<CampeonatoResponseDTO> sincronizarCampeonato(
             @PathVariable Long campeonatoId,
             @RequestParam Long userId,
             @RequestParam String senha) {
 
+        var resultado = campeonatoService.sincronizarCampeonato(campeonatoId, userId, senha);
+        eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(userId));
         return ResponseEntity
             .status(HttpStatus.OK)
-            .body(campeonatoService.sincronizarCampeonato(campeonatoId, userId, senha));
+            .body(resultado);
     }
 }

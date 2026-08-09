@@ -1,13 +1,18 @@
 package com.ufcg.psoft.project.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ufcg.psoft.project.dto.ranking.RankingResponseDTO;
+import com.ufcg.psoft.project.service.premium.RequisicaoAutenticadaEvent;
 import com.ufcg.psoft.project.service.ranking.RankingService;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,26 +23,34 @@ import org.springframework.web.bind.annotation.PathVariable;
     value = "/ranking",
     produces = MediaType.APPLICATION_JSON_VALUE
 )
+@RequiredArgsConstructor
+@Tag(name = "Rankings", description = "Consulta dos rankings global e por grupo")
 public class RankingController {
-    @Autowired
-    private RankingService rankingService;
+    private final RankingService rankingService;
+    private final ApplicationEventPublisher eventPublisher;
 
+    @Operation(summary = "Consultar ranking global")
     @GetMapping
-    public ResponseEntity<?> rankingGlobal(
+    public ResponseEntity<RankingResponseDTO> rankingGlobal(
             @RequestParam Long usuarioId,
-            @RequestParam String codigoAcesso) {
+            @RequestParam String codigoUsuario) {
+        var resultado = rankingService.rankingGlobal(usuarioId, codigoUsuario);
+        eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(rankingService.rankingGlobal(usuarioId, codigoAcesso));
+                .body(resultado);
     }
 
+    @Operation(summary = "Consultar ranking do grupo")
     @GetMapping("/grupo/{grupoId}")
-    public ResponseEntity<?> rankingDoGrupo(
+    public ResponseEntity<RankingResponseDTO> rankingDoGrupo(
             @PathVariable Long grupoId,
             @RequestParam Long usuarioId,
-            @RequestParam String codigoAcesso) {
+            @RequestParam String codigoUsuario) {
+        var resultado = rankingService.rankingDoGrupo(grupoId, usuarioId, codigoUsuario);
+        eventPublisher.publishEvent(new RequisicaoAutenticadaEvent(usuarioId));
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(rankingService.rankingDoGrupo(grupoId, usuarioId, codigoAcesso));
+                .body(resultado);
     }
 }

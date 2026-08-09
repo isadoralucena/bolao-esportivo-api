@@ -43,6 +43,10 @@ public class Partida {
     @JsonProperty("golsVisitante")
     private Integer golsVisitante;
 
+    @JsonProperty("consolidada")
+    @Builder.Default
+    private boolean consolidada = false;
+
     @JsonProperty("data")
     @Column(nullable = false)
     private LocalDateTime data;
@@ -58,23 +62,29 @@ public class Partida {
     private boolean mataMata = false;
 
     public boolean estaAbertaParaPalpite(JanelaDePalpites janela, LocalDateTime horaAtual) {
-        if (this.status != PartidaStatus.ABERTO) {
-            return false;
-        }
+        return this.status != null
+                && this.status.getEstado().estaAbertaParaPalpite(this, janela, horaAtual);
+    }
 
-        LocalDateTime horarioAbertura = this.data.minusMinutes(janela.minutosAbertura());
-        LocalDateTime horarioFechamento = this.data.minusMinutes(janela.minutosFechamento());
+    public void validarCriacaoPalpite(JanelaDePalpites janela, LocalDateTime horaAtual) {
+        this.status.getEstado().validarCriacaoPalpite(this, janela, horaAtual);
+    }
 
-        return !horaAtual.isBefore(horarioAbertura) && horaAtual.isBefore(horarioFechamento);
+    public void validarEdicaoPalpite(JanelaDePalpites janela, LocalDateTime horaAtual) {
+        this.status.getEstado().validarEdicaoPalpite(this, janela, horaAtual);
+    }
+
+    public void validarExclusaoPalpite(JanelaDePalpites janela, LocalDateTime horaAtual) {
+        this.status.getEstado().validarExclusaoPalpite(this, janela, horaAtual);
+    }
+
+    public void validarConsolidacao() {
+        this.status.getEstado().validarConsolidacao();
     }
 
     public PartidaStatus statusEfetivoParaGrupo(Grupo grupo, LocalDateTime agora) {
-        if (this.status != PartidaStatus.ABERTO) {
-            return this.status;
-        }
-        if (!estaAbertaParaPalpite(grupo.getJanelaDePalpites(), agora)) {
-            return PartidaStatus.EM_ANDAMENTO;
-        }
-        return PartidaStatus.ABERTO;
+        return this.status == null
+                ? null
+                : this.status.getEstado().statusEfetivoParaGrupo(this, grupo, agora);
     }
 }

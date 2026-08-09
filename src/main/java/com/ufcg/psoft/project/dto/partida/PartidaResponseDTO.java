@@ -1,5 +1,7 @@
 package com.ufcg.psoft.project.dto.partida;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.ufcg.psoft.project.dto.recomendacao.RecomendacaoResponseDTO;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ufcg.psoft.project.model.Grupo;
 import com.ufcg.psoft.project.model.Partida;
@@ -40,6 +42,10 @@ public class PartidaResponseDTO {
 
     @JsonProperty("mataMata")
     private boolean mataMata;
+
+    @JsonProperty("recomendacao")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private RecomendacaoResponseDTO recomendacao;
 
     public PartidaResponseDTO(Partida partida) {
         this.id = partida.getId();

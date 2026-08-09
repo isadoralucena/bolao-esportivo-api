@@ -13,15 +13,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PontuacaoParticipanteResponseDTO {
-
-    @JsonProperty("grupoId")
-    private Long grupoId;
-
     @JsonProperty("usuarioId")
     private Long usuarioId;
 
     @JsonProperty("usuarioNome")
     private String usuarioNome;
+
+    @JsonProperty("totalPalpitesAvaliados")
+    private int totalPalpitesAvaliados;
 
     @JsonProperty("pontuacao")
     private int pontuacao;
@@ -39,16 +38,16 @@ public class PontuacaoParticipanteResponseDTO {
     private int placaresExatos;
 
     public PontuacaoParticipanteResponseDTO(
-            Long grupoId,
             Usuario usuario,
+            int totalPalpitesAvaliados,
             int pontuacao,
             int erros,
             int acertosVencedor,
             int acertosEmpate,
             int placaresExatos
     ) {
-        this.grupoId = grupoId;
         this.usuarioId = usuario.getId();
+        this.totalPalpitesAvaliados = totalPalpitesAvaliados;
         this.usuarioNome = usuario.getNome();
         this.pontuacao = pontuacao;
         this.erros = erros;

@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -14,8 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.ufcg.psoft.project.dto.campeonato.ClassificacaoCampeonatoResponseDTO;
-import com.ufcg.psoft.project.exception.CampeonatoNaoExisteException;
-import com.ufcg.psoft.project.exception.ClassificacaoCampeonatoSyncException;
+import com.ufcg.psoft.project.exception.campeonato.CampeonatoNaoExisteException;
+import com.ufcg.psoft.project.exception.campeonato.ClassificacaoCampeonatoSyncException;
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.model.ClassificacaoCampeonato;
 import com.ufcg.psoft.project.repository.CampeonatoRepository;
@@ -24,13 +24,12 @@ import com.ufcg.psoft.project.repository.ClassificacaoCampeonatoRepository;
 import jakarta.transaction.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class ClassificacaoCampeonatoServiceImpl implements ClassificacaoCampeonatoService {
 
-    @Autowired
-    private ClassificacaoCampeonatoRepository classificacaoCampeonatoRepository;
+    private final ClassificacaoCampeonatoRepository classificacaoCampeonatoRepository;
 
-    @Autowired
-    private CampeonatoRepository campeonatoRepository;
+    private final CampeonatoRepository campeonatoRepository;
 
     @Value("${project.football-data.api-token:}")
     private String apiToken;

@@ -1,5 +1,8 @@
 package com.ufcg.psoft.project.service;
 
+import static com.ufcg.psoft.project.config.TestClockConfig.FIXED_CLOCK;
+
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -7,9 +10,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
@@ -17,6 +21,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,32 +29,35 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
 import com.ufcg.psoft.project.dto.partida.PartidaResponseDTO;
-import com.ufcg.psoft.project.exception.GrupoNaoExisteException;
-import com.ufcg.psoft.project.exception.PartidaSyncException;
+import com.ufcg.psoft.project.event.PalpitesAbertosEvent;
+import com.ufcg.psoft.project.event.PalpitesFechadosEvent;
+import com.ufcg.psoft.project.event.PartidaFinalizadaEvent;
+import com.ufcg.psoft.project.event.PartidaIniciadaEvent;
+import com.ufcg.psoft.project.exception.grupo.GrupoNaoExisteException;
+import com.ufcg.psoft.project.exception.partida.PartidaSyncException;
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.model.Grupo;
 import com.ufcg.psoft.project.model.Partida;
 import com.ufcg.psoft.project.model.PartidaStatus;
 import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.PartidaRepository;
-import com.ufcg.psoft.project.service.notificacao.NotificacaoService;
 import com.ufcg.psoft.project.service.partida.PartidaServiceImpl;
-import com.ufcg.psoft.project.service.pontuacao.PontuacaoService;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@ExtendWith(MockitoExtension.class)
 @DisplayName("Testes de service de partida")
-public class PartidaServiceImplTest {
+class PartidaServiceImplTest {
     @Mock
     private PartidaRepository partidaRepository;
 
@@ -57,20 +65,30 @@ public class PartidaServiceImplTest {
     private GrupoRepository grupoRepository;
 
     @Mock
-    private PontuacaoService pontuacaoService;
+    private ApplicationEventPublisher eventPublisher;
 
-    @Mock
-    private NotificacaoService notificacaoService;
-
-    @InjectMocks
     private PartidaServiceImpl partidaService;
 
     private MockRestServiceServer server;
 
     @BeforeEach
     void setup() {
+        partidaService = new PartidaServiceImpl(
+                partidaRepository,
+                grupoRepository,
+                eventPublisher,
+                FIXED_CLOCK
+        );
         RestTemplate restTemplate = (RestTemplate) ReflectionTestUtils.getField(partidaService, "restTemplate");
         server = MockRestServiceServer.createServer(restTemplate);
+        lenient().when(partidaRepository.save(any(Partida.class)))
+                .thenAnswer(invocation -> {
+                    Partida partidaSalva = invocation.getArgument(0);
+                    if (partidaSalva.getId() == null) {
+                        partidaSalva.setId(partidaSalva.getCodigoExterno());
+                    }
+                    return partidaSalva;
+                });
     }
 
     @Test
@@ -116,7 +134,7 @@ public class PartidaServiceImplTest {
         assertEquals("Time B", partida.getVisitante());
         assertEquals(2, partida.getGolsMandante());
         assertEquals(1, partida.getGolsVisitante());
-        assertEquals(LocalDateTime.of(2026, 7, 5, 18, 0), partida.getData());
+        assertEquals(LocalDateTime.of(2026, Month.JULY, 5, 18, 0), partida.getData());
         assertEquals(PartidaStatus.FINALIZADO, partida.getStatus());
     }
 
@@ -243,7 +261,7 @@ public class PartidaServiceImplTest {
                 .id(10L).campeonato(campeonato)
                 .mandante("A").visitante("B")
                 .golsMandante(2).golsVisitante(1)
-                .data(LocalDateTime.of(2026, 7, 5, 18, 0))
+                .data(LocalDateTime.of(2026, Month.JULY, 5, 18, 0))
                 .status(PartidaStatus.FINALIZADO)
                 .codigoExterno(100L)
                 .mataMata(false)
@@ -282,8 +300,8 @@ public class PartidaServiceImplTest {
     }
 
     @Test
-    @DisplayName("Nova partida SCHEDULED notifica abertura de palpites")
-    void quandoNovaPartidaScheduledNotificaAbertura() {
+    @DisplayName("Nova partida SCHEDULED publica evento de abertura de palpites")
+    void quandoNovaPartidaScheduledPublicaEventoDeAbertura() {
         Campeonato campeonato = Campeonato.builder()
                 .id(1L).nome("Teste")
                 .url("http://api.test/competitions/1")
@@ -305,14 +323,19 @@ public class PartidaServiceImplTest {
                 .andExpect(method(GET))
                 .andRespond(withSuccess(resposta, MediaType.APPLICATION_JSON));
 
-        partidaService.sincronizarPartidas(campeonato);
+        List<PartidaResponseDTO> resultado = partidaService.sincronizarPartidas(campeonato);
 
-        verify(notificacaoService).notificarAberturaPalpites(any(Partida.class));
+        ArgumentCaptor<PalpitesAbertosEvent> eventoCaptor =
+                ArgumentCaptor.forClass(PalpitesAbertosEvent.class);
+
+        verify(eventPublisher).publishEvent(eventoCaptor.capture());
+        assertEquals(30L, eventoCaptor.getValue().getPartidaId());
+        assertEquals(PartidaStatus.ABERTO, resultado.get(0).getStatus());
     }
 
     @Test
-    @DisplayName("Partida transita de ABERTO para EM_ANDAMENTO notifica fechamento e inicio")
-    void quandoPartidaTransitaDeAbertoParaEmAndamentoNotifica() {
+    @DisplayName("Partida transita de ABERTO para EM_ANDAMENTO e publica eventos")
+    void quandoPartidaTransitaDeAbertoParaEmAndamentoPublicaEventos() {
         Campeonato campeonato = Campeonato.builder()
                 .id(1L).nome("Teste")
                 .url("http://api.test/competitions/1")
@@ -331,7 +354,7 @@ public class PartidaServiceImplTest {
                 .id(100L).campeonato(campeonato).codigoExterno(40L)
                 .mandante("C").visitante("D")
                 .status(PartidaStatus.ABERTO)
-                .data(LocalDateTime.of(2026, 7, 6, 18, 0))
+                .data(LocalDateTime.of(2026, Month.JULY, 6, 18, 0))
                 .build();
 
         when(partidaRepository.findByCampeonatoIdAndCodigoExterno(1L, 40L))
@@ -343,13 +366,42 @@ public class PartidaServiceImplTest {
 
         partidaService.sincronizarPartidas(campeonato);
 
-        verify(notificacaoService).notificarFechamentoPalpites(any(Partida.class));
-        verify(notificacaoService).notificarInicioPartida(any(Partida.class));
+        ArgumentCaptor<ApplicationEvent> eventosCaptor =
+                ArgumentCaptor.forClass(ApplicationEvent.class);
+
+        verify(eventPublisher, times(2))
+                .publishEvent(eventosCaptor.capture());
+
+        List<ApplicationEvent> eventosPublicados =
+                eventosCaptor.getAllValues();
+
+        PalpitesFechadosEvent eventoFechamento = eventosPublicados.stream()
+                .filter(PalpitesFechadosEvent.class::isInstance)
+                .map(PalpitesFechadosEvent.class::cast)
+                .findFirst()
+                .orElseThrow();
+
+        PartidaIniciadaEvent eventoInicio = eventosPublicados.stream()
+                .filter(PartidaIniciadaEvent.class::isInstance)
+                .map(PartidaIniciadaEvent.class::cast)
+                .findFirst()
+                .orElseThrow();
+
+        assertAll(
+                () -> assertEquals(
+                        100L,
+                        eventoFechamento.getPartidaId()
+                ),
+                () -> assertEquals(
+                        100L,
+                        eventoInicio.getPartidaId()
+                )
+        );
     }
 
     @Test
-    @DisplayName("Partida transita para FINALIZADO notifica conclusao e calcula pontuacao")
-    void quandoPartidaTransitaParaFinalizadoNotificaECalcula() {
+    @DisplayName("Partida transita para FINALIZADO publica evento de finalização")
+    void quandoPartidaTransitaParaFinalizadoPublicaEvento() {
         Campeonato campeonato = Campeonato.builder()
                 .id(1L).nome("Teste")
                 .url("http://api.test/competitions/1")
@@ -369,7 +421,7 @@ public class PartidaServiceImplTest {
                 .id(101L).campeonato(campeonato).codigoExterno(50L)
                 .mandante("E").visitante("F")
                 .status(PartidaStatus.EM_ANDAMENTO)
-                .data(LocalDateTime.of(2026, 7, 6, 18, 0))
+                .data(LocalDateTime.of(2026, Month.JULY, 6, 18, 0))
                 .build();
 
         when(partidaRepository.findByCampeonatoIdAndCodigoExterno(1L, 50L))
@@ -381,13 +433,17 @@ public class PartidaServiceImplTest {
 
         partidaService.sincronizarPartidas(campeonato);
 
-        verify(notificacaoService).notificarPartidaFinalizada(any(Partida.class));
-        verify(pontuacaoService).calcularPontuacoesAssociadasAPartida(any(Long.class));
+        ArgumentCaptor<PartidaFinalizadaEvent> eventoCaptor =
+                ArgumentCaptor.forClass(PartidaFinalizadaEvent.class);
+
+        verify(eventPublisher).publishEvent(eventoCaptor.capture());
+        assertEquals(101L, eventoCaptor.getValue().getPartidaId());
+        assertEquals(PartidaStatus.FINALIZADO, existente.getStatus());
     }
 
     @Test
-    @DisplayName("Partida com status inalterado nao dispara notificacoes")
-    void quandoPartidaStatusInalteradoNaoNotifica() {
+    @DisplayName("Partida com status e placar inalterados não publica eventos")
+    void quandoPartidaStatusEPlacarInalteradosNaoPublicaEventos() {
         Campeonato campeonato = Campeonato.builder()
                 .id(1L).nome("Teste")
                 .url("http://api.test/competitions/1")
@@ -408,7 +464,7 @@ public class PartidaServiceImplTest {
                 .mandante("G").visitante("H")
                 .golsMandante(1).golsVisitante(0)
                 .status(PartidaStatus.FINALIZADO)
-                .data(LocalDateTime.of(2026, 7, 6, 18, 0))
+                .data(LocalDateTime.of(2026, Month.JULY, 6, 18, 0))
                 .build();
 
         when(partidaRepository.findByCampeonatoIdAndCodigoExterno(1L, 60L))
@@ -420,10 +476,127 @@ public class PartidaServiceImplTest {
 
         partidaService.sincronizarPartidas(campeonato);
 
-        verify(notificacaoService, never()).notificarAberturaPalpites(any());
-        verify(notificacaoService, never()).notificarFechamentoPalpites(any());
-        verify(notificacaoService, never()).notificarInicioPartida(any());
-        verify(notificacaoService, never()).notificarPartidaFinalizada(any());
+        verifyNoInteractions(eventPublisher);
+    }
+
+    @Test
+	@DisplayName("Partida com status AWARDED é finalizada e publica evento")
+	void quandoStatusAwardedFinalizaPartidaEPublicaEvento() {
+		Campeonato campeonato = Campeonato.builder()
+				.id(1L)
+				.nome("Teste")
+				.url("http://api.test/competitions/1")
+				.codigo("TST")
+				.ativo(true)
+				.build();
+
+		String resposta = """
+				{
+						"matches": [
+						{
+								"id": 100,
+								"homeTeam": {"name": "Time A"},
+								"awayTeam": {"name": "Time B"},
+								"score": {
+								"fullTime": {
+										"home": 3,
+										"away": 0
+								}
+								},
+								"status": "AWARDED",
+								"utcDate": "2026-07-06T18:00:00Z"
+						}
+						]
+				}
+				""";
+
+		Partida existente = Partida.builder()
+				.id(200L)
+				.campeonato(campeonato)
+				.codigoExterno(100L)
+				.mandante("Time A")
+				.visitante("Time B")
+				.status(PartidaStatus.EM_ANDAMENTO)
+				.consolidada(false)
+				.data(LocalDateTime.of(2026, Month.JULY, 6, 18, 0))
+				.build();
+
+		when(partidaRepository.findByCampeonatoIdAndCodigoExterno(1L, 100L))
+				.thenReturn(Optional.of(existente));
+
+		when(partidaRepository.save(any(Partida.class)))
+				.thenAnswer(invocation -> invocation.getArgument(0));
+
+		server.expect(requestTo("http://api.test/competitions/1/matches"))
+				.andExpect(method(GET))
+				.andRespond(withSuccess(resposta, MediaType.APPLICATION_JSON));
+
+		List<PartidaResponseDTO> resultado =
+				partidaService.sincronizarPartidas(campeonato);
+
+		ArgumentCaptor<PartidaFinalizadaEvent> eventoCaptor =
+                ArgumentCaptor.forClass(PartidaFinalizadaEvent.class);
+
+		verify(eventPublisher).publishEvent(eventoCaptor.capture());
+
+		assertEquals(1, resultado.size());
+		assertEquals(PartidaStatus.FINALIZADO, resultado.get(0).getStatus());
+		assertEquals(3, resultado.get(0).getGolsMandante());
+		assertEquals(0, resultado.get(0).getGolsVisitante());
+
+		assertEquals(200L, eventoCaptor.getValue().getPartidaId());
+		assertEquals(PartidaStatus.FINALIZADO, existente.getStatus());
+		assertEquals(3, existente.getGolsMandante());
+		assertEquals(0, existente.getGolsVisitante());
+		assertFalse(existente.isConsolidada());
+
+		verify(partidaRepository).save(existente);
+	}
+
+    @Test
+    @DisplayName("Placar alterado em partida finalizada publica novo evento de finalização")
+    void quandoPlacarDePartidaFinalizadaMudaPublicaNovoEvento() {
+        Campeonato campeonato = Campeonato.builder()
+                .id(1L).nome("Teste")
+                .url("http://api.test/competitions/1")
+                .codigo("TST").ativo(true).build();
+
+        String resposta = """
+                {
+                    "matches": [
+                        {"id": 61, "homeTeam": {"name": "G"}, "awayTeam": {"name": "H"},
+                         "score": {"fullTime": {"home": 2, "away": 0}},
+                         "status": "FINISHED", "utcDate": "2026-07-06T18:00:00Z"}
+                    ]
+                }
+                """;
+
+        Partida existente = Partida.builder()
+                .id(103L).campeonato(campeonato).codigoExterno(61L)
+                .mandante("G").visitante("H")
+                .golsMandante(1).golsVisitante(0)
+                .status(PartidaStatus.FINALIZADO)
+                .consolidada(true)
+                .data(LocalDateTime.of(2026, Month.JULY, 6, 18, 0))
+                .build();
+
+        when(partidaRepository.findByCampeonatoIdAndCodigoExterno(1L, 61L))
+                .thenReturn(Optional.of(existente));
+
+        server.expect(requestTo("http://api.test/competitions/1/matches"))
+                .andExpect(method(GET))
+                .andRespond(withSuccess(resposta, MediaType.APPLICATION_JSON));
+
+        partidaService.sincronizarPartidas(campeonato);
+
+        ArgumentCaptor<PartidaFinalizadaEvent> eventoCaptor =
+                ArgumentCaptor.forClass(PartidaFinalizadaEvent.class);
+        verify(eventPublisher).publishEvent(eventoCaptor.capture());
+
+        assertEquals(103L, eventoCaptor.getValue().getPartidaId());
+        assertEquals(2, existente.getGolsMandante());
+        assertEquals(0, existente.getGolsVisitante());
+        assertFalse(existente.isConsolidada());
     }
 
     @Test
@@ -611,7 +784,7 @@ public class PartidaServiceImplTest {
                     .minutosAberturaPalpites(120)
                     .minutosFechamentoPalpites(30)
                     .build();
-            dataPartida = LocalDateTime.of(2026, 7, 15, 18, 0);
+            dataPartida = LocalDateTime.of(2026, Month.JULY, 15, 18, 0);
             partidaBuilder = Partida.builder()
                     .id(100L).codigoExterno(1L)
                     .mandante("A").visitante("B")
@@ -646,7 +819,7 @@ public class PartidaServiceImplTest {
         @DisplayName("ABERTO dentro da janela retorna ABERTO")
         void quandoAbertoDentroDaJanela() {
             Partida partida = partidaBuilder.status(PartidaStatus.ABERTO).build();
-            LocalDateTime agora = LocalDateTime.of(2026, 7, 15, 17, 0);
+            LocalDateTime agora = LocalDateTime.of(2026, Month.JULY, 15, 17, 0);
             assertEquals(PartidaStatus.ABERTO,
                     partida.statusEfetivoParaGrupo(grupo, agora));
         }
@@ -655,7 +828,7 @@ public class PartidaServiceImplTest {
         @DisplayName("ABERTO antes da abertura retorna EM_ANDAMENTO")
         void quandoAbertoAntesDaAbertura() {
             Partida partida = partidaBuilder.status(PartidaStatus.ABERTO).build();
-            LocalDateTime agora = LocalDateTime.of(2026, 7, 15, 15, 0);
+            LocalDateTime agora = LocalDateTime.of(2026, Month.JULY, 15, 15, 0);
             assertEquals(PartidaStatus.EM_ANDAMENTO,
                     partida.statusEfetivoParaGrupo(grupo, agora));
         }
@@ -664,7 +837,7 @@ public class PartidaServiceImplTest {
         @DisplayName("ABERTO depois do fechamento retorna EM_ANDAMENTO")
         void quandoAbertoDepoisDoFechamento() {
             Partida partida = partidaBuilder.status(PartidaStatus.ABERTO).build();
-            LocalDateTime agora = LocalDateTime.of(2026, 7, 15, 17, 45);
+            LocalDateTime agora = LocalDateTime.of(2026, Month.JULY, 15, 17, 45);
             assertEquals(PartidaStatus.EM_ANDAMENTO,
                     partida.statusEfetivoParaGrupo(grupo, agora));
         }

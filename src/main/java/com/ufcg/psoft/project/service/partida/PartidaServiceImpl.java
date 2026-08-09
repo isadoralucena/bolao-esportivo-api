@@ -1,21 +1,24 @@
 package com.ufcg.psoft.project.service.partida;
 
 import com.ufcg.psoft.project.dto.partida.PartidaResponseDTO;
-import com.ufcg.psoft.project.exception.GrupoNaoExisteException;
-import com.ufcg.psoft.project.exception.PartidaSyncException;
+import com.ufcg.psoft.project.event.PalpitesAbertosEvent;
+import com.ufcg.psoft.project.event.PalpitesFechadosEvent;
+import com.ufcg.psoft.project.event.PartidaFinalizadaEvent;
+import com.ufcg.psoft.project.event.PartidaIniciadaEvent;
+import com.ufcg.psoft.project.exception.grupo.GrupoNaoExisteException;
+import com.ufcg.psoft.project.exception.partida.PartidaSyncException;
 import com.ufcg.psoft.project.model.Campeonato;
 import com.ufcg.psoft.project.model.Grupo;
 import com.ufcg.psoft.project.model.Partida;
 import com.ufcg.psoft.project.model.PartidaStatus;
 import com.ufcg.psoft.project.repository.GrupoRepository;
 import com.ufcg.psoft.project.repository.PartidaRepository;
-import com.ufcg.psoft.project.service.pontuacao.PontuacaoService;
-import com.ufcg.psoft.project.service.notificacao.NotificacaoService;
 
 import jakarta.transaction.Transactional;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -23,6 +26,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -30,22 +34,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 
 @Service
+@RequiredArgsConstructor
 public class PartidaServiceImpl implements PartidaService {
-    @Autowired
-    private PartidaRepository partidaRepository;
+    private final PartidaRepository partidaRepository;
 
-    @Autowired
-    private GrupoRepository grupoRepository;
+    private final GrupoRepository grupoRepository;
 
-    @Autowired
-    private PontuacaoService pontuacaoService;
+    private final ApplicationEventPublisher eventPublisher;
 
-    @Autowired
-    private NotificacaoService notificacaoService;
+    private final Clock clock;
 
     @Value("${project.football-data.api-token:}")
     private String apiToken;
@@ -56,17 +56,17 @@ public class PartidaServiceImpl implements PartidaService {
     public List<PartidaResponseDTO> listarPorCampeonato(Long campeonatoId) {
         return partidaRepository.findByCampeonatoId(campeonatoId).stream()
                 .map(PartidaResponseDTO::new)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
     public List<PartidaResponseDTO> listarPorGrupo(Long grupoId) {
         Grupo grupo = grupoRepository.findById(grupoId)
                 .orElseThrow(GrupoNaoExisteException::new);
-        LocalDateTime agora = LocalDateTime.now(ZoneOffset.UTC);
+        LocalDateTime agora = LocalDateTime.now(clock);
         return partidaRepository.findByCampeonatoId(grupo.getCampeonato().getId()).stream()
                 .map(p -> new PartidaResponseDTO(p, grupo, agora))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -115,6 +115,15 @@ public class PartidaServiceImpl implements PartidaService {
         partidaRepository.deleteByCampeonatoId(campeonatoId);
     }
 
+    @Override
+    public List<PartidaResponseDTO> listarPartidasFuturas() {
+        return partidaRepository.findByDataAfterAndStatus(
+                        LocalDateTime.now(clock), PartidaStatus.ABERTO)
+                .stream()
+                .map(PartidaResponseDTO::new)
+                .toList();
+    }
+
     private PartidaResponseDTO salvarOuAtualizarPartida(Campeonato campeonato, Map<String, Object> match) {
         Long codigoExterno = Long.valueOf(match.get("id").toString());
         Map<String, Object> homeTeam = (Map<String, Object>) match.get("homeTeam");
@@ -159,27 +168,33 @@ public class PartidaServiceImpl implements PartidaService {
         partida.setStatus(novoStatus);
         partida.setMataMata(mataMata);
 
-        partidaRepository.save(partida);
-
-        boolean precisaAtualizarPontuacao = novoStatus == PartidaStatus.FINALIZADO && (statusMudou || placarMudou);
-        if (precisaAtualizarPontuacao) {
-            pontuacaoService.calcularPontuacoesAssociadasAPartida(partida.getId());
+        if (placarMudou) {
+            partida.setConsolidada(false);
         }
 
+        partida = partidaRepository.save(partida);
+        boolean precisaAtualizarPontuacao = novoStatus == PartidaStatus.FINALIZADO && (statusMudou || placarMudou);
+
         if (statusMudou) {
-            if (novoStatus == PartidaStatus.ABERTO && statusAnterior == null) {
-                notificacaoService.notificarAberturaPalpites(partida);
-            } else if (novoStatus == PartidaStatus.EM_ANDAMENTO) {
-                if (statusAnterior == PartidaStatus.ABERTO) {
-                    notificacaoService.notificarFechamentoPalpites(partida);
-                }
-                notificacaoService.notificarInicioPartida(partida);
-            } else if (novoStatus == PartidaStatus.FINALIZADO) {
-                notificacaoService.notificarPartidaFinalizada(partida);
-            }
+            publicarEventosMudancaStatus(statusAnterior, novoStatus, partida);
+        } else if (precisaAtualizarPontuacao) {
+            eventPublisher.publishEvent(new PartidaFinalizadaEvent(this, partida.getId()));
         }
 
         return new PartidaResponseDTO(partida);
+    }
+
+    private void publicarEventosMudancaStatus(PartidaStatus statusAnterior, PartidaStatus novoStatus, Partida partida) {
+        if (novoStatus == PartidaStatus.ABERTO && statusAnterior == null) {
+            eventPublisher.publishEvent(new PalpitesAbertosEvent(this, partida.getId()));
+        } else if (novoStatus == PartidaStatus.EM_ANDAMENTO) {
+            if (statusAnterior == PartidaStatus.ABERTO) {
+                eventPublisher.publishEvent(new PalpitesFechadosEvent(this, partida.getId()));
+            }
+            eventPublisher.publishEvent(new PartidaIniciadaEvent(this, partida.getId()));
+        } else if (novoStatus == PartidaStatus.FINALIZADO) {
+            eventPublisher.publishEvent(new PartidaFinalizadaEvent(this, partida.getId()));
+        }
     }
 
     private static PartidaStatus converterStatus(String statusApi) {

@@ -6,16 +6,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import com.ufcg.psoft.project.dto.pontuacao.PontuacaoPalpiteResponseDTO;
 import com.ufcg.psoft.project.dto.pontuacao.PontuacaoParticipanteResponseDTO;
+import com.ufcg.psoft.project.event.MudancaGrupoPosicaoEvent;
+import com.ufcg.psoft.project.event.RankingAtualizadoEvent;
 import com.ufcg.psoft.project.exception.CodigoDeAcessoInvalidoException;
-import com.ufcg.psoft.project.exception.GrupoNaoExisteException;
-import com.ufcg.psoft.project.exception.PartidaNaoExisteException;
-import com.ufcg.psoft.project.exception.UsuarioNaoExisteException;
-import com.ufcg.psoft.project.exception.UsuarioNaoParticipanteException;
+import com.ufcg.psoft.project.exception.grupo.GrupoNaoExisteException;
+import com.ufcg.psoft.project.exception.partida.PartidaNaoExisteException;
+import com.ufcg.psoft.project.exception.usuario.UsuarioNaoExisteException;
+import com.ufcg.psoft.project.exception.usuario.UsuarioNaoParticipanteException;
 import com.ufcg.psoft.project.model.PontuacaoPalpite;
 import com.ufcg.psoft.project.model.CriterioDesempate;
 import com.ufcg.psoft.project.model.Grupo;
@@ -32,40 +35,31 @@ import com.ufcg.psoft.project.repository.PalpiteRepository;
 import com.ufcg.psoft.project.repository.PartidaRepository;
 import com.ufcg.psoft.project.repository.RegraPontuacaoRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
-import com.ufcg.psoft.project.service.notificacao.NotificacaoService;
 import com.ufcg.psoft.project.service.ranking.RankingCalculator;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class PontuacaoServiceImpl implements PontuacaoService {
-    @Autowired
-    private PartidaRepository partidaRepository;
+    private final PartidaRepository partidaRepository;
 
-    @Autowired
-    private PalpiteRepository palpiteRepository;
+    private final PalpiteRepository palpiteRepository;
 
-    @Autowired
-    private GrupoRepository grupoRepository;
+    private final GrupoRepository grupoRepository;
     
-    @Autowired
-    private RegraPontuacaoRepository regraPontuacaoRepository;
+    private final RegraPontuacaoRepository regraPontuacaoRepository;
 
-    @Autowired
-    private PontuacaoPalpiteRepository pontuacaoPalpiteRepository;
+    private final PontuacaoPalpiteRepository pontuacaoPalpiteRepository;
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
+    private final UsuarioRepository usuarioRepository;
 
-    @Autowired
-    private NotificacaoService notificacaoService;
+    private final ApplicationEventPublisher eventPublisher;
 
-    @Autowired
-    private List<Pontuador> pontuadoresDisponiveis;
+    private final List<Pontuador> pontuadoresDisponiveis;
 
-    @Autowired
-    private RankingCalculator rankingCalculator;
+    private final RankingCalculator rankingCalculator;
 
     private Map<TipoRegraPontuacao, Pontuador> pontuadores;
 
@@ -118,7 +112,7 @@ public class PontuacaoServiceImpl implements PontuacaoService {
                 .map(p -> p.getPalpite().getGrupo().getId())
                 .distinct()
                 .forEach(grupoId -> {
-                    notificacaoService.notificarAtualizacaoRanking(grupoId);
+                    eventPublisher.publishEvent(new RankingAtualizadoEvent(this, grupoId, partidaId));
                     notificarMudancasDePosicao(grupoId, posicoesAntesPorGrupo.get(grupoId));
                 });
 
@@ -159,7 +153,7 @@ public class PontuacaoServiceImpl implements PontuacaoService {
         List<PontuacaoPalpite> pontuacoesSalvas = pontuacaoPalpiteRepository.saveAll(pontuacoes);
 
         if (!grupo.getParticipantes().isEmpty()) {
-            notificacaoService.notificarAtualizacaoRanking(grupoId);
+            eventPublisher.publishEvent(new RankingAtualizadoEvent(this, grupoId));
             notificarMudancasDePosicao(grupoId, posicoesAntes);
         }
 
@@ -184,7 +178,7 @@ public class PontuacaoServiceImpl implements PontuacaoService {
 
         List<PontuacaoPalpite> pontuacoes = pontuacaoPalpiteRepository.findByPalpite_Grupo_IdAndPalpite_Usuario_Id(grupoId, participanteId);
 
-        return calcularPontuacaoParticipante(grupoId, participante, pontuacoes);
+        return calcularPontuacaoParticipante(participante, pontuacoes);
     }
 
     @Override
@@ -211,7 +205,7 @@ public class PontuacaoServiceImpl implements PontuacaoService {
     public PontuacaoParticipanteResponseDTO calcularPontuacaoGlobalDoParticipante(Long usuarioId) {
         Usuario usuario = usuarioRepository.findById(usuarioId).orElseThrow(UsuarioNaoExisteException::new);
         List<PontuacaoPalpite> pontuacoes = pontuacaoPalpiteRepository.findByPalpite_Usuario_Id(usuarioId);
-        return calcularPontuacaoParticipante(null, usuario, pontuacoes);
+        return calcularPontuacaoParticipante(usuario, pontuacoes);
     }
 
     @Override
@@ -221,7 +215,8 @@ public class PontuacaoServiceImpl implements PontuacaoService {
             .toList();
     }
 
-    private PontuacaoParticipanteResponseDTO calcularPontuacaoParticipante(Long grupoId, Usuario participante, List<PontuacaoPalpite> pontuacoes) {
+    private PontuacaoParticipanteResponseDTO calcularPontuacaoParticipante(Usuario participante, List<PontuacaoPalpite> pontuacoes) {
+        int totalPalpitesAvaliados = 0;
         int pontuacaoTotal = 0;
         int erros = 0;
         int acertosVencedor = 0;
@@ -250,11 +245,13 @@ public class PontuacaoServiceImpl implements PontuacaoService {
             if (!acertouAlgo) {
                 erros += 1;
             }
+
+            totalPalpitesAvaliados += 1;
         }
 
         return new PontuacaoParticipanteResponseDTO(
-            grupoId,
             participante,
+            totalPalpitesAvaliados,
             pontuacaoTotal,
             erros,
             acertosVencedor,
@@ -345,11 +342,14 @@ public class PontuacaoServiceImpl implements PontuacaoService {
 
             if (posicaoAnterior != null && posicaoAtual != null && !posicaoAnterior.equals(posicaoAtual)) {
 
-                notificacaoService.notificarMudancaDePosicao(
+                eventPublisher.publishEvent(
+                    new MudancaGrupoPosicaoEvent(
+                        this,
                         participante.getNome(),
                         posicaoAnterior,
                         posicaoAtual,
                         grupoId
+                    )
                 );
             }
         }

@@ -1,40 +1,55 @@
 package com.ufcg.psoft.project.service;
 
+import static com.ufcg.psoft.project.config.TestClockConfig.FIXED_CLOCK;
+
 import com.ufcg.psoft.project.model.Partida;
 import com.ufcg.psoft.project.model.PartidaStatus;
+import com.ufcg.psoft.project.service.notificacao.NotificacaoService;
 import com.ufcg.psoft.project.service.notificacao.NotificacaoServiceImpl;
+
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest
 @DisplayName("Testes do serviço de notificações - US11")
-public class NotificacaoServiceImplTest {
+class NotificacaoServiceImplTest {
 
-    private NotificacaoServiceImpl notificacaoService;
-    private ByteArrayOutputStream outputStream;
-    private PrintStream originalOut;
+    private static final String PREFIXO_NOTIFICACAO = "[NOTIFICAÇÃO]";
+
+    private final NotificacaoService notificacaoService = new NotificacaoServiceImpl();
+    private Logger logbackLogger;
+    private ListAppender<ILoggingEvent> listAppender;
 
     @BeforeEach
     void setup() {
-        notificacaoService = new NotificacaoServiceImpl();
-        outputStream = new ByteArrayOutputStream();
-        originalOut = System.out;
-        System.setOut(new PrintStream(outputStream));
+        logbackLogger = (Logger) LoggerFactory.getLogger(NotificacaoServiceImpl.class);
+        listAppender = new ListAppender<>();
+        listAppender.start();
+        logbackLogger.addAppender(listAppender);
     }
 
     @AfterEach
     void teardown() {
-        System.setOut(originalOut);
+        logbackLogger.detachAppender(listAppender);
+        listAppender.stop();
+    }
+
+    private String logsCapturados() {
+        return listAppender.list.stream()
+                .map(ILoggingEvent::getFormattedMessage)
+                .collect(Collectors.joining(System.lineSeparator()));
     }
 
     private Partida criarPartida(Long id, String mandante, String visitante, PartidaStatus status) {
@@ -45,7 +60,7 @@ public class NotificacaoServiceImplTest {
                 .golsMandante(2)
                 .golsVisitante(1)
                 .status(status)
-                .data(LocalDateTime.now().plusDays(1))
+                .data(LocalDateTime.now(FIXED_CLOCK).plusDays(1))
                 .codigoExterno(id)
                 .build();
     }
@@ -59,10 +74,8 @@ public class NotificacaoServiceImplTest {
         void quandoNotificaAberturaPalpites() {
             Partida partida = criarPartida(1L, "Flamengo", "Vasco", PartidaStatus.ABERTO);
             notificacaoService.notificarAberturaPalpites(partida);
-            String saida = outputStream.toString();
-            assertTrue(saida.contains("[NOTIFICAÇÃO]"));
-            assertTrue(saida.contains("Flamengo"));
-            assertTrue(saida.contains("Vasco"));
+            assertThat(logsCapturados())
+                    .contains(PREFIXO_NOTIFICACAO, "Flamengo", "Vasco");
         }
 
         @Test
@@ -70,10 +83,8 @@ public class NotificacaoServiceImplTest {
         void quandoNotificaFechamentoPalpites() {
             Partida partida = criarPartida(2L, "Palmeiras", "Santos", PartidaStatus.EM_ANDAMENTO);
             notificacaoService.notificarFechamentoPalpites(partida);
-            String saida = outputStream.toString();
-            assertTrue(saida.contains("[NOTIFICAÇÃO]"));
-            assertTrue(saida.contains("Palmeiras"));
-            assertTrue(saida.contains("Santos"));
+            assertThat(logsCapturados())
+                    .contains(PREFIXO_NOTIFICACAO, "Palmeiras", "Santos");
         }
 
         @Test
@@ -81,10 +92,8 @@ public class NotificacaoServiceImplTest {
         void quandoNotificaInicioPartida() {
             Partida partida = criarPartida(3L, "Corinthians", "São Paulo", PartidaStatus.EM_ANDAMENTO);
             notificacaoService.notificarInicioPartida(partida);
-            String saida = outputStream.toString();
-            assertTrue(saida.contains("[NOTIFICAÇÃO]"));
-            assertTrue(saida.contains("Corinthians"));
-            assertTrue(saida.contains("São Paulo"));
+            assertThat(logsCapturados())
+                    .contains(PREFIXO_NOTIFICACAO, "Corinthians", "São Paulo");
         }
 
         @Test
@@ -92,12 +101,8 @@ public class NotificacaoServiceImplTest {
         void quandoNotificaPartidaFinalizada() {
             Partida partida = criarPartida(4L, "Grêmio", "Internacional", PartidaStatus.FINALIZADO);
             notificacaoService.notificarPartidaFinalizada(partida);
-            String saida = outputStream.toString();
-            assertTrue(saida.contains("[NOTIFICAÇÃO]"));
-            assertTrue(saida.contains("Grêmio"));
-            assertTrue(saida.contains("Internacional"));
-            assertTrue(saida.contains("2"));
-            assertTrue(saida.contains("1"));
+            assertThat(logsCapturados())
+                    .contains(PREFIXO_NOTIFICACAO, "Grêmio", "Internacional", "2", "1");
         }
     }
 
@@ -109,32 +114,24 @@ public class NotificacaoServiceImplTest {
         @DisplayName("Quando notifica atualização de ranking")
         void quandoNotificaAtualizacaoRanking() {
             notificacaoService.notificarAtualizacaoRanking(10L);
-            String saida = outputStream.toString();
-            assertTrue(saida.contains("[NOTIFICAÇÃO]"));
-            assertTrue(saida.contains("10"));
+            assertThat(logsCapturados())
+                    .contains(PREFIXO_NOTIFICACAO, "10");
         }
 
         @Test
         @DisplayName("Quando notifica mudança de posição para melhor")
         void quandoNotificaMudancaDePosicaoParaMelhor() {
             notificacaoService.notificarMudancaDePosicao("Erik", 3, 1, 10L);
-            String saida = outputStream.toString();
-            assertTrue(saida.contains("[NOTIFICAÇÃO]"));
-            assertTrue(saida.contains("Erik"));
-            assertTrue(saida.contains("3"));
-            assertTrue(saida.contains("1"));
-            assertTrue(saida.contains("10"));
+            assertThat(logsCapturados())
+                    .contains(PREFIXO_NOTIFICACAO, "Erik", "3", "1", "10");
         }
 
         @Test
         @DisplayName("Quando notifica mudança de posição para pior")
         void quandoNotificaMudancaDePosicaoParaPior() {
             notificacaoService.notificarMudancaDePosicao("João", 1, 3, 10L);
-            String saida = outputStream.toString();
-            assertTrue(saida.contains("[NOTIFICAÇÃO]"));
-            assertTrue(saida.contains("João"));
-            assertTrue(saida.contains("1"));
-            assertTrue(saida.contains("3"));
+            assertThat(logsCapturados())
+                    .contains(PREFIXO_NOTIFICACAO, "João", "1", "3", "10");
         }
     }
 
@@ -147,9 +144,8 @@ public class NotificacaoServiceImplTest {
         void quandoPartidaNovaAbertaNotificaAbertura() {
             Partida partida = criarPartida(5L, "Athletico", "Atletico MG", PartidaStatus.ABERTO);
             notificacaoService.notificarAberturaPalpites(partida);
-            String saida = outputStream.toString();
-            assertTrue(saida.contains("[NOTIFICAÇÃO]"));
-            assertTrue(saida.contains("Athletico"));
+            assertThat(logsCapturados())
+                    .contains(PREFIXO_NOTIFICACAO, "Athletico", "Atletico MG");
         }
 
         @Test
@@ -158,11 +154,12 @@ public class NotificacaoServiceImplTest {
             Partida partida = criarPartida(6L, "Botafogo", "Fluminense", PartidaStatus.EM_ANDAMENTO);
             notificacaoService.notificarFechamentoPalpites(partida);
             notificacaoService.notificarInicioPartida(partida);
-            String saida = outputStream.toString();
-            assertTrue(saida.contains("Botafogo"));
-            assertTrue(saida.contains("Fluminense"));
-            long count = saida.lines().filter(l -> l.contains("[NOTIFICAÇÃO]")).count();
-            assertTrue(count >= 2);
+            assertThat(logsCapturados()).contains("Botafogo", "Fluminense");
+            long quantidadeDeNotificacoes = listAppender.list.stream()
+                    .map(ILoggingEvent::getFormattedMessage)
+                    .filter(mensagem -> mensagem.contains(PREFIXO_NOTIFICACAO))
+                    .count();
+            assertThat(quantidadeDeNotificacoes).isEqualTo(2);
         }
 
         @Test
@@ -170,10 +167,8 @@ public class NotificacaoServiceImplTest {
         void quandoPartidaFinalizadaNotificaConclusao() {
             Partida partida = criarPartida(7L, "Bahia", "Fortaleza", PartidaStatus.FINALIZADO);
             notificacaoService.notificarPartidaFinalizada(partida);
-            String saida = outputStream.toString();
-            assertTrue(saida.contains("[NOTIFICAÇÃO]"));
-            assertTrue(saida.contains("Bahia"));
-            assertTrue(saida.contains("Fortaleza"));
+            assertThat(logsCapturados())
+                    .contains(PREFIXO_NOTIFICACAO, "Bahia", "Fortaleza");
         }
     }
 }

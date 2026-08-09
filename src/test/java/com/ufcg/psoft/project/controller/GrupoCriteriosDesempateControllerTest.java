@@ -24,7 +24,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.test.context.TestConstructor;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -47,24 +48,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("Testes sobre os critérios de desempate do controlador de grupos de bolão")
-public class GrupoCriteriosDesempateControllerTest {
+@RequiredArgsConstructor
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+class GrupoCriteriosDesempateControllerTest {
 
     private static final String URI_GRUPOS = "/grupos";
 
-    @Autowired
-    MockMvc driver;
+    final MockMvc driver;
 
-    @Autowired
-    ObjectMapper objectMapper;
+    final ObjectMapper objectMapper;
 
-    @Autowired
-    GrupoRepository grupoRepository;
+    final GrupoRepository grupoRepository;
 
-    @Autowired
-    UsuarioRepository usuarioRepository;
+    final UsuarioRepository usuarioRepository;
 
-    @Autowired
-    CampeonatoRepository campeonatoRepository;
+    final CampeonatoRepository campeonatoRepository;
 
     Usuario organizador;
     Usuario outroUsuario;
@@ -137,7 +135,7 @@ public class GrupoCriteriosDesempateControllerTest {
         String responseJsonString = driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
                 .contentType(MediaType.APPLICATION_JSON)
                 .param("usuarioId", organizador.getId().toString())
-                .param("codigoAcesso", organizador.getCodigo())
+                .param("codigoUsuario", organizador.getCodigo())
                 .content(objectMapper.writeValueAsString(dto)))
             .andExpect(status().isOk())
             .andDo(print())
@@ -267,7 +265,7 @@ public class GrupoCriteriosDesempateControllerTest {
             String responseJsonString = driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
                     .contentType(MediaType.APPLICATION_JSON)
                     .param("usuarioId", organizador.getId().toString())
-                    .param("codigoAcesso", organizador.getCodigo())
+                    .param("codigoUsuario", organizador.getCodigo())
                     .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest())
                 .andDo(print())
@@ -314,7 +312,7 @@ public class GrupoCriteriosDesempateControllerTest {
             String responseJsonString = driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
                     .contentType(MediaType.APPLICATION_JSON)
                     .param("usuarioId", organizador.getId().toString())
-                    .param("codigoAcesso", organizador.getCodigo())
+                    .param("codigoUsuario", organizador.getCodigo())
                     .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest())
                 .andDo(print())
@@ -333,7 +331,7 @@ public class GrupoCriteriosDesempateControllerTest {
             String responseJsonString = driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
                     .contentType(MediaType.APPLICATION_JSON)
                     .param("usuarioId", organizador.getId().toString())
-                    .param("codigoAcesso", organizador.getCodigo())
+                    .param("codigoUsuario", organizador.getCodigo())
                     .content(corpoSemCriterios))
                 .andExpect(status().isBadRequest())
                 .andDo(print())
@@ -359,7 +357,7 @@ public class GrupoCriteriosDesempateControllerTest {
             String responseJsonString = driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
                     .contentType(MediaType.APPLICATION_JSON)
                     .param("usuarioId", outroUsuario.getId().toString())
-                    .param("codigoAcesso", outroUsuario.getCodigo())
+                    .param("codigoUsuario", outroUsuario.getCodigo())
                     .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest())
                 .andDo(print())
@@ -384,7 +382,7 @@ public class GrupoCriteriosDesempateControllerTest {
             driver.perform(put(URI_GRUPOS + "/" + idInexistente + "/criterios-desempate")
                     .contentType(MediaType.APPLICATION_JSON)
                     .param("usuarioId", organizador.getId().toString())
-                    .param("codigoAcesso", organizador.getCodigo())
+                    .param("codigoUsuario", organizador.getCodigo())
                     .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest())
                 .andDo(print());
@@ -400,7 +398,7 @@ public class GrupoCriteriosDesempateControllerTest {
             driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
                     .contentType(MediaType.APPLICATION_JSON)
                     .param("usuarioId", organizador.getId().toString())
-                    .param("codigoAcesso", "codigo-errado")
+                    .param("codigoUsuario", "codigo-errado")
                     .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest())
                 .andDo(print());
@@ -419,7 +417,7 @@ public class GrupoCriteriosDesempateControllerTest {
             String responseJsonString = driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
                     .contentType(MediaType.APPLICATION_JSON)
                     .param("usuarioId", organizador.getId().toString())
-                    .param("codigoAcesso", organizador.getCodigo())
+                    .param("codigoUsuario", organizador.getCodigo())
                     .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest())
                 .andDo(print())
@@ -447,7 +445,7 @@ public class GrupoCriteriosDesempateControllerTest {
             driver.perform(put(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
                     .contentType(MediaType.APPLICATION_JSON)
                     .param("usuarioId", idInexistente.toString())
-                    .param("codigoAcesso", "111111")
+                    .param("codigoUsuario", "111111")
                     .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest())
                 .andDo(print());
@@ -467,7 +465,7 @@ public class GrupoCriteriosDesempateControllerTest {
 
             String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
                     .param("usuarioId", organizador.getId().toString())
-                    .param("codigoAcesso", organizador.getCodigo()))
+                    .param("codigoUsuario", organizador.getCodigo()))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
@@ -490,7 +488,7 @@ public class GrupoCriteriosDesempateControllerTest {
 
             String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
                     .param("usuarioId", organizador.getId().toString())
-                    .param("codigoAcesso", organizador.getCodigo()))
+                    .param("codigoUsuario", organizador.getCodigo()))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
 
@@ -509,7 +507,7 @@ public class GrupoCriteriosDesempateControllerTest {
         void quandoConsultaSemCriteriosConfigurados() throws Exception {
             String responseJsonString = driver.perform(get(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
                     .param("usuarioId", organizador.getId().toString())
-                    .param("codigoAcesso", organizador.getCodigo()))
+                    .param("codigoUsuario", organizador.getCodigo()))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
@@ -526,7 +524,7 @@ public class GrupoCriteriosDesempateControllerTest {
 
             driver.perform(get(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
                     .param("usuarioId", outroUsuario.getId().toString())
-                    .param("codigoAcesso", outroUsuario.getCodigo()))
+                    .param("codigoUsuario", outroUsuario.getCodigo()))
                 .andExpect(status().isOk())
                 .andDo(print());
         }
@@ -538,7 +536,7 @@ public class GrupoCriteriosDesempateControllerTest {
 
             driver.perform(get(URI_GRUPOS + "/" + idInexistente + "/criterios-desempate")
                     .param("usuarioId", organizador.getId().toString())
-                    .param("codigoAcesso", organizador.getCodigo()))
+                    .param("codigoUsuario", organizador.getCodigo()))
                 .andExpect(status().isBadRequest())
                 .andDo(print());
         }
@@ -548,7 +546,7 @@ public class GrupoCriteriosDesempateControllerTest {
         void quandoCodigoAcessoInvalidoGet() throws Exception {
             driver.perform(get(URI_GRUPOS + "/" + grupo.getId() + "/criterios-desempate")
                     .param("usuarioId", organizador.getId().toString())
-                    .param("codigoAcesso", "codigo-errado"))
+                    .param("codigoUsuario", "codigo-errado"))
                 .andExpect(status().isBadRequest())
                 .andDo(print());
         }

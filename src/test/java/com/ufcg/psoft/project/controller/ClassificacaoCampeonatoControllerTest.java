@@ -4,7 +4,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.test.context.TestConstructor;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
@@ -21,16 +22,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("Testes do controlador de classificação de campeonato")
-public class ClassificacaoCampeonatoControllerTest {
+@RequiredArgsConstructor
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+class ClassificacaoCampeonatoControllerTest {
 
-    @Autowired
-    MockMvc mockMvc;
+    final MockMvc mockMvc;
 
-    @Autowired
-    CampeonatoRepository campeonatoRepository;
+    final CampeonatoRepository campeonatoRepository;
 
-    @Autowired
-    ClassificacaoCampeonatoRepository classificacaoCampeonatoRepository;
+    final ClassificacaoCampeonatoRepository classificacaoCampeonatoRepository;
 
     private Campeonato campeonato;
 

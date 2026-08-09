@@ -1,5 +1,7 @@
 package com.ufcg.psoft.project.controller;
 
+import static com.ufcg.psoft.project.config.TestClockConfig.FIXED_CLOCK;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ufcg.psoft.project.dto.campeonato.CampeonatoResponseDTO;
 import com.ufcg.psoft.project.model.*;
@@ -10,14 +12,14 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.test.context.TestConstructor;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,28 +33,23 @@ import java.util.List;
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("Testes do controlador de Partidas")
-public class PartidaControllerTests {
+@RequiredArgsConstructor
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+class PartidaControllerTests {
 
-    @Autowired
-    MockMvc mockMvc;
+    final MockMvc mockMvc;
 
-    @Autowired
-    ObjectMapper objectMapper;
+    final ObjectMapper objectMapper;
 
-    @Autowired
-    UsuarioRepository usuarioRepository;
+    final UsuarioRepository usuarioRepository;
 
-    @Autowired
-    CampeonatoRepository campeonatoRepository;
+    final CampeonatoRepository campeonatoRepository;
 
-    @Autowired
-    GrupoRepository grupoRepository;
+    final GrupoRepository grupoRepository;
 
-    @Autowired
-    PartidaRepository partidaRepository;
+    final PartidaRepository partidaRepository;
 
-    @Autowired
-    PalpiteRepository palpiteRepository;
+    final PalpiteRepository palpiteRepository;
 
     @MockBean
     CampeonatoService campeonatoService;
@@ -128,7 +125,7 @@ public class PartidaControllerTests {
                 .codigoExterno(1L)
                 .mandante("Time A")
                 .visitante("Time B")
-                .data(LocalDateTime.now().plusDays(7))
+                .data(LocalDateTime.now(FIXED_CLOCK).plusDays(7))
                 .status(PartidaStatus.ABERTO)
                 .build());
 
@@ -137,7 +134,7 @@ public class PartidaControllerTests {
                 .codigoExterno(2L)
                 .mandante("Time C")
                 .visitante("Time D")
-                .data(LocalDateTime.now().minusDays(1))
+                .data(LocalDateTime.now(FIXED_CLOCK).minusDays(1))
                 .status(PartidaStatus.FINALIZADO)
                 .golsMandante(3)
                 .golsVisitante(1)
@@ -252,13 +249,24 @@ public class PartidaControllerTests {
                 .codigoExterno(3L)
                 .mandante("Time E")
                 .visitante("Time F")
-                .data(LocalDateTime.now().plusDays(14))
+                .data(LocalDateTime.now(FIXED_CLOCK).plusDays(14))
                 .status(PartidaStatus.ABERTO)
                 .build());
 
         mockMvc.perform(get("/grupos/{grupoId}/partidas", grupo.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(3)));
+    }
+
+    @Test
+    @DisplayName("Listar partidas futuras do usuario autenticado")
+    void listarPartidasFuturasDoUsuario() throws Exception {
+        mockMvc.perform(get("/partidas/futuras")
+                        .param("usuarioId", usuario.getId().toString())
+                        .param("codigoUsuario", usuario.getCodigo()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].id").value(partidaAberta.getId()));
     }
 
     // ========== Integração com sincronização ==========
@@ -336,7 +344,7 @@ public class PartidaControllerTests {
                 .codigoExterno(10L)
                 .mandante("X")
                 .visitante("Y")
-                .data(LocalDateTime.now(ZoneOffset.UTC).minusMinutes(5))
+                .data(LocalDateTime.now(FIXED_CLOCK).minusMinutes(5))
                 .status(PartidaStatus.ABERTO)
                 .build());
 
@@ -354,7 +362,7 @@ public class PartidaControllerTests {
                 .codigoExterno(11L)
                 .mandante("W")
                 .visitante("Z")
-                .data(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(60))
+                .data(LocalDateTime.now(FIXED_CLOCK).plusMinutes(60))
                 .status(PartidaStatus.ABERTO)
                 .build());
 
@@ -372,7 +380,7 @@ public class PartidaControllerTests {
                 .codigoExterno(12L)
                 .mandante("M")
                 .visitante("N")
-                .data(LocalDateTime.now(ZoneOffset.UTC).minusDays(1))
+                .data(LocalDateTime.now(FIXED_CLOCK).minusDays(1))
                 .status(PartidaStatus.FINALIZADO)
                 .golsMandante(2)
                 .golsVisitante(1)

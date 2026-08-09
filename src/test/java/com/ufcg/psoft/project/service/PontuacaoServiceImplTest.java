@@ -1,5 +1,7 @@
 package com.ufcg.psoft.project.service;
 
+import static com.ufcg.psoft.project.config.TestClockConfig.FIXED_CLOCK;
+
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -8,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -21,17 +24,21 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import com.ufcg.psoft.project.exception.GrupoNaoExisteException;
-import com.ufcg.psoft.project.exception.UsuarioNaoExisteException;
-import com.ufcg.psoft.project.exception.UsuarioNaoParticipanteException;
+import com.ufcg.psoft.project.event.MudancaGrupoPosicaoEvent;
+import com.ufcg.psoft.project.event.RankingAtualizadoEvent;
+import com.ufcg.psoft.project.exception.grupo.GrupoNaoExisteException;
+import com.ufcg.psoft.project.exception.usuario.UsuarioNaoExisteException;
+import com.ufcg.psoft.project.exception.usuario.UsuarioNaoParticipanteException;
 import com.ufcg.psoft.project.model.Grupo;
 import com.ufcg.psoft.project.model.Palpite;
 import com.ufcg.psoft.project.model.Partida;
@@ -45,7 +52,6 @@ import com.ufcg.psoft.project.repository.PartidaRepository;
 import com.ufcg.psoft.project.repository.PontuacaoPalpiteRepository;
 import com.ufcg.psoft.project.repository.RegraPontuacaoRepository;
 import com.ufcg.psoft.project.repository.UsuarioRepository;
-import com.ufcg.psoft.project.service.notificacao.NotificacaoService;
 import com.ufcg.psoft.project.service.pontuacao.PontuacaoServiceImpl;
 import com.ufcg.psoft.project.service.pontuacao.Pontuador;
 import com.ufcg.psoft.project.service.ranking.RankingCalculator;
@@ -74,7 +80,7 @@ class PontuacaoServiceImplTest {
     private UsuarioRepository usuarioRepository;
 
     @Mock
-    private NotificacaoService notificacaoService;
+    private ApplicationEventPublisher eventPublisher;
 
     @Spy
     private RankingCalculator rankingCalculator = new RankingCalculator();
@@ -110,7 +116,7 @@ class PontuacaoServiceImplTest {
                 .golsMandante(2)
                 .golsVisitante(1)
                 .status(PartidaStatus.FINALIZADO)
-                .data(LocalDateTime.now().minusHours(2))
+                .data(LocalDateTime.now(FIXED_CLOCK).minusHours(2))
                 .build();
 
         palpite = Palpite.builder()
@@ -158,9 +164,9 @@ class PontuacaoServiceImplTest {
         var resultado = pontuacaoService.calcularPontuacaoGlobalDoParticipante(1L);
 
         assertAll(
-                () -> assertNull(resultado.getGrupoId()),
                 () -> assertEquals(1L, resultado.getUsuarioId()),
                 () -> assertEquals("Teste", resultado.getUsuarioNome()),
+                () -> assertEquals(1, resultado.getTotalPalpitesAvaliados()),
                 () -> assertEquals(10, resultado.getPontuacao()),
                 () -> assertEquals(0, resultado.getErros()),
                 () -> assertEquals(1, resultado.getAcertosVencedor()),
@@ -192,6 +198,7 @@ class PontuacaoServiceImplTest {
 
         assertEquals(1, resultado.size());
         assertEquals(10, resultado.get(0).getPontuacao());
+        assertEquals(1, resultado.get(0).getTotalPalpitesAvaliados());
     }
 
     @Test
@@ -227,16 +234,16 @@ class PontuacaoServiceImplTest {
         var resultado = pontuacaoService.calcularPontuacaoParticipanteNoGrupo(1L, 1L);
 
         assertAll(
-                () -> assertEquals(1L, resultado.getGrupoId()),
                 () -> assertEquals(1L, resultado.getUsuarioId()),
+                () -> assertEquals(1, resultado.getTotalPalpitesAvaliados()),
                 () -> assertEquals(10, resultado.getPontuacao()),
                 () -> assertEquals(1, resultado.getAcertosVencedor())
         );
     }
 
     @Test
-    @DisplayName("notificarMudancasDePosicao quando posicoesAntes null nao notifica")
-    void quandoPosicoesAntesNull() {
+    @DisplayName("calcular pontuações publica evento de atualização do ranking")
+    void quandoCalculaPontuacoesPublicaEventoDeRanking() {
         Grupo grupoComDois = Grupo.builder().id(1L).nome("Grupo").build();
         Usuario u1 = Usuario.builder().id(1L).nome("Um").build();
         Usuario u2 = Usuario.builder().id(2L).nome("Dois").build();
@@ -248,7 +255,7 @@ class PontuacaoServiceImplTest {
                 .mandante("A").visitante("B")
                 .golsMandante(2).golsVisitante(1)
                 .status(PartidaStatus.FINALIZADO)
-                .data(LocalDateTime.now().minusHours(2))
+                .data(LocalDateTime.now(FIXED_CLOCK).minusHours(2))
                 .build();
 
         Palpite p1 = Palpite.builder().id(10L).partida(partida).usuario(u1).grupo(grupoComDois)
@@ -276,7 +283,14 @@ class PontuacaoServiceImplTest {
 
         assertNotNull(resultado);
         assertEquals(2, resultado.size());
-        verify(notificacaoService).notificarAtualizacaoRanking(1L);
+        ArgumentCaptor<RankingAtualizadoEvent> eventoCaptor =
+                ArgumentCaptor.forClass(RankingAtualizadoEvent.class);
+
+        verify(eventPublisher).publishEvent(eventoCaptor.capture());
+        assertEquals(1L, eventoCaptor.getValue().getGrupoId());
+        assertEquals(1L, eventoCaptor.getValue().getPartidaId());
+        verify(eventPublisher, never())
+                .publishEvent(any(MudancaGrupoPosicaoEvent.class));
     }
 
     @Test
@@ -297,5 +311,69 @@ class PontuacaoServiceImplTest {
         var resultado = pontuacaoService.calcularPontuacoesDoGrupo(1L);
         assertNotNull(resultado);
         assertTrue(resultado.isEmpty());
-        }
+
+        ArgumentCaptor<RankingAtualizadoEvent> eventoCaptor =
+                ArgumentCaptor.forClass(RankingAtualizadoEvent.class);
+        verify(eventPublisher).publishEvent(eventoCaptor.capture());
+        assertEquals(1L, eventoCaptor.getValue().getGrupoId());
+        assertNull(eventoCaptor.getValue().getPartidaId());
+    }
+
+    @Test
+    @DisplayName("calcularPontuacoesAssociadasAPartida rejeita gol visitante nulo")
+    void quandoGolVisitanteNuloNaPartidaFinalizada() {
+        partida.setGolsVisitante(null);
+        when(partidaRepository.findById(1L)).thenReturn(Optional.of(partida));
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> pontuacaoService.calcularPontuacoesAssociadasAPartida(1L)
+        );
+    }
+
+    @Test
+    @DisplayName("calcularPontuacoesDoGrupo ignora partida nao finalizada")
+    void quandoGrupoPossuiPartidaNaoFinalizada() {
+        partida.setStatus(PartidaStatus.ABERTO);
+        when(grupoRepository.findById(1L)).thenReturn(Optional.of(grupo));
+        when(palpiteRepository.findByGrupoId(1L)).thenReturn(List.of(palpite));
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario));
+        when(pontuacaoPalpiteRepository.findByPalpite_Grupo_IdAndPalpite_Usuario_Id(1L, 1L))
+                .thenReturn(List.of());
+        when(pontuacaoPalpiteRepository.saveAll(any())).thenReturn(List.of());
+
+        var resultado = pontuacaoService.calcularPontuacoesDoGrupo(1L);
+
+        assertTrue(resultado.isEmpty());
+    }
+
+    @Test
+    @DisplayName("calcularPontuacoesDoGrupo rejeita gol visitante nulo")
+    void quandoGrupoPossuiPartidaFinalizadaComGolVisitanteNulo() {
+        partida.setGolsVisitante(null);
+        when(grupoRepository.findById(1L)).thenReturn(Optional.of(grupo));
+        when(palpiteRepository.findByGrupoId(1L)).thenReturn(List.of(palpite));
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario));
+        when(pontuacaoPalpiteRepository.findByPalpite_Grupo_IdAndPalpite_Usuario_Id(1L, 1L))
+                .thenReturn(List.of());
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> pontuacaoService.calcularPontuacoesDoGrupo(1L)
+        );
+    }
+
+    @Test
+    @DisplayName("calcularPontuacoesDoGrupo nao publica ranking para grupo vazio")
+    void quandoGrupoNaoPossuiParticipantes() {
+        Grupo grupoSemParticipantes = Grupo.builder().id(2L).nome("Grupo vazio").build();
+        when(grupoRepository.findById(2L)).thenReturn(Optional.of(grupoSemParticipantes));
+        when(palpiteRepository.findByGrupoId(2L)).thenReturn(List.of());
+        when(pontuacaoPalpiteRepository.saveAll(any())).thenReturn(List.of());
+
+        var resultado = pontuacaoService.calcularPontuacoesDoGrupo(2L);
+
+        assertTrue(resultado.isEmpty());
+        verify(eventPublisher, never()).publishEvent(any(RankingAtualizadoEvent.class));
+    }
 }
